@@ -99,7 +99,7 @@ const AppSidebar: React.FC = () => {
                     nav.path === pathname
                       ? "menu-item-active"
                       : "menu-item-inactive",
-                    isWide ? "lg:justify-start" : "lg:justify-center",
+                    isWide ? "xl:justify-start" : "xl:justify-center",
                   )}
                 >
                   <span
