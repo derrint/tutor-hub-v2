@@ -1,0 +1,204 @@
+// TutorHub — Prisma schema
+// This data model reflects the decisions we agreed on:
+// - Single-tutor (no multi-user/multi-tutor support yet)
+// - Recurring schedule with occurrences generated ahead of time (rolling window)
+// - Absent -> fee is excluded from that month's invoice
+// - Inactive student -> auto-stops the recurring rule (sets endDate + deletes future occurrences)
+// - Invoice per Parent per calendar month, broken down per child (list of session dates)
+// - Simple invoice status: unpaid / paid (no "overdue" as a stored status)
+// - Monthly report per student, draft / published status (similar pattern to invoices)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EducationLevel {
+  TK // Kindergarten
+  SD // Elementary school
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SessionStatus {
+  SCHEDULED // upcoming, fee counts toward billing
+  ATTENDED  // fee counts toward billing (default once the session has passed; can be used to mark explicitly)
+  ABSENT    // did not attend, fee is EXCLUDED from that month's invoice
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+}
+
+// Tutor / studio profile — used for bank account info in invoice & WhatsApp templates.
+// Single-row table (single-tutor), but still modeled properly for future flexibility.
+model Profile {
+  id                String  @id @default(cuid())
+  studioName        String  @default("TutorHub")
+  accountHolderName String? // bank account holder name
+  bankName          String?
+  bankAccountNumber String?
+  whatsappNumber    String? // tutor's WhatsApp number (optional, used in message footer)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Parent {
+  id       String @id @default(cuid())
+  name     String
+  whatsapp String?
+
+  students Student[]
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id            String         @id @default(cuid())
+  name          String
+  age           Int?
+  level         EducationLevel
+  feePerSession Int            // in Rupiah, can be overridden per student
+  status        StudentStatus  @default(ACTIVE)
+
+  parent   Parent? @relation(fields: [parentId], references: [id])
+  parentId String?
+
+  scheduleRules ScheduleRule[]
+  sessions      Session[]
+  reports       MonthlyReport[]
+  invoiceItems  InvoiceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Rule for a weekly recurring schedule ("repeat every week").
+// For a one-off session, just create a Session directly without a ScheduleRule.
+model ScheduleRule {
+  id        String  @id @default(cuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  dayOfWeek Int    // 0 = Sunday ... 6 = Saturday
+  startTime String // "HH:mm"
+  endTime   String // "HH:mm"
+
+  startDate DateTime
+  // endDate is set automatically when the student is deactivated, or manually
+  // when the tutor stops the recurrence from a specific date.
+  endDate   DateTime?
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A single actual meeting (either generated from a ScheduleRule, or one-off).
+model Session {
+  id        String  @id @default(cuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  scheduleRule   ScheduleRule? @relation(fields: [scheduleRuleId], references: [id])
+  scheduleRuleId String?
+
+  date      DateTime // session date (date only, stored as midnight DateTime)
+  startTime String    // "HH:mm"
+  endTime   String    // "HH:mm"
+
+  status SessionStatus @default(SCHEDULED)
+  notes  String?       // short note, e.g. absence reason (free text, unstructured in v1)
+
+  // fee is snapshotted from Student.feePerSession when the session is created,
+  // so a later change to the student's fee doesn't alter past invoice history.
+  fee Int
+
+  // used to prevent the same session from being counted twice in an invoice.
+  invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
+  invoiceItemId String?      @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId, date])
+}
+
+model MonthlyReport {
+  id        String  @id @default(cuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  month Int // 1-12
+  year  Int
+
+  // Per-area content is stored flexibly (JSON) for now, until the final
+  // Montessori TK/SD report template is ready.
+  contentJson      Json?
+  generalNotes     String?
+  nextMonthTarget  String?
+
+  status      ReportStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, month, year])
+}
+
+model Invoice {
+  id       String @id @default(cuid())
+  parent   Parent @relation(fields: [parentId], references: [id])
+  parentId String
+
+  month Int // 1-12, calendar month period
+  year  Int
+
+  status InvoiceStatus @default(UNPAID)
+  paidAt DateTime?
+
+  items InvoiceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([parentId, month, year])
+}
+
+// A single per-child breakdown row within an invoice.
+// One-to-many with Session via Session.invoiceItemId (list of that child's
+// session dates for this month).
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  sessionCount  Int
+  feePerSession Int
+  subtotal      Int
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+}
