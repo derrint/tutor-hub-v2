@@ -11,7 +11,6 @@ import {
   FileIcon,
   GridIcon,
   GroupIcon,
-  HorizontaLDots,
 } from "@/icons";
 
 type NavItem = {
@@ -90,19 +89,6 @@ const AppSidebar: React.FC = () => {
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav className="mb-6">
-          <h2
-            className={cn(
-              "mb-4 flex text-xs leading-5 text-gray-400 uppercase",
-              isWide ? "justify-start" : "xl:justify-center",
-            )}
-          >
-            {isWide ? (
-              t("groups.menu")
-            ) : (
-              <HorizontaLDots className={navIconClass} />
-            )}
-          </h2>
-
           <ul className="flex flex-col gap-1">
             {navItems.map((nav) => (
               <li key={nav.key}>
