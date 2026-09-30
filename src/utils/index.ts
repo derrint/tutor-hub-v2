@@ -1,7 +1,16 @@
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export { formatDayAndMonth, formatFullDate, formatRupiah, LOCALE } from "./format";
+export {
+  formatDayAndMonth,
+  formatFullDate,
+  formatInvoicePeriodLabel,
+  formatInvoiceSessionDays,
+  formatInvoiceSessionDaysForMessage,
+  formatRupiah,
+  LOCALE,
+} from "./format";
+export type { InvoicePeriod } from "./format";
 
 /**
  * Combines and merges Tailwind CSS class names with conditional logic.

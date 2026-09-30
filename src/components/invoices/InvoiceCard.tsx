@@ -2,7 +2,11 @@ import StatusBadge from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { PlusIcon } from "@/icons";
 import type { InvoicePreview } from "@/lib/mock-data";
-import { formatRupiah } from "@/utils";
+import {
+  formatInvoicePeriodLabel,
+  formatInvoiceSessionDays,
+  formatRupiah,
+} from "@/utils";
 import { useTranslations } from "next-intl";
 import React from "react";
 
@@ -14,10 +18,6 @@ import React from "react";
 const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   const t = useTranslations("tutorHub.invoices");
 
-  // The session dates already carry the month number ("2/9"); the short month
-  // name is only there to read like the message she writes.
-  const shortMonth = invoice.monthLabel.slice(0, 3);
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
       <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4 sm:px-6">
@@ -26,7 +26,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
             {invoice.parentName}
           </h3>
           <p className="mt-0.5 text-theme-xs text-gray-500 dark:text-gray-400">
-            {invoice.monthLabel}
+            {formatInvoicePeriodLabel(invoice.period)}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -51,20 +51,19 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
           {invoice.children.map((child) => (
             <li
               key={child.id}
-              className="flex items-start justify-between gap-4 text-theme-sm"
+              className="flex items-start justify-between gap-4"
             >
-              <span className="flex flex-col">
-                <span className="text-gray-800 dark:text-white/90">
-                  {child.name}{" "}
-                  <span className="text-gray-500 dark:text-gray-400">
-                    · {t("sessionCount", { count: child.sessionCount })}
-                  </span>
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                  {child.name}
                 </span>
-                <span className="text-theme-xs text-gray-500 dark:text-gray-400">
-                  {child.sessionDates.join(", ")} {shortMonth}
-                </span>
+                <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+                  {t("sessionCount", { count: child.sessionCount })}
+                  {" — "}
+                  {formatInvoiceSessionDays(child.sessionDays)}
+                </p>
               </span>
-              <span className="tabular-nums text-gray-800 dark:text-white/90">
+              <span className="text-gray-800 tabular-nums dark:text-white/90">
                 {formatRupiah(child.subtotal)}
               </span>
             </li>
@@ -75,7 +74,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
           <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
             {t("total")}
           </span>
-          <span className="text-base font-bold tabular-nums text-gray-800 dark:text-white/90">
+          <span className="text-base font-bold text-gray-800 tabular-nums dark:text-white/90">
             {formatRupiah(invoice.total)}
           </span>
         </div>

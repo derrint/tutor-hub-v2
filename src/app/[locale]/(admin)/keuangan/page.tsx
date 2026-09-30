@@ -3,6 +3,7 @@ import FinanceTotals from "@/components/finance/FinanceTotals";
 import PaymentComposition from "@/components/finance/PaymentComposition";
 import { Link } from "@/i18n/navigation";
 import { FINANCE_SUMMARY, INVOICES } from "@/lib/mock-data";
+import { formatInvoicePeriodLabel } from "@/utils";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
@@ -15,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function KeuanganPage() {
   const t = await getTranslations("tutorHub.finance");
 
-  const { monthLabel, totalBilled, collected, unpaid } = FINANCE_SUMMARY;
+  const { period, totalBilled, collected, unpaid } = FINANCE_SUMMARY;
+  const monthLabel = formatInvoicePeriodLabel(period);
   const hasInvoices = totalBilled > 0;
   const collectedPercent = hasInvoices
     ? Math.round((collected / totalBilled) * 100)

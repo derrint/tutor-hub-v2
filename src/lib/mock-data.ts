@@ -5,6 +5,8 @@
 // Every name, fee, and date below is a fabricated placeholder for development.
 // None of it is real customer data.
 
+import type { InvoicePeriod } from "@/utils/format";
+
 export type EducationLevel = "TK" | "SD";
 export type StudentStatus = "ACTIVE" | "INACTIVE";
 export type SessionStatus = "SCHEDULED" | "ATTENDED" | "ABSENT";
@@ -168,19 +170,22 @@ export const RECURRING_SESSIONS: RecurringSession[] = [
   },
 ];
 
+/** Shared mock billing month (matches Prisma `Invoice.month` / `year`). */
+export const MOCK_INVOICE_PERIOD: InvoicePeriod = { month: 9, year: 2026 };
+
 export type InvoiceChildLine = {
   id: string;
   name: string;
   sessionCount: number;
   subtotal: number;
-  /** e.g. "2/9" — matches the format the tutor already uses over WhatsApp. */
-  sessionDates: string[];
+  /** Billable session days within the invoice `period` (calendar day of month). */
+  sessionDays: number[];
 };
 
 export type InvoicePreview = {
   id: string;
   parentName: string;
-  monthLabel: string;
+  period: InvoicePeriod;
   total: number;
   status: InvoiceStatus;
   children: InvoiceChildLine[];
@@ -190,7 +195,7 @@ export const INVOICES: InvoicePreview[] = [
   {
     id: "inv1",
     parentName: "Mama Askara",
-    monthLabel: "September 2026",
+    period: MOCK_INVOICE_PERIOD,
     total: 1500000,
     status: "UNPAID",
     children: [
@@ -199,21 +204,21 @@ export const INVOICES: InvoicePreview[] = [
         name: "Askara",
         sessionCount: 6,
         subtotal: 750000,
-        sessionDates: ["2/9", "7/9", "9/9", "23/9", "29/9", "30/9"],
+        sessionDays: [2, 7, 9, 23, 29, 30],
       },
       {
         id: "m2",
         name: "Arga",
         sessionCount: 6,
         subtotal: 750000,
-        sessionDates: ["2/9", "7/9", "9/9", "23/9", "29/9", "30/9"],
+        sessionDays: [2, 7, 9, 23, 29, 30],
       },
     ],
   },
   {
     id: "inv2",
     parentName: "Michelle",
-    monthLabel: "September 2026",
+    period: MOCK_INVOICE_PERIOD,
     total: 440000,
     status: "PAID",
     children: [
@@ -222,14 +227,14 @@ export const INVOICES: InvoicePreview[] = [
         name: "Gavendra",
         sessionCount: 4,
         subtotal: 440000,
-        sessionDates: ["3/9", "10/9", "17/9", "24/9"],
+        sessionDays: [3, 10, 17, 24],
       },
     ],
   },
 ];
 
 export const FINANCE_SUMMARY = {
-  monthLabel: "September 2026",
+  period: MOCK_INVOICE_PERIOD,
   totalBilled: 1940000,
   collected: 440000,
   unpaid: 1500000,
