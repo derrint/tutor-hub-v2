@@ -37,7 +37,10 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft }) => {
       <Button
         size="sm"
         variant={isDraft ? "primary" : "outline"}
-        startIcon={<PencilIcon className="size-4" />}
+        className="shrink-0"
+        startIcon={
+          <PencilIcon className="size-4 shrink-0 overflow-visible" />
+        }
         aria-label={t(isDraft ? "writeDraftAria" : "editAria", {
           name: student.name,
         })}

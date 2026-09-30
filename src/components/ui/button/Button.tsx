@@ -48,9 +48,17 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       aria-label={ariaLabel}
     >
-      {startIcon && <span className="flex items-center">{startIcon}</span>}
+      {startIcon && (
+        <span className="flex shrink-0 items-center overflow-visible">
+          {startIcon}
+        </span>
+      )}
       {children}
-      {endIcon && <span className="flex items-center">{endIcon}</span>}
+      {endIcon && (
+        <span className="flex shrink-0 items-center overflow-visible">
+          {endIcon}
+        </span>
+      )}
     </button>
   );
 };

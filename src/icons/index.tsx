@@ -1,57 +1,67 @@
-export { default as AlertIcon } from "./alert.svg";
-export { default as AngleDownIcon } from "./angle-down.svg";
-export { default as AngleUpIcon } from "./angle-up.svg";
-export { default as ArrowDownIcon } from "./arrow-down.svg";
-export { default as ArrowRightIcon } from "./arrow-right.svg";
-export { default as ArrowUpIcon } from "./arrow-up.svg";
-export { default as AudioIcon } from "./audio.svg";
-export { default as BoltIcon } from "./bolt.svg";
-export { default as BoxCubeIcon } from "./box-cube.svg";
-export { default as BoxIconLine } from "./box-line.svg";
-export { default as BoxIcon, default as BoxTapped } from "./box.svg";
-export { default as CalenderIcon } from "./calender-line.svg";
-export { default as ChatIcon } from "./chat.svg";
-export { default as CheckCircleIcon } from "./check-circle.svg";
-export { default as CheckLineIcon } from "./check-line.svg";
-export { default as ChevronDownIcon } from "./chevron-down.svg";
-export { default as ChevronLeftIcon } from "./chevron-left.svg";
-export { default as ChevronUpIcon } from "./chevron-up.svg";
-export { default as CloseLineIcon } from "./close-line.svg";
-export { default as CloseIcon } from "./close.svg";
-export { default as CopyIcon } from "./copy.svg";
-export { default as DocsIcon } from "./docs.svg";
-export { default as DollarLineIcon } from "./dollar-line.svg";
-export { default as DownloadIcon } from "./download.svg";
-export { default as EnvelopeIcon } from "./envelope.svg";
-export { default as EyeCloseIcon } from "./eye-close.svg";
-export { default as EyeIcon } from "./eye.svg";
-export { default as FileIcon } from "./file.svg";
+/**
+ * Icon barrel — Lucide components aliased to legacy TailAdmin export names so
+ * existing imports keep working. Country flags stay as custom SVGs (SVGR).
+ */
+export {
+  TriangleAlert as AlertIcon,
+  ArrowDown as ArrowDownIcon,
+  ArrowRight as ArrowRightIcon,
+  ArrowUp as ArrowUpIcon,
+  AudioLines as AudioIcon,
+  Bookmark as BookmarkIcon,
+  Bolt as BoltIcon,
+  Box as BoxIcon,
+  Box as BoxTapped,
+  Boxes as BoxCubeIcon,
+  Package as BoxIconLine,
+  Calendar as CalenderIcon,
+  MessageCircle as ChatIcon,
+  Check as CheckLineIcon,
+  CircleCheck as CheckCircleIcon,
+  ChevronDown as AngleDownIcon,
+  ChevronDown as ChevronDownIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronUp as AngleUpIcon,
+  ChevronUp as ChevronUpIcon,
+  X as CloseIcon,
+  X as CloseLineIcon,
+  Copy as CopyIcon,
+  FileText as DocsIcon,
+  CircleDollarSign as DollarLineIcon,
+  Download as DownloadIcon,
+  Mail as EnvelopeIcon,
+  Eye as EyeIcon,
+  EyeOff as EyeCloseIcon,
+  File as FileIcon,
+  Folder as FolderIcon,
+  LayoutGrid as GridIcon,
+  Users as GroupIcon,
+  Ellipsis as HorizontaLDots,
+  OctagonAlert as ErrorIcon,
+  Info as InfoIcon,
+  List as ListIcon,
+  Lock as LockIcon,
+  Mail as MailIcon,
+  Ellipsis as MoreDotIcon,
+  FileText as PageIcon,
+  Send as PaperPlaneIcon,
+  Pencil as PencilIcon,
+  PieChart as PieChartIcon,
+  Plug as PlugInIcon,
+  Plus as PlusIcon,
+  Sparkles as ShootingStarIcon,
+  Table as TableIcon,
+  ClipboardList as TaskIcon,
+  Clock as TimeIcon,
+  Trash2 as TrashBinIcon,
+  Upload as UploadIcon,
+  CircleUser as UserCircleIcon,
+  User as UserIcon,
+  Video as VideoIcon,
+} from "lucide-react";
+
 export { default as DeFlagIcon } from "./flag-de.svg";
 export { default as EsFlagIcon } from "./flag-es.svg";
 export { default as SaFlagIcon } from "./flag-sa.svg";
 export { default as UsFlagIcon } from "./flag-us.svg";
-export { default as FolderIcon } from "./folder.svg";
-export { default as GridIcon } from "./grid.svg";
-export { default as GroupIcon } from "./group.svg";
-export { default as HorizontaLDots } from "./horizontal-dots.svg";
-export { default as ErrorIcon } from "./info-hexa.svg";
-export { default as InfoIcon } from "./info.svg";
-export { default as ListIcon } from "./list.svg";
-export { default as LockIcon } from "./lock.svg";
-export { default as MailIcon } from "./mail-line.svg";
-export { default as MoreDotIcon } from "./more-dot.svg";
-export { default as PageIcon } from "./page.svg";
-export { default as PaperPlaneIcon } from "./paper-plane.svg";
-export { default as PencilIcon } from "./pencil.svg";
-export { default as PieChartIcon } from "./pie-chart.svg";
-export { default as PlugInIcon } from "./plug-in.svg";
-export { default as PlusIcon } from "./plus.svg";
-export { default as ShootingStarIcon } from "./shooting-star.svg";
-export { default as TableIcon } from "./table.svg";
-export { default as TaskIcon } from "./task-icon.svg";
-export { default as TimeIcon } from "./time.svg";
-export { default as TrashBinIcon } from "./trash.svg";
-export { default as UploadIcon } from "./upload.svg";
-export { default as UserCircleIcon } from "./user-circle.svg";
-export { default as UserIcon } from "./user-line.svg";
-export { default as VideoIcon } from "./videos.svg";

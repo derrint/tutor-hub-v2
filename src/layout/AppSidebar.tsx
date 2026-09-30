@@ -12,7 +12,7 @@ import {
   GridIcon,
   GroupIcon,
   HorizontaLDots,
-} from "../icons/index";
+} from "@/icons";
 
 type NavItem = {
   key: string;
@@ -21,13 +21,39 @@ type NavItem = {
 };
 
 // TutorHub has a single flat level of navigation — six pages, no submenus.
+const navIconClass = "size-6 shrink-0";
+
 const navItems: NavItem[] = [
-  { key: "dashboard", path: "/", icon: <GridIcon /> },
-  { key: "jadwal", path: "/jadwal", icon: <CalenderIcon /> },
-  { key: "murid", path: "/murid", icon: <GroupIcon /> },
-  { key: "tagihan", path: "/tagihan", icon: <DocsIcon /> },
-  { key: "laporan", path: "/laporan", icon: <FileIcon /> },
-  { key: "keuangan", path: "/keuangan", icon: <DollarLineIcon /> },
+  {
+    key: "dashboard",
+    path: "/",
+    icon: <GridIcon className={navIconClass} />,
+  },
+  {
+    key: "jadwal",
+    path: "/jadwal",
+    icon: <CalenderIcon className={navIconClass} />,
+  },
+  {
+    key: "murid",
+    path: "/murid",
+    icon: <GroupIcon className={navIconClass} />,
+  },
+  {
+    key: "tagihan",
+    path: "/tagihan",
+    icon: <DocsIcon className={navIconClass} />,
+  },
+  {
+    key: "laporan",
+    path: "/laporan",
+    icon: <FileIcon className={navIconClass} />,
+  },
+  {
+    key: "keuangan",
+    path: "/keuangan",
+    icon: <DollarLineIcon className={navIconClass} />,
+  },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -70,7 +96,11 @@ const AppSidebar: React.FC = () => {
               isWide ? "justify-start" : "xl:justify-center",
             )}
           >
-            {isWide ? t("groups.menu") : <HorizontaLDots />}
+            {isWide ? (
+              t("groups.menu")
+            ) : (
+              <HorizontaLDots className={navIconClass} />
+            )}
           </h2>
 
           <ul className="flex flex-col gap-1">

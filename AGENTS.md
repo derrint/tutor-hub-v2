@@ -31,7 +31,7 @@ src/
 ├── layout/                    # admin shell: AppSidebar, AppHeader
 ├── context/                   # SidebarContext, ThemeContext
 ├── hooks/                     # useModal, useGoBack, useClickOutside
-├── icons/                     # .svg + index.tsx barrel (SVGR)
+├── icons/                     # index.tsx (Lucide aliases) + flag .svgs (SVGR)
 ├── proxy.ts                  # next-intl routing middleware
 └── utils/
 ```
@@ -48,7 +48,7 @@ src/
 
 - **New page** → add a folder under the matching `src/app/[locale]/(...)/` group; colocate route-only components there. Never place pages outside `[locale]`.
 - **New reusable component** → `components/<feature>/` if domain-specific, else `components/common/` or `components/ui/`.
-- **New icon** → drop the `.svg` in `icons/`, export it from the `index.tsx` barrel with a PascalCase name. Never inline SVG markup in components.
+- **Icons** → use **`lucide-react`**. Import from `@/icons` (legacy TailAdmin names as Lucide aliases) or directly from `lucide-react` for new code. Add aliases in `src/icons/index.tsx` when you need a shared name. **Flags only**: custom `.svg` in `icons/` + SVGR export. Never inline SVG markup in components.
 - Route groups: `(admin)` is the only group with the sidebar/header shell; `(full-width-pages)` renders pages without chrome; `(layouts-example)` holds alternative sidebar layouts.
 - Component files are **PascalCase** (`MonthlySalesChart.tsx`) with a **default export**; route files stay lowercase (`page.tsx`, `layout.tsx`); hooks are camelCase (`useModal.ts`).
 - Root `app/[locale]/layout.tsx` is a Server Component setting up `NextIntlClientProvider`, fonts, direction (`dir="ltr"|"rtl"`), and providers. The `(admin)` shell layout and interactive UI are Client Components — add `"use client"` whenever using hooks, event handlers, or browser APIs.
@@ -99,7 +99,7 @@ src/
 - Prefer primitives from `src/components/ui/` and `src/components/form/` over raw HTML or new third-party equivalents.
 - Wrap demo/page sections in `ComponentCard` and add `PageBreadCrumb` at the top of pages, matching existing pages.
 - **Charts**: `react-apexcharts` must be dynamically imported — `const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })`.
-- **Calendar & carousels**: `FullCalendar` and `Swiper` are also client-only libraries — dynamically import them the same way (`dynamic(() => import(...), { ssr: false })`) rather than importing directly, unless they're already isolated inside a component that's rendered client-side only (verify before assuming).- **Icons**: import from `@/icons` (SVGs are compiled to React components via `@svgr/webpack`, configured for both webpack and Turbopack).
+- **Calendar & carousels**: `FullCalendar` and `Swiper` are also client-only libraries — dynamically import them the same way (`dynamic(() => import(...), { ssr: false })`) rather than importing directly, unless they're already isolated inside a component that's rendered client-side only (verify before assuming).- **Icons**: `lucide-react` via `@/icons` or direct import; flag SVGs only use `@svgr/webpack` (webpack + Turbopack).
 - Modals use the `useModal` hook (`isOpen`, `openModal`, `closeModal`, `toggleModal`).
 - Global state goes through the existing contexts (`useSidebar`, `useTheme`) — don't add new providers without need.
 

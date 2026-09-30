@@ -31,7 +31,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CloseIcon,
-} from "./icons";
+} from "@/icons";
 import type { CalendarEvent, EventFormData } from "./types";
 
 const INITIAL_EVENTS: CalendarEvent[] = [
