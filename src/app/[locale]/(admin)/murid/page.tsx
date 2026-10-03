@@ -26,7 +26,7 @@ export default async function MuridPage() {
           total: STUDENTS.length,
         })}
         action={
-          <Button size="sm" startIcon={<PlusIcon className="size-5" />}>
+          <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
             {t("add")}
           </Button>
         }

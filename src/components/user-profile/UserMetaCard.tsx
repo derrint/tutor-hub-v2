@@ -175,7 +175,7 @@ export default function UserMetaCard() {
               onClick={openModal}
               className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200"
             >
-              <PencilIcon className="size-5" />
+              <PencilIcon className="size-4" />
               Edit
             </button>
           </div>

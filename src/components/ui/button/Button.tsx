@@ -23,10 +23,10 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   "aria-label": ariaLabel,
 }) => {
-  // Size Classes
+  // sm: compact toolbar / inline actions (~36px). md: primary CTAs, aligned with h-11 inputs.
   const sizeClasses = {
-    sm: "px-4 py-3 text-sm",
-    md: "px-5 py-3.5 text-sm",
+    sm: "h-9 gap-1.5 px-3.5 text-theme-sm",
+    md: "h-11 gap-2 px-5 text-sm",
   };
 
   // Variant Classes
@@ -39,7 +39,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition ${className} ${
+      className={`inline-flex items-center justify-center rounded-lg font-medium transition ${className} ${
         sizeClasses[size]
       } ${variantClasses[variant]} ${
         disabled ? "cursor-not-allowed opacity-50" : ""

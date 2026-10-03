@@ -24,7 +24,7 @@ export default async function JadwalPage() {
         title={t("title")}
         description={formatFullDate(new Date())}
         action={
-          <Button size="sm" startIcon={<PlusIcon className="size-5" />}>
+          <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
             {t("add")}
           </Button>
         }

@@ -21,7 +21,7 @@ export default async function TagihanPage() {
         title={t("title")}
         description={t("description")}
         action={
-          <Button size="sm" startIcon={<PlusIcon className="size-5" />}>
+          <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
             {t("create")}
           </Button>
         }
