@@ -76,7 +76,7 @@ export interface CalendarProps {
    */
   readOnly?: boolean;
   showViewSelect?: boolean;
-  /** Override dropdown labels (e.g. Indonesian copy on Jadwal). */
+  /** Override dropdown labels (e.g. localized view names on Schedule). */
   viewOptions?: CalendarViewOption[];
   onEventClick?: (info: EventClickInfo) => void;
 }

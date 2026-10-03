@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("invoices.title")} | ${t("brand")}` };
 }
 
-export default async function TagihanPage() {
+export default async function InvoicesPage() {
   const t = await getTranslations("tutorHub.invoices");
 
   return (

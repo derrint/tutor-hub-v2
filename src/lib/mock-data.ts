@@ -118,7 +118,7 @@ export type RecurringSession = {
   endTime: string;
 };
 
-// Weekly recurring sessions — feeds the desktop calendar grid on /jadwal.
+// Weekly recurring sessions — feeds the desktop calendar grid on /schedule.
 // Materialized into concrete events by FullCalendar's own recurring-event
 // support (daysOfWeek + startTime/endTime), so navigating weeks "just works"
 // without us generating dates by hand.

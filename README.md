@@ -15,14 +15,14 @@ The app is a **working UI shell** with **mock data only** — no Postgres connec
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard — today’s sessions, active students, collection summary |
-| `/jadwal` | Weekly schedule (FullCalendar, read-only recurring sessions) |
-| `/murid` | Student list |
-| `/tagihan` | Invoices per parent / month |
-| `/laporan` | Monthly report status per student (draft placeholder) |
-| `/keuangan` | Billed / collected / unpaid totals |
+| `/schedule` | Weekly schedule (FullCalendar, read-only recurring sessions) |
+| `/students` | Student list |
+| `/invoices` | Invoices per parent / month |
+| `/reports` | Monthly report status per student (draft placeholder) |
+| `/finance` | Billed / collected / unpaid totals |
 
-- User-facing copy is **Indonesian**; code and schema fields are **English**.
-- **Tambah**, **Buat Invoice**, **Tulis Draft**, etc. are visible but **not wired to persistence** yet.
+- User-facing copy is **English** (`en-US` dates); **Rp** amounts and future **WhatsApp** invoice text stay Indonesian-style per product rules.
+- **Add**, **Create invoice**, **Write draft**, etc. are visible but **not wired to persistence** yet.
 - **WhatsApp `wa.me` links** are planned ([Phase 1](./ROADMAP.md#phase-1--mock-ux-that-matches-real-workflow)); not implemented in Milestone 0.
 - Names, fees, and dates in `src/lib/mock-data.ts` are **fabricated placeholders**, not real customer data.
 
@@ -34,9 +34,9 @@ TailAdmin **demo routes** (ecommerce, UI element galleries, etc.) may still exis
 
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
 - **Tailwind CSS v4** (theme in `src/app/globals.css`)
-- **next-intl** (locale `en` in config; Indonesian product copy in `src/messages/en.json`)
+- **next-intl** (locale `en` in config; English product copy in `src/messages/en.json`)
 - **Lucide** icons via `@/icons` (legacy TailAdmin names as aliases)
-- **FullCalendar v7** on Jadwal (read-only for TutorHub)
+- **FullCalendar v7** on Schedule (read-only for TutorHub)
 - **Prisma** schema + `prisma.config.ts` prepared; **database not required** to run the app today
 - **pnpm** 10.11.0 (`packageManager` in `package.json`)
 
@@ -81,8 +81,8 @@ src/
 ├── components/               # Feature UI (dashboard, schedule, invoices, …)
 ├── lib/mock-data.ts          # Temporary data until Phase 2
 ├── layout/                   # AppSidebar, AppHeader
-├── messages/en.json          # Indonesian UI strings (tutorHub.*)
-├── utils/format.ts           # Rupiah, dates, invoice period / session days
+├── messages/en.json          # English UI strings (tutorHub.*)
+├── utils/format.ts           # Rp, en-US dates, WhatsApp month names (id-ID)
 prisma/schema.prisma          # Target data model (Profile, Student, Session, Invoice, …)
 ```
 

@@ -8,6 +8,7 @@ export {
   formatInvoiceSessionDays,
   formatInvoiceSessionDaysForMessage,
   formatRupiah,
+  DISPLAY_LOCALE,
   LOCALE,
 } from "./format";
 export type { InvoicePeriod } from "./format";

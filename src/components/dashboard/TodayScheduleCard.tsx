@@ -10,7 +10,7 @@ export default async function TodayScheduleCard() {
   return (
     <ComponentCard
       title={t("todayTitle")}
-      action={<SeeAllLink href="/jadwal" label={t("seeAll")} />}
+      action={<SeeAllLink href="/schedule" label={t("seeAll")} />}
     >
       <SessionList
         sessions={TODAY_SCHEDULE}

@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("schedule.title")} | ${t("brand")}` };
 }
 
-export default async function JadwalPage() {
+export default async function SchedulePage() {
   const t = await getTranslations("tutorHub.schedule");
 
   return (

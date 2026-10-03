@@ -56,7 +56,7 @@ const FinanceTotals: React.FC<FinanceTotalsProps> = ({
         </p>
         {unpaidCount > 0 && (
           <Link
-            href="/tagihan"
+            href="/invoices"
             className="mt-1 inline-block text-theme-xs font-medium text-warning-600 underline-offset-4 hover:underline dark:text-orange-400"
           >
             {t("viewUnpaid", { count: unpaidCount })}

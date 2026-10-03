@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("students.title")} | ${t("brand")}` };
 }
 
-export default async function MuridPage() {
+export default async function StudentsPage() {
   const t = await getTranslations("tutorHub.students");
 
   const activeCount = STUDENTS.filter((s) => s.status === "ACTIVE").length;

@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("finance.title")} | ${t("brand")}` };
 }
 
-export default async function KeuanganPage() {
+export default async function FinancePage() {
   const t = await getTranslations("tutorHub.finance");
 
   const { period, totalBilled, collected, unpaid } = FINANCE_SUMMARY;
@@ -39,7 +39,7 @@ export default async function KeuanganPage() {
             {t("emptyDescription")}
           </p>
           <Link
-            href="/tagihan"
+            href="/invoices"
             className="text-theme-sm font-medium text-brand-500 underline-offset-4 hover:underline"
           >
             {t("emptyCta")}

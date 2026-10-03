@@ -14,7 +14,7 @@ interface SessionListProps {
 
 /**
  * Today's concrete sessions, shared by the dashboard card and the mobile
- * agenda on /jadwal. An absent or attended session is dimmed so the day's
+ * agenda on /schedule. An absent or attended session is dimmed so the day's
  * remaining work stays the thing that stands out.
  */
 const SessionList: React.FC<SessionListProps> = ({

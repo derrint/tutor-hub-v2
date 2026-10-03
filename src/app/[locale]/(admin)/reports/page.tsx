@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Science) is still pending from the tutor, so nothing here writes a report
  * yet and the draft/published split is still a placeholder.
  */
-export default async function LaporanPage() {
+export default async function ReportsPage() {
   const t = await getTranslations("tutorHub.reports");
 
   const reports = STUDENTS.filter((s) => s.status === "ACTIVE").map(

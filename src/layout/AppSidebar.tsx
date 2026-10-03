@@ -29,28 +29,28 @@ const navItems: NavItem[] = [
     icon: <GridIcon className={navIconClass} />,
   },
   {
-    key: "jadwal",
-    path: "/jadwal",
+    key: "schedule",
+    path: "/schedule",
     icon: <CalenderIcon className={navIconClass} />,
   },
   {
-    key: "murid",
-    path: "/murid",
+    key: "students",
+    path: "/students",
     icon: <GroupIcon className={navIconClass} />,
   },
   {
-    key: "tagihan",
-    path: "/tagihan",
+    key: "invoices",
+    path: "/invoices",
     icon: <DocsIcon className={navIconClass} />,
   },
   {
-    key: "laporan",
-    path: "/laporan",
+    key: "reports",
+    path: "/reports",
     icon: <FileIcon className={navIconClass} />,
   },
   {
-    key: "keuangan",
-    path: "/keuangan",
+    key: "finance",
+    path: "/finance",
     icon: <DollarLineIcon className={navIconClass} />,
   },
 ];

@@ -16,7 +16,7 @@ export default async function MonthlyCollectionCard() {
   return (
     <ComponentCard
       title={t("financeTitle")}
-      action={<SeeAllLink href="/keuangan" label={t("seeAll")} />}
+      action={<SeeAllLink href="/finance" label={t("seeAll")} />}
     >
       {hasInvoices ? (
         <div>

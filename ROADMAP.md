@@ -8,10 +8,10 @@ Living plan for **tutor-hub-v2** (TailAdmin Next.js shell). Product rules and co
 
 - [x] pnpm, Prisma **schema** + `prisma.config.ts` (no runtime DB)
 - [x] Mock data in `src/lib/mock-data.ts` (fabricated placeholders only)
-- [x] Six pages: Dashboard, Jadwal, Murid, Tagihan, Laporan, Keuangan
-- [x] Indonesian copy, TutorHub nav, shared formatters (`src/utils/format.ts`)
-- [x] Jadwal: read-only FullCalendar, recurring sessions, detail modal, view dropdown (Tahun / Bulan / Minggu / Hari)
-- [x] Tagihan: parent cards, `period` + `sessionDays`, invoice line layout
+- [x] Six pages: Dashboard, Schedule, Students, Invoices, Reports, Finance
+- [x] English UI copy, TutorHub nav, shared formatters (`src/utils/format.ts`)
+- [x] Schedule: read-only FullCalendar, recurring sessions, detail modal, view dropdown (Year / Month / Week / Day)
+- [x] Invoices: parent cards, `period` + `sessionDays`, invoice line layout
 - [x] Create/edit actions present but **non-persistent** (no server actions / API yet)
 - [x] **No** `wa.me` links in this milestone (by design)
 

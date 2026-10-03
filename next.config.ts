@@ -4,7 +4,15 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      { source: "/jadwal", destination: "/schedule", permanent: true },
+      { source: "/murid", destination: "/students", permanent: true },
+      { source: "/tagihan", destination: "/invoices", permanent: true },
+      { source: "/laporan", destination: "/reports", permanent: true },
+      { source: "/keuangan", destination: "/finance", permanent: true },
+    ];
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,

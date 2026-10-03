@@ -12,7 +12,6 @@ import { useModal } from "@/hooks/useModal";
 import { RECURRING_SESSIONS, type RecurringSession } from "@/lib/mock-data";
 import { formatDayAndMonth } from "@/utils";
 import type { EventClickInfo } from "@fullcalendar/react";
-import idLocale from "@fullcalendar/react/locales/id";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
@@ -65,7 +64,6 @@ const ScheduleCalendar: React.FC = () => {
         readOnly
         initialView="timeGridWeek"
         initialEvents={SESSION_EVENTS}
-        calendarLocale={idLocale}
         slotMinTime="12:00:00"
         slotMaxTime="21:00:00"
         viewOptions={viewOptions}
