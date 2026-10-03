@@ -37,7 +37,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   } = useModal();
 
   const whatsAppPayload = useMemo(() => {
-    if (!parent) return null;
+    if (invoice.status !== "UNPAID" || !parent) return null;
     const messageText = buildParentMonthlyWhatsAppMessage({
       invoice,
       profile: TUTOR_PROFILE,
