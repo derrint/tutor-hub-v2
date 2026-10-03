@@ -136,6 +136,7 @@
   "header": {
     "searchPlaceholder": "Search or type command...",
     "toggleSidebar": "Toggle Sidebar",
+    "applicationMenu": "Menu aplikasi",
     "notifications": {
       "title": "Notification",
       "requestsPermission": "requests permission to change",
