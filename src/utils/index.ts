@@ -5,6 +5,7 @@ export {
   formatDayAndMonth,
   formatFullDate,
   formatInvoicePeriodLabel,
+  formatInvoicePeriodMonthIndonesian,
   formatInvoiceSessionDays,
   formatInvoiceSessionDaysForMessage,
   formatRupiah,

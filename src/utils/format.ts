@@ -51,6 +51,14 @@ export function formatInvoicePeriodLabel(period: InvoicePeriod) {
   );
 }
 
+/** Bahasa month name for WhatsApp copy, e.g. `September`. */
+export function formatInvoicePeriodMonthIndonesian(period: InvoicePeriod) {
+  return new Date(period.year, period.month - 1, 1).toLocaleDateString(
+    WHATSAPP_LOCALE,
+    { month: "long" },
+  );
+}
+
 /**
  * Invoice line items: day-of-month list only (month is on the card header).
  * @example formatInvoiceSessionDays([2, 30, 7]) → "2, 7, 30"

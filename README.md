@@ -23,7 +23,7 @@ The app is a **working UI shell** with **mock data only** — no Postgres connec
 
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and future **WhatsApp** invoice text stay Indonesian-style per product rules.
 - **Add**, **Create invoice**, **Write draft**, etc. are visible but **not wired to persistence** yet.
-- **WhatsApp `wa.me` links** are planned ([Phase 1](./ROADMAP.md#phase-1--mock-ux-that-matches-real-workflow)); not implemented in Milestone 0.
+- **WhatsApp** on Invoices opens a combined rapot + payment prefill ([`src/lib/whatsapp/`](./src/lib/whatsapp/)); attach PDF rapot manually in WhatsApp.
 - Names, fees, and dates in `src/lib/mock-data.ts` are **fabricated placeholders**, not real customer data.
 
 TailAdmin **demo routes** (ecommerce, UI element galleries, etc.) may still exist on disk; they are not part of TutorHub navigation.
@@ -79,7 +79,8 @@ pnpm lint     # ESLint
 src/
 ├── app/[locale]/(admin)/     # TutorHub pages (dashboard + five feature routes)
 ├── components/               # Feature UI (dashboard, schedule, invoices, …)
-├── lib/mock-data.ts          # Temporary data until Phase 2
+├── lib/mock-data.ts          # Temporary data until Phase 2 (profile, parents, invoices)
+├── lib/whatsapp/             # Combined parent monthly message (Bahasa templates)
 ├── layout/                   # AppSidebar, AppHeader
 ├── messages/en.json          # English UI strings (tutorHub.*)
 ├── utils/format.ts           # Rp, en-US dates, WhatsApp month names (id-ID)

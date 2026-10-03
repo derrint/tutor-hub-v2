@@ -34,9 +34,11 @@ Internal-only operational tool for one tutor's private practice — not intended
 ## Operating Context
 
 - The tutor works from her phone most of the time; the app must be comfortable to use one-handed during or between sessions (**mobile-first**, but also usable on desktop).
-- Billing is currently done manually via WhatsApp text messages listing each child's attended dates and a total (see real example: "Untuk pembayaran les Arga, selama bulan September ini ada 6 kali pertemuan, yaitu: 2/9, 7/9, ... Biaya les Rp125.000/pertemuan, jadi totalnya Rp1.500.000"). The Invoices feature must produce **equivalent meaning** in WhatsApp prefill: grouped by parent, one line per child with session count and subtotal, then a grand total, plus the tutor's bank account info. On screen, invoice lines use **`sessionDays`** (day-of-month) plus **`period`** (month/year); formatters in `src/utils/format.ts` build display and message text (see `formatInvoiceSessionDays`, `formatInvoiceSessionDaysForMessage`).
+- **One WhatsApp per parent per month** combines **rapot** (PDF attached manually in WhatsApp) and **payment text** in a single message — not separate invoice-only and report-only sends. Canonical structure: time-of-day greeting + parent salutation → rapot intro (all children on that invoice) → per-child payment paragraph → fee/total → bank transfer block → closing. Real example captured in product discussion (Askara & Arga / September); code lives in `src/lib/whatsapp/` (`parentMonthlyWhatsAppTemplates` + `buildParentMonthlyWhatsAppMessage`).
+- **Session dates in WhatsApp** use **sorted day-of-month list** after “yaitu tanggal:” (e.g. `2, 7, 9, 23, 29, 30`) — month is already in “selama bulan September ini”. On-screen invoice cards match (day list; month on card header). `formatInvoiceSessionDaysForMessage` remains available if a future template needs month repeated.
+- **Template inputs (data, not hardcoded names):** tutor `Profile` (bank name, account number, holder); parent **salutation** (e.g. "Mama Askara dan Arga"), **honorific** (e.g. "Ma."), **WhatsApp** digits for `wa.me`; per-child lines from invoice (`sessionCount`, `sessionDays`, fees); combined total. Greeting time (`Selamat pagi/siang/sore/malam`) is derived from send time.
 - One parent can have multiple children enrolled (siblings), which is why invoices are grouped per parent rather than per child.
-- Progress reports are monthly per student, following a Montessori-area structure (Practical Life, Sensorial, Language, Mathematics, Culture & Science), pending a final template the tutor's wife will provide from her existing practice.
+- Progress reports are monthly per student (Montessori-area structure pending real template). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs attached in WhatsApp after the app opens the prefill).
 - Currency is Indonesian Rupiah (`Rp 1.500.000` with Indonesian-style grouping); UI copy and routes are English; **WhatsApp** invoice/report prefill remains Bahasa Indonesia. Code identifiers (variables, models, fields) stay in English.
 
 ## Current implementation (Milestone 0)
@@ -45,11 +47,11 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Six routes: Dashboard, Schedule, Students, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
 - **Schedule:** read-only calendar with recurring mock sessions, session detail modal, view switcher (Year / Month / Week / Day).
-- **Invoices:** cards per parent; invoice **`period`** + per-child **`sessionDays`**; status UNPAID/PAID badges.
+- **Invoices:** cards per parent; **`period`** + per-child **`sessionDays`**; UNPAID/PAID badges; **WhatsApp** opens combined rapot+invoice prefill (`TUTOR_PROFILE` + `PARENTS` mock).
 - **Finance / Dashboard:** monthly totals from mock `FINANCE_SUMMARY`.
 - **Reports:** draft/published badges; editor not implemented (template pending).
 - Create/edit buttons (**Add**, **Create invoice**, **Write draft**, …) are **non-functional** — no server actions, API, or localStorage persistence.
-- **No** `wa.me` links yet (Phase 1).
+- **WhatsApp** prefill on invoice cards (mock parent numbers); no report PDF generation yet.
 - **No** auth, **no** live Postgres.
 
 ## Capabilities and Constraints
@@ -62,8 +64,8 @@ Confirmed decisions (from product discussion):
 - **Student status**: `ACTIVE` / `INACTIVE`. Deactivating a student auto-stops their recurring schedule rule (sets an end date) and removes not-yet-occurred future sessions; past sessions remain untouched for billing/report history.
 - **Invoice period**: calendar month (1st–end of month), not a custom date range.
 - **Invoice status**: intentionally simple — `UNPAID` / `PAID` only. No stored "overdue" status (may be computed/derived in the UI later, but not persisted).
-- **WhatsApp**: v1 uses `wa.me` deep links with a pre-filled message template (matching the real invoice/report message format) — no paid WhatsApp Business API integration.
-- **Reports**: `DRAFT` / `PUBLISHED` status per student per month, conceptually similar to invoice send flow. Exact content template pending (Montessori-area structure proposed as a placeholder).
+- **WhatsApp**: v1 uses `wa.me` with **`buildParentMonthlyWhatsAppMessage`** (Indonesian template blocks in `src/lib/whatsapp/templates.ts`). PDF rapot is **not** attached by the app — tutor attaches in WhatsApp. No WhatsApp Business API.
+- **Reports**: `DRAFT` / `PUBLISHED` per student per month; PDF/content editor pending Montessori template. Send path is the **combined** parent message on Invoices, not a second WhatsApp button on Reports.
 
 ### Planned next (see ROADMAP)
 

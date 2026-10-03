@@ -12,6 +12,49 @@ export type StudentStatus = "ACTIVE" | "INACTIVE";
 export type SessionStatus = "SCHEDULED" | "ATTENDED" | "ABSENT";
 export type InvoiceStatus = "UNPAID" | "PAID";
 
+/** Tutor bank details for WhatsApp invoice footers (mirrors `Profile`). */
+export type TutorProfile = {
+  bankName: string;
+  bankAccountNumber: string;
+  accountHolderName: string;
+};
+
+export const TUTOR_PROFILE: TutorProfile = {
+  bankName: "BCA",
+  bankAccountNumber: "0113164902",
+  accountHolderName: "Anastasia Ceasaria Andini",
+};
+
+/** Parent contact + salutation for combined rapot + invoice WhatsApp. */
+export type MockParent = {
+  id: string;
+  /** How the tutor greets them, e.g. "Mama Askara dan Arga". */
+  salutation: string;
+  /** Short honorific in body copy, e.g. "Ma." */
+  honorific: string;
+  /** Digits only, country code included (no +) for `wa.me`. Placeholder numbers. */
+  whatsapp: string;
+};
+
+export const PARENTS: MockParent[] = [
+  {
+    id: "p1",
+    salutation: "Mama Askara dan Arga",
+    honorific: "Ma.",
+    whatsapp: "6281234567001",
+  },
+  {
+    id: "p2",
+    salutation: "Michelle",
+    honorific: "Ka.",
+    whatsapp: "6281234567002",
+  },
+];
+
+export function getParentById(parentId: string): MockParent | undefined {
+  return PARENTS.find((p) => p.id === parentId);
+}
+
 export type Student = {
   id: string;
   name: string;
@@ -20,6 +63,7 @@ export type Student = {
   feePerSession: number;
   status: StudentStatus;
   parentName: string;
+  parentId: string;
 };
 
 export const STUDENTS: Student[] = [
@@ -31,6 +75,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 125000,
     status: "ACTIVE",
     parentName: "Mama Askara",
+    parentId: "p1",
   },
   {
     id: "m2",
@@ -40,6 +85,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 125000,
     status: "ACTIVE",
     parentName: "Mama Askara",
+    parentId: "p1",
   },
   {
     id: "m3",
@@ -49,6 +95,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 110000,
     status: "ACTIVE",
     parentName: "Michelle",
+    parentId: "p2",
   },
   {
     id: "m4",
@@ -58,6 +105,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 110000,
     status: "ACTIVE",
     parentName: "Ibu Azka",
+    parentId: "p3",
   },
   {
     id: "m5",
@@ -67,6 +115,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 135000,
     status: "ACTIVE",
     parentName: "Ibu Aurell",
+    parentId: "p4",
   },
   {
     id: "m6",
@@ -76,6 +125,7 @@ export const STUDENTS: Student[] = [
     feePerSession: 135000,
     status: "INACTIVE",
     parentName: "Ibu Milena",
+    parentId: "p5",
   },
 ];
 
@@ -184,6 +234,7 @@ export type InvoiceChildLine = {
 
 export type InvoicePreview = {
   id: string;
+  parentId: string;
   parentName: string;
   period: InvoicePeriod;
   total: number;
@@ -194,6 +245,7 @@ export type InvoicePreview = {
 export const INVOICES: InvoicePreview[] = [
   {
     id: "inv1",
+    parentId: "p1",
     parentName: "Mama Askara",
     period: MOCK_INVOICE_PERIOD,
     total: 1500000,
@@ -217,6 +269,7 @@ export const INVOICES: InvoicePreview[] = [
   },
   {
     id: "inv2",
+    parentId: "p2",
     parentName: "Michelle",
     period: MOCK_INVOICE_PERIOD,
     total: 440000,

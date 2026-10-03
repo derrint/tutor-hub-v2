@@ -21,14 +21,14 @@ Living plan for **tutor-hub-v2** (TailAdmin Next.js shell). Product rules and co
 
 Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` in pages unless you explicitly choose to prototype server-side.
 
-### WhatsApp & invoice copy
+### WhatsApp — combined rapot + invoice (per parent)
 
-- [ ] Add tutor **Profile** mock (bank name, account number, account holder) for message footers
-- [ ] Build **invoice message template** (Indonesian) using:
-  - `formatInvoicePeriodLabel`, `formatInvoiceSessionDays`, `formatInvoiceSessionDaysForMessage`, `formatRupiah`
-  - Per-child lines: name, session count, day list, fee per session, subtotal, grand total
-- [ ] **Tagihan:** `wa.me` deep link on send/recreate (parent phone from mock Parent model shape)
-- [ ] Optional: copy-to-clipboard or preview modal before opening WhatsApp
+- [x] Tutor **Profile** mock (`TUTOR_PROFILE`) + **Parent** mock (`PARENTS`: salutation, honorific, WhatsApp digits)
+- [x] **Template blocks as data** — `src/lib/whatsapp/templates.ts` (greeting, rapot intro, per-child payment, fee/total, bank, closing)
+- [x] **`buildParentMonthlyWhatsAppMessage`** — day list after “yaitu tanggal:” (`formatInvoiceSessionDays`), uniform vs mixed fees
+- [x] **Invoices:** WhatsApp button → `wa.me` prefill; UI hint to attach rapot PDFs manually
+- [x] Preview modal before WhatsApp + copy message to clipboard
+- [ ] Replace placeholder parent WhatsApp numbers with real values (seed / settings UI later)
 
 ### Attendance (trust path)
 
@@ -41,7 +41,7 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 - [ ] “Buat Invoice” / “+ Invoice” opens preview or regenerates lines from **attended** sessions for the month
 - [ ] Mark invoice **Lunas** in UI (mock toggle)
 
-**Exit criteria:** Tutor can tap through mark attendance → see Tagihan update → open WhatsApp with correct text, all without a database.
+**Exit criteria:** Tutor can tap through mark attendance → see invoice update → open WhatsApp with combined rapot+payment text, all without a database.
 
 ---
 
@@ -117,6 +117,7 @@ Do not build unless requirements change:
 | Schema | `prisma/schema.prisma` |
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
+| WhatsApp templates | `src/lib/whatsapp/` |
 | Agent / repo conventions | `AGENTS.md` |
 
 **Suggested next sprint:** complete **Phase 1** (WhatsApp template + attendance on mock) before touching Postgres.

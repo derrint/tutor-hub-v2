@@ -1,14 +1,26 @@
+"use client";
+
 import StatusBadge from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
-import { PlusIcon } from "@/icons";
-import type { InvoicePreview } from "@/lib/mock-data";
+import { ChatIcon, PlusIcon } from "@/icons";
+import {
+  getParentById,
+  TUTOR_PROFILE,
+  type InvoicePreview,
+} from "@/lib/mock-data";
+import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
+import { useModal } from "@/hooks/useModal";
+import {
+  buildParentMonthlyWhatsAppMessage,
+  buildWaMeUrl,
+} from "@/lib/whatsapp";
 import {
   formatInvoicePeriodLabel,
   formatInvoiceSessionDays,
   formatRupiah,
 } from "@/utils";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useMemo } from "react";
 
 /**
  * One card per parent per month, mirroring the WhatsApp message the tutor
@@ -17,6 +29,30 @@ import React from "react";
  */
 const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   const t = useTranslations("tutorHub.invoices");
+  const parent = getParentById(invoice.parentId);
+  const {
+    isOpen: isPreviewOpen,
+    openModal: openPreview,
+    closeModal: closePreview,
+  } = useModal();
+
+  const whatsAppPayload = useMemo(() => {
+    if (!parent) return null;
+    const messageText = buildParentMonthlyWhatsAppMessage({
+      invoice,
+      profile: TUTOR_PROFILE,
+      parent,
+    });
+    return {
+      messageText,
+      whatsAppUrl: buildWaMeUrl(parent.whatsapp, messageText),
+    };
+  }, [invoice, parent]);
+
+  const studentNames = useMemo(
+    () => invoice.children.map((c) => c.name),
+    [invoice.children],
+  );
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
@@ -29,10 +65,23 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
             {formatInvoicePeriodLabel(invoice.period)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge
             variant={invoice.status === "PAID" ? "paid" : "unpaid"}
           />
+          {whatsAppPayload && (
+            <Button
+              size="sm"
+              variant="primary"
+              startIcon={<ChatIcon className="size-4" />}
+              aria-label={t("sendWhatsAppAria", {
+                parentName: invoice.parentName,
+              })}
+              onClick={openPreview}
+            >
+              {t("sendWhatsApp")}
+            </Button>
+          )}
           {invoice.status === "UNPAID" && (
             <Button
               size="sm"
@@ -78,7 +127,19 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
             {formatRupiah(invoice.total)}
           </span>
         </div>
+
       </div>
+
+      {whatsAppPayload && (
+        <InvoiceWhatsAppPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={closePreview}
+          parentName={invoice.parentName}
+          studentNames={studentNames}
+          messageText={whatsAppPayload.messageText}
+          whatsAppUrl={whatsAppPayload.whatsAppUrl}
+        />
+      )}
     </div>
   );
 };

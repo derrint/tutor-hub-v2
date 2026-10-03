@@ -223,7 +223,16 @@
       "recreateAria": "Regenerate invoice for {parentName}",
       "sessionCount": "{count, plural, one {# session} other {# sessions}}",
       "total": "Total",
-      "empty": "No invoices this month yet."
+      "empty": "No invoices this month yet.",
+      "sendWhatsApp": "WhatsApp",
+      "sendWhatsAppAria": "Preview rapot and invoice message for {parentName}",
+      "attachReportHint": "Attach each student’s rapot PDF in WhatsApp before sending.",
+      "previewTitle": "WhatsApp message",
+      "previewDescription": "Review the message for {parentName} before opening WhatsApp.",
+      "attachReportHintNamed": "In WhatsApp, attach each rapot PDF for: {names}.",
+      "copyMessage": "Copy message",
+      "copiedMessage": "Copied!",
+      "openWhatsApp": "Open WhatsApp"
     },
     "reports": {
       "title": "Reports",
