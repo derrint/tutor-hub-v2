@@ -11,6 +11,7 @@ import type {
   DayLaneInfo,
   EventClickInfo,
   EventDisplayInfo,
+  FormatterInput,
   LocaleInput,
   MoreLinkInfo,
   ToolbarSectionInfo,
@@ -37,6 +38,19 @@ import type {
   CalendarViewOption,
   EventFormData,
 } from "./types";
+
+/** Time grid axis labels and event ranges (Schedule + demo calendar). */
+const CALENDAR_SLOT_HEADER_24H: FormatterInput = {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+};
+
+const CALENDAR_EVENT_TIME_24H: FormatterInput = {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+};
 
 const INITIAL_EVENTS: CalendarEvent[] = [
   {
@@ -265,6 +279,8 @@ const Calendar: React.FC<CalendarProps> = ({
           ]}
           initialView={initialView}
           {...optionalOptions}
+          slotHeaderFormat={CALENDAR_SLOT_HEADER_24H}
+          eventTimeFormat={CALENDAR_EVENT_TIME_24H}
           direction={isRtlLayout ? "rtl" : "ltr"}
           // Toolbar Header configuration
           headerToolbar={{
