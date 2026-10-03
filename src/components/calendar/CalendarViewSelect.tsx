@@ -4,18 +4,20 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/utils";
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CALENDAR_VIEW_OPTIONS } from "./types";
+import { CALENDAR_VIEW_OPTIONS, type CalendarViewOption } from "./types";
 
 export interface CalendarViewSelectProps {
   currentView: string;
   onViewChange: (viewKey: string) => void;
   portalNode: Element | null;
+  options?: CalendarViewOption[];
 }
 
 const CalendarViewSelect: React.FC<CalendarViewSelectProps> = ({
   currentView,
   onViewChange,
   portalNode,
+  options = CALENDAR_VIEW_OPTIONS,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -23,9 +25,9 @@ const CalendarViewSelect: React.FC<CalendarViewSelectProps> = ({
   useClickOutside(dropdownRef, () => setIsOpen(false));
 
   const activeOption =
-    CALENDAR_VIEW_OPTIONS.find((v) => v.key === currentView) ||
-    CALENDAR_VIEW_OPTIONS.find((v) => v.key === "dayGridMonth") ||
-    CALENDAR_VIEW_OPTIONS[1];
+    options.find((v) => v.key === currentView) ||
+    options.find((v) => v.key === "dayGridMonth") ||
+    options[1];
 
   const handleSelect = (viewKey: string) => {
     onViewChange(viewKey);
@@ -67,7 +69,7 @@ const CalendarViewSelect: React.FC<CalendarViewSelectProps> = ({
 
       {isOpen && (
         <div className="calendar-view-menu absolute inset-e-0 z-50 mt-1.5 w-36 max-w-[calc(100vw-32px)] space-y-0.5 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg sm:w-38 dark:border-gray-700 dark:bg-gray-900">
-          {CALENDAR_VIEW_OPTIONS.map((view) => (
+          {options.map((view) => (
             <button
               key={view.key}
               type="button"

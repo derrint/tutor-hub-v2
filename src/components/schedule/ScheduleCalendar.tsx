@@ -1,7 +1,10 @@
 "use client";
 
 import Calendar from "@/components/calendar/Calendar";
-import type { CalendarEvent } from "@/components/calendar/types";
+import {
+  CALENDAR_VIEW_OPTIONS,
+  type CalendarEvent,
+} from "@/components/calendar/types";
 import LevelBadge from "@/components/common/LevelBadge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
@@ -11,7 +14,7 @@ import { formatDayAndMonth } from "@/utils";
 import type { EventClickInfo } from "@fullcalendar/react";
 import idLocale from "@fullcalendar/react/locales/id";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const SESSIONS_BY_ID = new Map(
   RECURRING_SESSIONS.map((session) => [session.id, session]),
@@ -35,8 +38,18 @@ type SelectedOccurrence = {
 
 const ScheduleCalendar: React.FC = () => {
   const t = useTranslations("tutorHub.schedule");
+  const tViews = useTranslations("tutorHub.schedule.views");
   const { isOpen, openModal, closeModal } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
+
+  const viewOptions = useMemo(
+    () =>
+      CALENDAR_VIEW_OPTIONS.map((option) => ({
+        ...option,
+        label: tViews(option.key),
+      })),
+    [tViews],
+  );
 
   const handleEventClick = (info: EventClickInfo) => {
     const session = SESSIONS_BY_ID.get(info.event.id);
@@ -55,6 +68,7 @@ const ScheduleCalendar: React.FC = () => {
         calendarLocale={idLocale}
         slotMinTime="12:00:00"
         slotMaxTime="21:00:00"
+        viewOptions={viewOptions}
         onEventClick={handleEventClick}
       />
 

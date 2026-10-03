@@ -195,7 +195,13 @@
       "detailDay": "Hari",
       "detailTime": "Jam",
       "detailNote": "Sesi berulang setiap minggu. Perubahan hanya berlaku untuk satu pertemuan.",
-      "close": "Tutup"
+      "close": "Tutup",
+      "views": {
+        "multiMonthYear": "Tahun",
+        "dayGridMonth": "Bulan",
+        "timeGridWeek": "Minggu",
+        "timeGridDay": "Hari"
+      }
     },
     "students": {
       "title": "Murid",

@@ -32,7 +32,11 @@ import {
   ChevronRightIcon,
   CloseIcon,
 } from "@/icons";
-import type { CalendarEvent, EventFormData } from "./types";
+import type {
+  CalendarEvent,
+  CalendarViewOption,
+  EventFormData,
+} from "./types";
 
 const INITIAL_EVENTS: CalendarEvent[] = [
   {
@@ -67,8 +71,13 @@ export interface CalendarProps {
   /**
    * Hides the add/edit flow entirely: no "Add Event" button, no date
    * selection, and no edit modal. Clicks are handed to `onEventClick` instead.
+   * View switching (Month / Week / …) stays available unless `showViewSelect`
+   * is false.
    */
   readOnly?: boolean;
+  showViewSelect?: boolean;
+  /** Override dropdown labels (e.g. Indonesian copy on Jadwal). */
+  viewOptions?: CalendarViewOption[];
   onEventClick?: (info: EventClickInfo) => void;
 }
 
@@ -79,6 +88,8 @@ const Calendar: React.FC<CalendarProps> = ({
   slotMinTime,
   slotMaxTime,
   readOnly = false,
+  showViewSelect = true,
+  viewOptions,
   onEventClick,
 }) => {
   const appLocale = useLocale();
@@ -553,11 +564,12 @@ const Calendar: React.FC<CalendarProps> = ({
           )}
         />
 
-        {!readOnly && (
+        {showViewSelect && (
           <CalendarViewSelect
             currentView={currentView}
             onViewChange={handleViewChange}
             portalNode={portalNode}
+            options={viewOptions}
           />
         )}
       </div>
