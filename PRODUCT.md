@@ -8,7 +8,16 @@ web
 
 ## Stack
 
-Next.js (App Router, TypeScript) + Tailwind CSS v4 + shadcn/ui, with Prisma (PostgreSQL) planned as the data layer. Chosen directly by the user (not delegated) after an earlier attempt to design via Google Stitch was rejected as too complex; the user asked to build directly in code instead, applying design principles from the `emil-design-eng` and `apple-design` skills rather than a generated design tool.
+**TutorHub v2** is implemented on the **TailAdmin Pro / Next.js** admin shell (not the earlier shadcn prototype):
+
+- **Next.js 16** App Router, **React 19**, **TypeScript**
+- **Tailwind CSS v4** (design tokens in `src/app/globals.css`)
+- **next-intl** — Indonesian user-facing copy; routing configured in `src/i18n/`
+- **Lucide** (`lucide-react`) for icons; country flags remain custom SVGs
+- **FullCalendar** for Jadwal (read-only recurring schedule in the current milestone)
+- **Prisma** + **PostgreSQL** — schema and `prisma.config.ts` are in repo; **runtime DB is Phase 2** ([`ROADMAP.md`](./ROADMAP.md)). Pages today read **`src/lib/mock-data.ts` only**.
+
+An earlier Google Stitch exploration was abandoned in favor of building directly in code.
 
 ## Users
 
@@ -24,11 +33,24 @@ Internal-only operational tool for one tutor's private practice — not intended
 
 ## Operating Context
 
-- The tutor works from her phone most of the time; the app must be comfortable to use one-handed during or between sessions (mobile-first, but also usable on desktop).
-- Billing is currently done manually via WhatsApp text messages listing each child's attended dates and a total (see real example: "Untuk pembayaran les Arga, selama bulan September ini ada 6 kali pertemuan, yaitu: 2/9, 7/9, ... Biaya les Rp125.000/pertemuan, jadi totalnya Rp1.500.000"). The Tagihan (Invoice) feature must produce output that matches this real-world format: grouped by parent, one line per child with session count and subtotal, then a grand total, plus the tutor's bank account info.
+- The tutor works from her phone most of the time; the app must be comfortable to use one-handed during or between sessions (**mobile-first**, but also usable on desktop).
+- Billing is currently done manually via WhatsApp text messages listing each child's attended dates and a total (see real example: "Untuk pembayaran les Arga, selama bulan September ini ada 6 kali pertemuan, yaitu: 2/9, 7/9, ... Biaya les Rp125.000/pertemuan, jadi totalnya Rp1.500.000"). The Tagihan feature must produce **equivalent meaning** in WhatsApp prefill: grouped by parent, one line per child with session count and subtotal, then a grand total, plus the tutor's bank account info. On screen, invoice lines use **`sessionDays`** (day-of-month) plus **`period`** (month/year); formatters in `src/utils/format.ts` build display and message text (see `formatInvoiceSessionDays`, `formatInvoiceSessionDaysForMessage`).
 - One parent can have multiple children enrolled (siblings), which is why invoices are grouped per parent rather than per child.
 - Progress reports are monthly per student, following a Montessori-area structure (Practical Life, Sensorial, Language, Mathematics, Culture & Science), pending a final template the tutor's wife will provide from her existing practice.
-- Currency is Indonesian Rupiah; primary language for user-facing copy is Indonesian (Bahasa Indonesia), while code identifiers (variables, models, fields) are kept in English per explicit request.
+- Currency is Indonesian Rupiah (`Rp 1.500.000` via `id-ID` locale); primary language for user-facing copy is Indonesian (Bahasa Indonesia), while code identifiers (variables, models, fields) are kept in English per explicit request.
+
+## Current implementation (Milestone 0)
+
+Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
+
+- Six routes: Dashboard, Jadwal, Murid, Tagihan, Laporan, Keuangan — Indonesian labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
+- **Jadwal:** read-only calendar with recurring mock sessions, session detail modal, view switcher (Tahun / Bulan / Minggu / Hari).
+- **Tagihan:** cards per parent; invoice **`period`** + per-child **`sessionDays`**; status UNPAID/PAID badges.
+- **Keuangan / Dashboard:** monthly totals from mock `FINANCE_SUMMARY`.
+- **Laporan:** draft/published badges; editor not implemented (template pending).
+- Create/edit buttons (**Tambah**, **Buat Invoice**, **Tulis Draft**, …) are **non-functional** — no server actions, API, or localStorage persistence.
+- **No** `wa.me` links yet (Phase 1).
+- **No** auth, **no** live Postgres.
 
 ## Capabilities and Constraints
 
@@ -42,22 +64,28 @@ Confirmed decisions (from product discussion):
 - **Invoice status**: intentionally simple — `UNPAID` / `PAID` only. No stored "overdue" status (may be computed/derived in the UI later, but not persisted).
 - **WhatsApp**: v1 uses `wa.me` deep links with a pre-filled message template (matching the real invoice/report message format) — no paid WhatsApp Business API integration.
 - **Reports**: `DRAFT` / `PUBLISHED` status per student per month, conceptually similar to invoice send flow. Exact content template pending (Montessori-area structure proposed as a placeholder).
-- Undecided / explicitly deferred: real database provisioning (currently mock data), CRUD forms for create/edit flows, the full weekly-grid calendar view for desktop (agenda/list view exists for now), and the final monthly report content template.
+
+### Planned next (see ROADMAP)
+
+- **Phase 1:** WhatsApp templates, attendance on mock, invoice preview actions.
+- **Phase 2:** Postgres, seed, replace mock data.
+- **Phase 3:** CRUD, invoice generation from attended sessions, report editor when template exists.
+- **Still deferred:** multi-tutor, WhatsApp Business API, complex recurrence edit modes, persisted "overdue" status.
 
 ## Brand Commitments
 
-Product name: "TutorHub" (confirmed as the working/final name — generic is acceptable, no specific studio brand name was chosen). No existing logo, tagline, or visual identity beyond the design tokens already established in `DESIGN.md` (single blue primary accent, TK = blue badge, SD = coral badge, emerald/amber/slate status semantics).
+Product name: **TutorHub** (confirmed). UI uses TailAdmin theme tokens: **brand** primary, **TK** → primary badge, **SD** → warning badge, status semantics (success / warning / dark) for paid, draft, absent/inactive, etc. Text wordmark in sidebar/header (no custom logo file required for v1).
 
 ## Evidence on Hand
 
 - Real WhatsApp invoice message text provided by the user (see Operating Context) — the only real production content available; all other names, amounts, and schedules currently in the app (`src/lib/mock-data.ts`) are fabricated placeholders for development and must not be treated as real user/business data.
-- Reference UI screenshots (Dashboard, Jadwal/schedule, Tagihan/invoice list, Murid/student list, Keuangan/finance summary) were shared early in the project to illustrate the desired shape of each page; they came from an earlier, since-abandoned Google Stitch exploration and are a rough visual reference only, not a binding spec.
+- Early Stitch screenshots informed page **shape** only; v2 UI follows TailAdmin layout and components.
 - No monthly report template exists yet; the tutor (user's wife) will provide her own format later.
 
 ## Product Principles
 
 1. **Match the tutor's real workflow, not a generic SaaS.** Every feature (especially Tagihan) should mirror what she already does manually (e.g. the WhatsApp invoice format), not introduce unfamiliar concepts.
-2. **Mobile-first, single codebase.** One responsive implementation adapts between a phone (bottom nav, agenda list) and desktop (sidebar, denser grid) — never two divergent builds.
+2. **Mobile-first, single codebase.** One responsive app: collapsible sidebar / drawer on smaller viewports, denser layout on desktop — same routes and components, not separate mobile and desktop apps.
 3. **Billing correctness by construction.** Absence and student deactivation must always exclude the right sessions from billing automatically; this is core trust, not a nice-to-have.
 4. **Keep v1 deliberately narrow.** Defer multi-tutor support, complex recurring-edit modes, WhatsApp Business API, and "overdue" invoice tracking until there's real evidence they're needed.
 5. **Code in English, product copy in Indonesian.** Maintain this split consistently across the codebase and UI.

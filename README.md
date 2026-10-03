@@ -1,223 +1,106 @@
-# TailAdmin Next.js - Free Next.js Tailwind Admin Dashboard Template
+# TutorHub
 
-TailAdmin is a free and open-source admin dashboard template built on **Next.js and Tailwind CSS** providing developers with everything they need to create a feature-rich and data-driven: back-end, dashboard, or admin panel solution for any sort of web project.
+Operational dashboard for a **solo private tutor**: schedule, students, monthly invoices (grouped by parent), finance summary, and monthly progress reports. Built on the [TailAdmin](https://tailadmin.com) Next.js admin template, customized for this product.
 
-![TailAdmin - Next.js Dashboard Preview](./banner.png)
+**Product spec:** [`PRODUCT.md`](./PRODUCT.md)  
+**What to build next:** [`ROADMAP.md`](./ROADMAP.md)  
+**Contributor / AI conventions:** [`AGENTS.md`](./AGENTS.md)
 
-With TailAdmin Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website.
+---
 
-TailAdmin utilizes the powerful features of **Next.js 16** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 19** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
+## Current status (Milestone 0)
 
-## Overview
+The app is a **working UI shell** with **mock data only** — no Postgres connection and no `PrismaClient` in pages.
 
-TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
+| Route | Purpose |
+|-------|---------|
+| `/` | Dashboard — today’s sessions, active students, collection summary |
+| `/jadwal` | Weekly schedule (FullCalendar, read-only recurring sessions) |
+| `/murid` | Student list |
+| `/tagihan` | Invoices per parent / month |
+| `/laporan` | Monthly report status per student (draft placeholder) |
+| `/keuangan` | Billed / collected / unpaid totals |
 
-- Next.js 16.x
-- React 19
-- TypeScript
-- Tailwind CSS V4
+- User-facing copy is **Indonesian**; code and schema fields are **English**.
+- **Tambah**, **Buat Invoice**, **Tulis Draft**, etc. are visible but **not wired to persistence** yet.
+- **WhatsApp `wa.me` links** are planned ([Phase 1](./ROADMAP.md#phase-1--mock-ux-that-matches-real-workflow)); not implemented in Milestone 0.
+- Names, fees, and dates in `src/lib/mock-data.ts` are **fabricated placeholders**, not real customer data.
 
-### Quick Links
+TailAdmin **demo routes** (ecommerce, UI element galleries, etc.) may still exist on disk; they are not part of TutorHub navigation.
 
-- [✨ Visit Website](https://tailadmin.com)
-- [📄 Documentation](https://tailadmin.com/docs)
-- [⬇️ Download](https://tailadmin.com/download)
-- [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1463141366275764364)
-- [⚡ Get PRO Version](https://tailadmin.com/pricing)
+---
 
-### Demos
+## Stack
 
-- [Free Version](https://nextjs-free-demo.tailadmin.com)
-- [Pro Version](https://nextjs-demo.tailadmin.com)
+- **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **Tailwind CSS v4** (theme in `src/app/globals.css`)
+- **next-intl** (locale `en` in config; Indonesian product copy in `src/messages/en.json`)
+- **Lucide** icons via `@/icons` (legacy TailAdmin names as aliases)
+- **FullCalendar v7** on Jadwal (read-only for TutorHub)
+- **Prisma** schema + `prisma.config.ts` prepared; **database not required** to run the app today
+- **pnpm** 10.11.0 (`packageManager` in `package.json`)
 
-### Other Versions
+---
 
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
-- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
-
-## Installation
+## Getting started
 
 ### Prerequisites
 
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
+- Node.js **≥ 20.9**
+- **pnpm** 10.11.0 — enable with `corepack enable` if needed
 
-- Node.js 20.x or later
-- pnpm 10.11.0 (the pinned `packageManager`; `corepack enable` will activate it)
-
-### Cloning the Repository
-
-Clone the repository using the following command:
+### Install and run
 
 ```bash
-git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
+pnpm install
+pnpm dev
 ```
 
-> Windows Users: place the repository near the root of your drive if you face issues while cloning.
+Open [http://localhost:3000](http://localhost:3000). The TutorHub sidebar lists the six product pages.
 
-1. Install dependencies:
+### Optional: database (later phases)
 
-   ```bash
-   pnpm install
-   ```
+See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer). Copy `.env.example` to `.env` and set `DATABASE_URL` when you provision Postgres — **not needed** for mock-only development.
 
-2. Start the development server:
+### Scripts
 
-   ```bash
-   pnpm dev
-   ```
+```bash
+pnpm dev      # development server (Turbopack)
+pnpm build    # production build
+pnpm start    # run production build
+pnpm lint     # ESLint
+```
 
-## Components
+---
 
-TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
+## Project layout (TutorHub-relevant)
 
-- Sophisticated and accessible sidebar
-- Data visualization components
-- Profile management and custom 404 page
-- Tables and Charts(Line and Bar)
-- Authentication forms and input elements
-- Alerts, Dropdowns, Modals, Buttons and more
-- Can't forget Dark Mode 🕶️
+```
+src/
+├── app/[locale]/(admin)/     # TutorHub pages (dashboard + five feature routes)
+├── components/               # Feature UI (dashboard, schedule, invoices, …)
+├── lib/mock-data.ts          # Temporary data until Phase 2
+├── layout/                   # AppSidebar, AppHeader
+├── messages/en.json          # Indonesian UI strings (tutorHub.*)
+├── utils/format.ts           # Rupiah, dates, invoice period / session days
+prisma/schema.prisma          # Target data model (Profile, Student, Session, Invoice, …)
+```
 
-All components are built with React and styled using Tailwind CSS for easy customization.
+---
 
-## Feature Comparison
+## Roadmap summary
 
-### Free Version
+1. **Phase 1** — WhatsApp message templates, attendance on mock, invoice preview  
+2. **Phase 2** — Postgres, seed, replace mock reads  
+3. **Phase 3** — CRUD, real invoice generation, reports (when Montessori template exists)  
+4. **Phase 4** — Polish, demo cleanup, deploy  
 
-- 1 Unique Dashboard
-- 30+ dashboard components
-- 50+ UI elements
-- Basic Figma design files
-- Community support
+Details and checklists: [`ROADMAP.md`](./ROADMAP.md).
 
-### Pro Version
+---
 
-- 7 Unique Dashboards: Ecommerce, Analytics, Marketing, CRM, Stocks, SaaS, Logistics, AI, Sales, Finance (more coming soon)
-- 500+ dashboard components and UI elements
-- Complete Figma design file
-- Email support
+## Based on TailAdmin
 
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
+This repo started from [TailAdmin’s free Next.js dashboard](https://github.com/TailAdmin/free-nextjs-admin-dashboard). The MIT license for the template portions applies where applicable; TutorHub-specific code and docs are part of this project.
 
-## Changelog
-
-### Version 2.4.0 - [September 13, 2026]
-
-- Added Internationalization (Multi Language) support.
-- Updated complete template styles to support RTL.
-- Added Yearly View into calendar page.
-- Updated `maplibre-gl` implementation with `react-map-gl`.
-- Added new requested components and fixed noted accessibility issues.
-- Updated project structure and component compositions for easy adaption.
-- Added AGENTS.md to easily work with AI Agents.
-- Updated all the packages and libraries to the latest versions. Also removed unused packages.
-
-### Version 2.3.1 - [May 23, 2026]
-
-- Added AI Settings page to configure models, keys, and token limits.
-- Added Maps page with MapLibre GL, Leaflet, and iframe styles.
-- Added Vector Maps page powered by AmCharts 5 geodata (World & USA).
-- Added Radar Charts page with 3 unique formats.
-- Added Radial Progress Charts page featuring 4 custom layout templates.
-- Introduced new Bar Charts Five & Six and Pie Charts Four & Five.
-
-### Version 2.3.0 - [April 28, 2026]
-
-- **New Feature**: Added **AI Dashboard** with token usage and revenue tracking.
-- **New Feature**: Added **Sales Dashboard** with retention and multi-channel analytics.
-- **New Feature**: Added **Finance Dashboard** with cashflow and balance management.
-- **New Feature**: Introduced **6 New Layout variations** for improved UI flexibility.
-- **Enhancement**: Integrated **Advanced Data Visualization** with 7+ new chart types.
-
-### Version 2.2.3 - [March 15, 2026]
-
-- update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
-
-### Version 2.2.2 - [December 30, 2025]
-
-- Fixed date picker positioning and functionality in Statistics Chart.
-
-### Version 2.1.0 - [November 15, 2025]
-
-- Updated to Next.js 16.x
-- Fixed all reported minor bugs
-
-### Version 2.0.2 - [March 25, 2025]
-
-- Upgraded to Next.js 16.x for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
-- Included overrides vectormap for packages to prevent peer dependency errors during installation.
-- Migrated from react-flatpickr to flatpickr package for React 19 support
-
-### Version 2.0.1 - [February 27, 2025]
-
-#### Update Overview
-
-- Upgraded to Tailwind CSS v4 for better performance and efficiency.
-- Updated class usage to match the latest syntax and features.
-- Replaced deprecated class and optimized styles.
-
-#### Next Steps
-
-- Run pnpm install to update dependencies.
-- Check for any style changes or compatibility issues.
-- Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-- This update keeps the project up to date with the latest Tailwind improvements. 🚀
-
-### v2.0.0 (February 2025)
-
-A major update focused on Next.js 16 implementation and comprehensive redesign.
-
-#### Major Improvements
-
-- Complete redesign using Next.js 16 App Router and React Server Components
-- Enhanced user interface with Next.js-optimized components
-- Improved responsiveness and accessibility
-- New features including collapsible sidebar, chat screens, and calendar
-- Redesigned authentication using Next.js App Router and server actions
-- Updated data visualization using ApexCharts for React
-
-#### Breaking Changes
-
-- Migrated from Next.js 14 to Next.js 16
-- Chart components now use ApexCharts for React
-- Authentication flow updated to use Server Actions and middleware
-
-[Read more](https://tailadmin.com/docs/update-logs/nextjs) on this release.
-
-### v1.3.4 (July 01, 2024)
-
-- Fixed JSvectormap rendering issues
-
-### v1.3.3 (June 20, 2024)
-
-- Fixed build error related to Loader component
-
-### v1.3.2 (June 19, 2024)
-
-- Added ClickOutside component for dropdown menus
-- Refactored sidebar components
-- Updated Jsvectormap package
-
-### v1.3.1 (Feb 12, 2024)
-
-- Fixed layout naming consistency
-- Updated styles
-
-### v1.3.0 (Feb 05, 2024)
-
-- Upgraded to Next.js 14
-- Added Flatpickr integration
-- Improved form elements
-- Enhanced multiselect functionality
-- Added default layout component
-
-## License
-
-TailAdmin Next.js Free Version is released under the MIT License.
-
-## Support
-
-If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing and maintaining this template.
+For template changelog and upstream docs, see [tailadmin.com/docs](https://tailadmin.com/docs).
