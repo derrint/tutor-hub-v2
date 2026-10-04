@@ -215,7 +215,6 @@
       "detailTime": "Time",
       "detailNote": "Sessions repeat weekly. Mark absent only for this date if the student did not attend — otherwise it counts toward billing.",
       "attendanceLabel": "Billing",
-      "close": "Close",
       "views": {
         "multiMonthYear": "Year",
         "dayGridMonth": "Month",

@@ -6,7 +6,6 @@ import {
   type CalendarEvent,
 } from "@/components/calendar/types";
 import LevelBadge from "@/components/common/LevelBadge";
-import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
@@ -151,12 +150,6 @@ const ScheduleCalendar: React.FC = () => {
                 />
               </div>
             )}
-
-            <div className="mt-6 flex justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                {t("close")}
-              </Button>
-            </div>
           </div>
         )}
       </Modal>
