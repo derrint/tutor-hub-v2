@@ -35,6 +35,7 @@ const SESSION_EVENTS: CalendarEvent[] = RECURRING_SESSIONS.map((session) => ({
     calendar: session.level === "TK" ? "Primary" : "Warning",
     startTime: session.startTime,
     endTime: session.endTime,
+    studentId: session.studentId,
   },
 }));
 
@@ -46,7 +47,12 @@ type SelectedOccurrence = {
 const ScheduleCalendar: React.FC = () => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
-  const { isAbsent } = useAttendance();
+  const { isAbsent, absentOccurrenceIds } = useAttendance();
+
+  const attendanceRevision = useMemo(
+    () => [...absentOccurrenceIds].sort().join(","),
+    [absentOccurrenceIds],
+  );
   const { isOpen, openModal, closeModal } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
 
@@ -87,6 +93,7 @@ const ScheduleCalendar: React.FC = () => {
         slotMaxTime="21:00:00"
         viewOptions={viewOptions}
         onEventClick={handleEventClick}
+        eventContentRevision={attendanceRevision}
       />
 
       <Modal

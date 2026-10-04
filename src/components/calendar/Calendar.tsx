@@ -93,6 +93,8 @@ export interface CalendarProps {
   /** Override dropdown labels (e.g. localized view names on Schedule). */
   viewOptions?: CalendarViewOption[];
   onEventClick?: (info: EventClickInfo) => void;
+  /** Bumps event content when attendance (or similar) changes outside FC state. */
+  eventContentRevision?: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -105,6 +107,7 @@ const Calendar: React.FC<CalendarProps> = ({
   showViewSelect = true,
   viewOptions,
   onEventClick,
+  eventContentRevision = "",
 }) => {
   const appLocale = useLocale();
   const isRtlLayout = isRtl(appLocale as Locale);
@@ -576,7 +579,10 @@ const Calendar: React.FC<CalendarProps> = ({
           select={handleDateSelect}
           eventClick={handleEventClick}
           eventContent={(eventInfo: EventDisplayInfo) => (
-            <CalendarEventItem eventInfo={eventInfo} />
+            <CalendarEventItem
+              key={`${eventInfo.event.id}-${eventInfo.event.startStr ?? ""}-${eventContentRevision}`}
+              eventInfo={eventInfo}
+            />
           )}
         />
 

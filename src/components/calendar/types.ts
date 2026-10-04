@@ -8,6 +8,8 @@ export interface CalendarEvent extends EventInput {
     /** Stable HH:mm:ss for SSR-safe event time labels (TutorHub schedule). */
     startTime?: string;
     endTime?: string;
+    /** TutorHub schedule — links event instance to attendance / billing. */
+    studentId?: string;
   };
 }
 
