@@ -93,6 +93,8 @@ export interface CalendarProps {
   /** Override dropdown labels (e.g. localized view names on Schedule). */
   viewOptions?: CalendarViewOption[];
   onEventClick?: (info: EventClickInfo) => void;
+  /** When set with `readOnly`, enables slot drag/click without the demo add modal. */
+  onTimeSlotSelect?: (info: DateSelectInfo) => void;
   /** Bumps event content when attendance (or similar) changes outside FC state. */
   eventContentRevision?: string;
 }
@@ -107,6 +109,7 @@ const Calendar: React.FC<CalendarProps> = ({
   showViewSelect = true,
   viewOptions,
   onEventClick,
+  onTimeSlotSelect,
   eventContentRevision = "",
 }) => {
   const appLocale = useLocale();
@@ -129,6 +132,10 @@ const Calendar: React.FC<CalendarProps> = ({
   };
 
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+
+  useEffect(() => {
+    setEvents(initialEvents);
+  }, [initialEvents]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null,
   );
@@ -161,6 +168,12 @@ const Calendar: React.FC<CalendarProps> = ({
   };
 
   const handleDateSelect = (selectInfo: DateSelectInfo) => {
+    if (onTimeSlotSelect) {
+      onTimeSlotSelect(selectInfo);
+      selectInfo.view.calendar.unselect();
+      return;
+    }
+
     const startStr = selectInfo.startStr
       ? selectInfo.startStr.split("T")[0]
       : "";
@@ -574,7 +587,7 @@ const Calendar: React.FC<CalendarProps> = ({
               }
             });
           }}
-          selectable={!readOnly}
+          selectable={!readOnly || Boolean(onTimeSlotSelect)}
           events={events}
           select={handleDateSelect}
           eventClick={handleEventClick}
