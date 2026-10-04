@@ -188,6 +188,13 @@
     "dashboard": {
       "title": "Dashboard",
       "greeting": "Hello!",
+      "greetingOpener": {
+        "morning": "Good morning",
+        "afternoon": "Good afternoon",
+        "evening": "Good evening",
+        "night": "Good evening"
+      },
+      "greetingHeadline": "{opener}! It's {date}.",
       "classesWaiting": "{count, plural, one {# class waiting today.} other {# classes waiting today.}}",
       "noClassesToday": "No classes today — time to rest.",
       "classesToday": "Classes today",

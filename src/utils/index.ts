@@ -13,6 +13,11 @@ export {
   LOCALE,
 } from "./format";
 export type { InvoicePeriod } from "./format";
+export {
+  getTimeOfDayPeriod,
+  TUTOR_TIME_ZONE,
+} from "./time-of-day";
+export type { TimeOfDayPeriod } from "./time-of-day";
 
 /**
  * Combines and merges Tailwind CSS class names with conditional logic.

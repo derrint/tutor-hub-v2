@@ -9,19 +9,23 @@ import {
   formatInvoiceSessionDays,
   formatRupiah,
 } from "@/utils/format";
+import { getTimeOfDayPeriod } from "@/utils/time-of-day";
 import { honorificInMessage } from "./format-honorific";
 import {
   parentMonthlyWhatsAppTemplates,
   type ParentMonthlyWhatsAppTemplateContext,
 } from "./templates";
 
+const INDONESIAN_TIME_OF_DAY_GREETING = {
+  morning: "Selamat pagi",
+  afternoon: "Selamat siang",
+  evening: "Selamat sore",
+  night: "Selamat malam",
+} as const;
+
 /** Indonesian time-of-day opener for WhatsApp greetings. */
 export function getIndonesianTimeOfDayGreeting(date: Date = new Date()): string {
-  const hour = date.getHours();
-  if (hour < 11) return "Selamat pagi";
-  if (hour < 15) return "Selamat siang";
-  if (hour < 18) return "Selamat sore";
-  return "Selamat malam";
+  return INDONESIAN_TIME_OF_DAY_GREETING[getTimeOfDayPeriod(date)];
 }
 
 /** "A", "A dan B", or "A, B, dan C" — used in report intro and closing. */

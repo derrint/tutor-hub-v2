@@ -1,4 +1,4 @@
-import { formatFullDate } from "@/utils";
+import { formatFullDate, getTimeOfDayPeriod } from "@/utils";
 import { getTranslations } from "next-intl/server";
 
 /**
@@ -11,15 +11,21 @@ export default async function GreetingBanner({
   classesToday: number;
 }) {
   const t = await getTranslations("tutorHub.dashboard");
+  const now = new Date();
+  const period = getTimeOfDayPeriod(now);
 
   return (
     <div className="rounded-2xl bg-brand-500 px-5 py-5 text-white md:px-6">
-      <p className="text-theme-xl font-semibold">{t("greeting")}</p>
+      <p className="text-theme-xl font-semibold">
+        {t("greetingHeadline", {
+          opener: t(`greetingOpener.${period}`),
+          date: formatFullDate(now),
+        })}
+      </p>
       <p className="mt-1 text-theme-sm text-white/80">
         {classesToday > 0
           ? t("classesWaiting", { count: classesToday })
-          : t("noClassesToday")}{" "}
-        · {formatFullDate(new Date())}
+          : t("noClassesToday")}
       </p>
     </div>
   );
