@@ -252,7 +252,7 @@
       "editTitle": "Edit parent",
       "editAction": "Edit",
       "editAria": "Edit {name}",
-      "formHint": "Salutation is used in WhatsApp greetings; honorific in the message body.",
+      "formHint": "Salutation is used in WhatsApp greetings. Honorific is short (e.g. Ma, Bu) — no period; the app adds it in the message.",
       "fieldName": "List name",
       "fieldSalutation": "WhatsApp salutation",
       "fieldHonorific": "Honorific",

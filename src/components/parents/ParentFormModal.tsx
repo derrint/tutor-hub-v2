@@ -97,6 +97,7 @@ const ParentFormModal: React.FC<ParentFormModalProps> = ({
             onChange={(e) =>
               setForm((f) => ({ ...f, honorific: e.target.value }))
             }
+            placeholder="Ma"
             required
           />
         </div>

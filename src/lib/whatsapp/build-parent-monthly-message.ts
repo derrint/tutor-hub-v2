@@ -9,6 +9,7 @@ import {
   formatInvoiceSessionDays,
   formatRupiah,
 } from "@/utils/format";
+import { honorificInMessage } from "./format-honorific";
 import {
   parentMonthlyWhatsAppTemplates,
   type ParentMonthlyWhatsAppTemplateContext,
@@ -123,7 +124,7 @@ export function buildParentMonthlyWhatsAppMessage({
       );
     }
     blocks.push(
-      `Jadi totalnya ${formatRupiah(invoice.total)} ya, ${parent.honorific}`,
+      `Jadi totalnya ${formatRupiah(invoice.total)} ya, ${honorificInMessage(parent.honorific)}`,
     );
   }
 

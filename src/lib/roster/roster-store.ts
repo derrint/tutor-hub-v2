@@ -4,6 +4,7 @@ import {
   type MockParent,
   type Student,
 } from "@/lib/mock-data";
+import { normalizeHonorificStored } from "@/lib/whatsapp/format-honorific";
 
 const STORAGE_KEY = "tutorhub-roster-state";
 
@@ -29,7 +30,10 @@ function readState(): RosterState {
     const record = parsed as Partial<RosterState>;
     return {
       parents: Array.isArray(record.parents)
-        ? (record.parents as MockParent[])
+        ? (record.parents as MockParent[]).map((p) => ({
+            ...p,
+            honorific: normalizeHonorificStored(p.honorific),
+          }))
         : SEED_PARENTS,
       students: Array.isArray(record.students)
         ? (record.students as Student[])
@@ -103,7 +107,7 @@ export function upsertParent(input: ParentInput): MockParent {
     id,
     name: input.name.trim(),
     salutation: input.salutation.trim(),
-    honorific: input.honorific.trim(),
+    honorific: normalizeHonorificStored(input.honorific),
     whatsapp: input.whatsapp.replace(/\D/g, ""),
   };
 

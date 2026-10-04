@@ -61,7 +61,7 @@ model Parent {
   id         String  @id @default(cuid())
   name       String // short label in lists (e.g. "Mama Askara")
   salutation String // WhatsApp greeting (e.g. "Mama Askara dan Arga")
-  honorific  String // body copy (e.g. "Ma.")
+  honorific  String // body copy, no trailing dot (e.g. "Ma")
   whatsapp   String?
 
   students Student[]

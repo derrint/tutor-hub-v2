@@ -32,7 +32,7 @@ export type MockParent = {
   name: string;
   /** How the tutor greets them, e.g. "Mama Askara dan Arga". */
   salutation: string;
-  /** Short honorific in body copy, e.g. "Ma." */
+  /** Short honorific in body copy (no trailing dot), e.g. "Ma" */
   honorific: string;
   /** Digits only, country code included (no +) for `wa.me`. */
   whatsapp: string;
@@ -43,35 +43,35 @@ export const SEED_PARENTS: MockParent[] = [
     id: "p1",
     name: "Mama Askara",
     salutation: "Mama Askara dan Arga",
-    honorific: "Ma.",
+    honorific: "Ma",
     whatsapp: "6281234567001",
   },
   {
     id: "p2",
     name: "Michelle",
     salutation: "Michelle",
-    honorific: "Ka.",
+    honorific: "Ka",
     whatsapp: "6281234567002",
   },
   {
     id: "p3",
     name: "Ibu Azka",
     salutation: "Ibu Azka",
-    honorific: "Bu.",
+    honorific: "Bu",
     whatsapp: "6281234567003",
   },
   {
     id: "p4",
     name: "Ibu Aurell",
     salutation: "Ibu Aurell",
-    honorific: "Bu.",
+    honorific: "Bu",
     whatsapp: "6281234567004",
   },
   {
     id: "p5",
     name: "Ibu Milena",
     salutation: "Ibu Milena",
-    honorific: "Bu.",
+    honorific: "Bu",
     whatsapp: "6281234567005",
   },
 ];

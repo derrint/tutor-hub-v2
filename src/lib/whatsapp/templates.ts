@@ -1,3 +1,5 @@
+import { honorificInMessage } from "./format-honorific";
+
 /**
  * Indonesian WhatsApp copy for the combined monthly send (rapot + invoice).
  * Dashboard UI stays English; only outbound parent messages use these strings.
@@ -13,7 +15,7 @@ export type ParentMonthlyWhatsAppTemplateContext = {
   parentSalutation: string;
   /** e.g. "Askara dan Arga" */
   studentNameList: string;
-  /** Short honorific after "ya," — e.g. "Ma." */
+  /** Short honorific after "ya," — stored without dot, e.g. "Ma" */
   honorific: string;
   /** Bahasa month name, e.g. "September" */
   periodMonthName: string;
@@ -37,7 +39,7 @@ export const parentMonthlyWhatsAppTemplates = {
     studentNameList,
     honorific,
   }: ParentMonthlyWhatsAppTemplateContext) =>
-    `Berikut ini saya mengirimkan rapot perkembangan ${studentNameList} selama mengikuti les ya, ${honorific} Di dalamnya ada beberapa kemampuan yang sudah ${studentNameList} kuasai, hal-hal yang masih sedang dikembangkan, serta target belajar untuk bulan berikutnya. 🌱`,
+    `Berikut ini saya mengirimkan rapot perkembangan ${studentNameList} selama mengikuti les ya, ${honorificInMessage(honorific)} Di dalamnya ada beberapa kemampuan yang sudah ${studentNameList} kuasai, hal-hal yang masih sedang dikembangkan, serta target belajar untuk bulan berikutnya. 🌱`,
 
   childPayment: ({
     childName,
@@ -52,7 +54,7 @@ export const parentMonthlyWhatsAppTemplates = {
     totalLabel,
     honorific,
   }: ParentMonthlyWhatsAppTemplateContext) =>
-    `Biaya les ${feePerSessionLabel}/pertemuan, jadi totalnya ${totalLabel} ya, ${honorific}`,
+    `Biaya les ${feePerSessionLabel}/pertemuan, jadi totalnya ${totalLabel} ya, ${honorificInMessage(honorific)}`,
 
   bankTransfer: ({
     bankName,
@@ -65,5 +67,5 @@ export const parentMonthlyWhatsAppTemplates = {
     studentNameList,
     honorific,
   }: ParentMonthlyWhatsAppTemplateContext) =>
-    `Terima kasih banyak untuk kepercayaan dan support-nya selama ini. Semoga ${studentNameList} semakin semangat belajar dan terus berkembang ya, ${honorific} 🤍✨`,
+    `Terima kasih banyak untuk kepercayaan dan support-nya selama ini. Semoga ${studentNameList} semakin semangat belajar dan terus berkembang ya, ${honorificInMessage(honorific)} 🤍✨`,
 } as const;
