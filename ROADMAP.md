@@ -38,8 +38,9 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 ### Invoice actions (still mock)
 
-- [ ] “Buat Invoice” / “+ Invoice” opens preview or regenerates lines from **attended** sessions for the month
-- [ ] Mark invoice **Lunas** in UI (mock toggle)
+- [x] **Create invoice** — adds missing parent invoices for the month from recurring schedule
+- [x] **Regenerate** — rebuilds lines from schedule minus absences (`InvoiceContext` + `generateInvoiceForParent`)
+- [x] Mark invoice **paid / unpaid** in UI (mock toggle, `localStorage`)
 
 **Exit criteria:** Tutor can tap through mark attendance → see invoice update → open WhatsApp with combined rapot+payment text, all without a database.
 
@@ -118,6 +119,7 @@ Do not build unless requirements change:
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
+| Invoice generation (mock) | `src/lib/invoices/`, `src/context/InvoiceContext.tsx` |
 | Agent / repo conventions | `AGENTS.md` |
 
 **Suggested next sprint:** complete **Phase 1** (WhatsApp template + attendance on mock) before touching Postgres.

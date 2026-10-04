@@ -2,7 +2,7 @@
 
 import StatusBadge from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
-import { ChatIcon, PlusIcon } from "@/icons";
+import { ChatIcon, CheckLineIcon } from "@/icons";
 import {
   getParentById,
   TUTOR_PROFILE,
@@ -12,6 +12,8 @@ import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPr
 import { useModal } from "@/hooks/useModal";
 import { computeBillableInvoice } from "@/lib/attendance";
 import { useAttendance } from "@/context/AttendanceContext";
+import { useInvoices } from "@/context/InvoiceContext";
+import { RotateCw } from "lucide-react";
 import {
   buildParentMonthlyWhatsAppMessage,
   buildWaMeUrl,
@@ -32,6 +34,7 @@ import React, { useMemo } from "react";
 const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   const t = useTranslations("tutorHub.invoices");
   const { absentOccurrenceIds } = useAttendance();
+  const { regenerateInvoice, setInvoiceStatus } = useInvoices();
   const parent = getParentById(invoice.parentId);
 
   const billableInvoice = useMemo(
@@ -90,14 +93,35 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
               {t("sendWhatsApp")}
             </Button>
           )}
+          {invoice.status === "UNPAID" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              startIcon={<RotateCw className="size-4" />}
+              aria-label={t("regenerateAria", { parentName: invoice.parentName })}
+              onClick={() => regenerateInvoice(invoice.id)}
+            >
+              {t("regenerate")}
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={t("markUnpaidAria", { parentName: invoice.parentName })}
+              onClick={() => setInvoiceStatus(invoice.id, "UNPAID")}
+            >
+              {t("markUnpaid")}
+            </Button>
+          )}
           {invoice.status === "UNPAID" && (
             <Button
               size="sm"
               variant="outline"
-              startIcon={<PlusIcon className="size-4" />}
-              aria-label={t("recreateAria", { parentName: invoice.parentName })}
+              startIcon={<CheckLineIcon className="size-4" />}
+              aria-label={t("markPaidAria", { parentName: invoice.parentName })}
+              onClick={() => setInvoiceStatus(invoice.id, "PAID")}
             >
-              {t("recreate")}
+              {t("markPaid")}
             </Button>
           )}
         </div>
