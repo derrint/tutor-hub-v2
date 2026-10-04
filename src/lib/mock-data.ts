@@ -28,31 +28,59 @@ export const TUTOR_PROFILE: TutorProfile = {
 /** Parent contact + salutation for combined rapot + invoice WhatsApp. */
 export type MockParent = {
   id: string;
+  /** Short label in admin lists. */
+  name: string;
   /** How the tutor greets them, e.g. "Mama Askara dan Arga". */
   salutation: string;
   /** Short honorific in body copy, e.g. "Ma." */
   honorific: string;
-  /** Digits only, country code included (no +) for `wa.me`. Placeholder numbers. */
+  /** Digits only, country code included (no +) for `wa.me`. */
   whatsapp: string;
 };
 
-export const PARENTS: MockParent[] = [
+export const SEED_PARENTS: MockParent[] = [
   {
     id: "p1",
+    name: "Mama Askara",
     salutation: "Mama Askara dan Arga",
     honorific: "Ma.",
     whatsapp: "6281234567001",
   },
   {
     id: "p2",
+    name: "Michelle",
     salutation: "Michelle",
     honorific: "Ka.",
     whatsapp: "6281234567002",
   },
+  {
+    id: "p3",
+    name: "Ibu Azka",
+    salutation: "Ibu Azka",
+    honorific: "Bu.",
+    whatsapp: "6281234567003",
+  },
+  {
+    id: "p4",
+    name: "Ibu Aurell",
+    salutation: "Ibu Aurell",
+    honorific: "Bu.",
+    whatsapp: "6281234567004",
+  },
+  {
+    id: "p5",
+    name: "Ibu Milena",
+    salutation: "Ibu Milena",
+    honorific: "Bu.",
+    whatsapp: "6281234567005",
+  },
 ];
 
+/** @deprecated Use `getParentById` from roster store / `useRoster`. */
+export const PARENTS = SEED_PARENTS;
+
 export function getParentById(parentId: string): MockParent | undefined {
-  return PARENTS.find((p) => p.id === parentId);
+  return SEED_PARENTS.find((p) => p.id === parentId);
 }
 
 export type Student = {
@@ -62,11 +90,10 @@ export type Student = {
   level: EducationLevel;
   feePerSession: number;
   status: StudentStatus;
-  parentName: string;
   parentId: string;
 };
 
-export const STUDENTS: Student[] = [
+export const SEED_STUDENTS: Student[] = [
   {
     id: "m1",
     name: "Askara",
@@ -74,7 +101,6 @@ export const STUDENTS: Student[] = [
     level: "TK",
     feePerSession: 125000,
     status: "ACTIVE",
-    parentName: "Mama Askara",
     parentId: "p1",
   },
   {
@@ -84,7 +110,6 @@ export const STUDENTS: Student[] = [
     level: "TK",
     feePerSession: 125000,
     status: "ACTIVE",
-    parentName: "Mama Askara",
     parentId: "p1",
   },
   {
@@ -94,7 +119,6 @@ export const STUDENTS: Student[] = [
     level: "TK",
     feePerSession: 110000,
     status: "ACTIVE",
-    parentName: "Michelle",
     parentId: "p2",
   },
   {
@@ -104,7 +128,6 @@ export const STUDENTS: Student[] = [
     level: "TK",
     feePerSession: 110000,
     status: "ACTIVE",
-    parentName: "Ibu Azka",
     parentId: "p3",
   },
   {
@@ -114,7 +137,6 @@ export const STUDENTS: Student[] = [
     level: "SD",
     feePerSession: 135000,
     status: "ACTIVE",
-    parentName: "Ibu Aurell",
     parentId: "p4",
   },
   {
@@ -124,10 +146,12 @@ export const STUDENTS: Student[] = [
     level: "SD",
     feePerSession: 135000,
     status: "INACTIVE",
-    parentName: "Ibu Milena",
     parentId: "p5",
   },
 ];
+
+/** @deprecated Use roster store / `useRoster` for live data. */
+export const STUDENTS = SEED_STUDENTS;
 
 export type TodaySession = {
   id: string;
@@ -168,10 +192,6 @@ export type RecurringSession = {
   endTime: string;
 };
 
-// Weekly recurring sessions — feeds the desktop calendar grid on /schedule.
-// Materialized into concrete events by FullCalendar's own recurring-event
-// support (daysOfWeek + startTime/endTime), so navigating weeks "just works"
-// without us generating dates by hand.
 export const RECURRING_SESSIONS: RecurringSession[] = [
   {
     id: "r1",
@@ -228,7 +248,6 @@ export type InvoiceChildLine = {
   name: string;
   sessionCount: number;
   subtotal: number;
-  /** Billable session days within the invoice `period` (calendar day of month). */
   sessionDays: number[];
 };
 
@@ -286,7 +305,7 @@ export const INVOICES: InvoicePreview[] = [
   },
 ];
 
-/** @deprecated Totals come from `computeFinanceSummary` + attendance-aware invoices. Period only for reports. */
+/** @deprecated Totals come from `computeFinanceSummary` + attendance-aware invoices. */
 export const FINANCE_SUMMARY = {
   period: MOCK_INVOICE_PERIOD,
   totalBilled: 1940000,
