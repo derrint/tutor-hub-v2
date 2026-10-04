@@ -39,7 +39,7 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 ### Invoice actions (still mock)
 
-- [x] **Create invoice** — adds missing **UNPAID shells** per parent for the selected month (lines derived on read)
+- [x] **Auto-list by month** — one card per parent with scheduled sessions (no **Create invoice** button; virtual shells + seed/`localStorage`)
 - [x] **Unpaid derive-on-read** — lines from schedule + attendance live (`resolveInvoiceForDisplay`); per-card Regenerate removed
 - [x] Mark invoice **paid / unpaid** in UI (mock toggle, `localStorage`)
 
@@ -53,15 +53,15 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 
 - [x] Shared **billing period** — `useBillingPeriod` + URL `?month=YYYY-MM` + `sessionStorage` when switching sidebar routes (`src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`)
 - [x] **Month control:** default calendar month; prev/next + `<input type="month">` (`BillingMonthNavigator`)
-- [x] **Invoices:** filter by month; count · unpaid summary; **Create** scoped to selected month
+- [x] **Invoices:** filter by month; count · unpaid summary; cards appear when schedule has sessions
 - [x] **Finance:** totals for selected month; unpaid link preserves `?month=`
 - [x] **Reports:** header uses selected month (student list still mock until template)
 - [x] **Dashboard:** finance card uses **calendar month** only (not billing URL)
 
 **Edge cases (design once; ship with the month picker):**
 
-- [x] **Empty month** — empty state; Create enabled when schedule has sessions (past/current)
-- [x] **Future month** — preview copy; Create / card actions disabled
+- [x] **Empty month** — empty state when no scheduled sessions in month
+- [x] **Future month** — preview copy; card actions disabled
 - [x] **Paid invoice snapshot (mock)** — lines snapshotted on **Mark paid**; **Mark unpaid** clears snapshot; no per-card Regenerate
 - [ ] **Paid months (prod lock)** — optional: hide **Mark unpaid** when `NODE_ENV=production` (deploy)
 - [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
@@ -77,6 +77,12 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 - [x] TutorHub sign-in UI + header **Sign out** (session from Google profile)
 
 Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI `…/api/auth/callback/google`. See `.env.example`.
+
+### Roster (pre–Phase 2 mock CRUD)
+
+- [x] **Parents** page — salutation, honorific, WhatsApp (`RosterContext` + `localStorage`; aligns with `prisma` `Parent`)
+- [x] **Students** — add / edit (parent picker); list reads live roster
+- [x] Seed parents **p1–p5** for all mock students; invoice/WhatsApp use roster parent records
 
 ### Phase 1 — still open
 
@@ -158,6 +164,7 @@ Do not build unless requirements change:
 | Product spec | `PRODUCT.md` |
 | Schema | `prisma/schema.prisma` |
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
+| Roster (parents/students mock CRUD) | `src/context/RosterContext.tsx`, `src/lib/roster/roster-store.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
