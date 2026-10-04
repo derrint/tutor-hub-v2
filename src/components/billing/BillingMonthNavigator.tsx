@@ -7,11 +7,17 @@ import {
 } from "@/lib/billing-period";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/icons";
-import { formatInvoicePeriodLabel } from "@/utils";
+import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
 import React, { useId } from "react";
 
-const BillingMonthNavigator: React.FC = () => {
+type BillingMonthNavigatorProps = {
+  className?: string;
+};
+
+const BillingMonthNavigator: React.FC<BillingMonthNavigatorProps> = ({
+  className,
+}) => {
   const t = useTranslations("tutorHub.billingMonth");
   const { period, setPeriod, goToPreviousMonth, goToNextMonth } =
     useBillingPeriod();
@@ -19,7 +25,13 @@ const BillingMonthNavigator: React.FC = () => {
   const isFuture = isFutureBillingPeriod(period);
 
   return (
-    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className={cn("flex flex-col items-end gap-1.5", className)}>
+      {isFuture && (
+        <span className="text-theme-xs text-warning-600 dark:text-orange-400">
+          {t("futureHint")}
+        </span>
+      )}
+
       <div className="flex items-center gap-1">
         <button
           type="button"
@@ -41,7 +53,7 @@ const BillingMonthNavigator: React.FC = () => {
             const next = periodFromMonthInputValue(event.target.value);
             if (next) setPeriod(next);
           }}
-          className="h-9 min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-theme-sm font-medium text-gray-800 dark:border-gray-800 dark:bg-white/3 dark:text-white/90 sm:max-w-44"
+          className="h-9 min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-theme-sm font-medium text-gray-800 dark:border-gray-800 dark:bg-white/3 dark:text-white/90 sm:min-w-44"
         />
 
         <button
@@ -53,17 +65,6 @@ const BillingMonthNavigator: React.FC = () => {
           <ChevronRightIcon className="size-5 rtl:rotate-180" />
         </button>
       </div>
-
-      <p className="text-theme-sm text-gray-600 dark:text-gray-400">
-        <span className="font-medium text-gray-800 dark:text-white/90">
-          {formatInvoicePeriodLabel(period)}
-        </span>
-        {isFuture && (
-          <span className="ms-2 text-theme-xs text-warning-600 dark:text-orange-400">
-            {t("futureHint")}
-          </span>
-        )}
-      </p>
     </div>
   );
 };

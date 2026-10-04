@@ -7,13 +7,11 @@ import PaymentComposition from "@/components/finance/PaymentComposition";
 import { billingMonthHref, useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useFinanceSummary } from "@/hooks/useFinanceSummary";
 import { Link } from "@/i18n/navigation";
-import { formatInvoicePeriodLabel } from "@/utils";
 import { useTranslations } from "next-intl";
 
 const FinanceOverview: React.FC = () => {
   const t = useTranslations("tutorHub.finance");
   const { period, monthParam } = useBillingPeriod();
-  const monthLabel = formatInvoicePeriodLabel(period);
   const {
     totalBilled,
     collected,
@@ -29,10 +27,10 @@ const FinanceOverview: React.FC = () => {
   if (!hasInvoices) {
     return (
       <div>
-        <BillingMonthNavigator />
         <PageHeader
           title={t("title")}
-          description={t("descriptionEmpty", { month: monthLabel })}
+          description={t("descriptionEmpty")}
+          action={<BillingMonthNavigator />}
         />
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-gray-200 bg-white py-10 text-center dark:border-gray-800 dark:bg-white/3">
           <p className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
@@ -54,14 +52,13 @@ const FinanceOverview: React.FC = () => {
 
   return (
     <div>
-      <BillingMonthNavigator />
       <PageHeader
         title={t("title")}
         description={t("description", {
-          month: monthLabel,
           total: invoiceCount,
           unpaidCount: unpaidInvoiceCount,
         })}
+        action={<BillingMonthNavigator />}
       />
 
       <div className="space-y-4 md:space-y-6">

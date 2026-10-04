@@ -294,7 +294,7 @@
     },
     "reports": {
       "title": "Reports",
-      "description": "{month} · {draftCount} of {total} not written yet",
+      "description": "{draftCount} of {total} not written yet",
       "writeDraft": "Write draft",
       "edit": "Edit",
       "publishedLabel": "Sent to parent",
@@ -303,8 +303,8 @@
     },
     "finance": {
       "title": "Finance",
-      "description": "This month · {month} · {total} invoices, {unpaidCount} unpaid",
-      "descriptionEmpty": "This month · {month}",
+      "description": "{total, plural, one {# invoice} other {# invoices}}, {unpaidCount} unpaid",
+      "descriptionEmpty": "Summary for the selected billing month",
       "totalBilled": "Total billed",
       "collected": "Collected",
       "unpaid": "Unpaid",

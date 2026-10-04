@@ -27,8 +27,6 @@ const InvoicesPageContent: React.FC = () => {
 
   return (
     <div>
-      <BillingMonthNavigator />
-
       <PageHeader
         title={t("title")}
         description={
@@ -39,6 +37,7 @@ const InvoicesPageContent: React.FC = () => {
                 unpaidCount,
               })
         }
+        action={<BillingMonthNavigator />}
       />
 
       {periodInvoices.length === 0 ? (

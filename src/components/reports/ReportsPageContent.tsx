@@ -3,9 +3,7 @@
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
 import ReportRow from "@/components/reports/ReportRow";
-import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useRoster } from "@/context/RosterContext";
-import { formatInvoicePeriodLabel } from "@/utils";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
@@ -15,7 +13,6 @@ import React, { useMemo } from "react";
  */
 const ReportsPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.reports");
-  const { period } = useBillingPeriod();
   const { students } = useRoster();
 
   const reports = useMemo(
@@ -28,18 +25,16 @@ const ReportsPageContent: React.FC = () => {
   );
 
   const draftCount = reports.filter((r) => r.isDraft).length;
-  const monthLabel = formatInvoicePeriodLabel(period);
 
   return (
     <div>
-      <BillingMonthNavigator />
       <PageHeader
         title={t("title")}
         description={t("description", {
-          month: monthLabel,
           draftCount,
           total: reports.length,
         })}
+        action={<BillingMonthNavigator />}
       />
 
       <div className="flex flex-col gap-3">
