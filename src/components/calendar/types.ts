@@ -5,6 +5,9 @@ export type CalendarEventLevel = "Danger" | "Success" | "Primary" | "Warning";
 export interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
+    /** Stable HH:mm:ss for SSR-safe event time labels (TutorHub schedule). */
+    startTime?: string;
+    endTime?: string;
   };
 }
 

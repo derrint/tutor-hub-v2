@@ -48,7 +48,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 - Six routes: Dashboard, Schedule, Students, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
 - **Schedule:** read-only calendar with recurring mock sessions, session detail modal, view switcher (Year / Month / Week / Day).
 - **Invoices:** cards per parent; **`period`** + per-child **`sessionDays`**; UNPAID/PAID badges; **WhatsApp** opens combined rapot+invoice prefill (`TUTOR_PROFILE` + `PARENTS` mock).
-- **Finance / Dashboard:** monthly totals from mock `FINANCE_SUMMARY`.
+- **Finance / Dashboard:** monthly totals derived from attendance-aware invoice totals (`useFinanceSummary`).
 - **Reports:** draft/published badges; editor not implemented (template pending).
 - Create/edit buttons (**Add**, **Create invoice**, **Write draft**, …) are **non-functional** — no server actions, API, or localStorage persistence.
 - **WhatsApp** prefill on invoice cards (mock parent numbers); no report PDF generation yet.

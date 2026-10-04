@@ -31,7 +31,11 @@ const SESSION_EVENTS: CalendarEvent[] = RECURRING_SESSIONS.map((session) => ({
   daysOfWeek: session.daysOfWeek,
   startTime: session.startTime,
   endTime: session.endTime,
-  extendedProps: { calendar: session.level === "TK" ? "Primary" : "Warning" },
+  extendedProps: {
+    calendar: session.level === "TK" ? "Primary" : "Warning",
+    startTime: session.startTime,
+    endTime: session.endTime,
+  },
 }));
 
 type SelectedOccurrence = {

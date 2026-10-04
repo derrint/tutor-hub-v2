@@ -286,6 +286,7 @@ export const INVOICES: InvoicePreview[] = [
   },
 ];
 
+/** @deprecated Totals come from `computeFinanceSummary` + attendance-aware invoices. Period only for reports. */
 export const FINANCE_SUMMARY = {
   period: MOCK_INVOICE_PERIOD,
   totalBilled: 1940000,

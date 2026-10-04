@@ -4,6 +4,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
 } from "react";
@@ -57,8 +58,19 @@ function getSnapshot() {
   return absentIds;
 }
 
+/** Stable empty set — React requires getServerSnapshot to return a cached reference. */
+const SERVER_ABSENT_SNAPSHOT = new Set<string>();
+
 function getServerSnapshot() {
-  return new Set<string>();
+  return SERVER_ABSENT_SNAPSHOT;
+}
+
+function setsEqual(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  if (a.size !== b.size) return false;
+  for (const id of a) {
+    if (!b.has(id)) return false;
+  }
+  return true;
 }
 
 export function AttendanceProvider({ children }: { children: React.ReactNode }) {
@@ -67,6 +79,14 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
     getSnapshot,
     getServerSnapshot,
   );
+
+  useEffect(() => {
+    const stored = readAbsentIds();
+    if (!setsEqual(stored, absentIds)) {
+      absentIds = stored;
+      emitChange();
+    }
+  }, []);
 
   const isAbsent = useCallback(
     (occurrenceId: string) => absentOccurrenceIds.has(occurrenceId),

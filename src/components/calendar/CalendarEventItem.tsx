@@ -1,17 +1,49 @@
+"use client";
+
 import { cn } from "@/utils";
 import type { EventDisplayInfo } from "@fullcalendar/react";
-import React from "react";
+import React, { useSyncExternalStore } from "react";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 export interface CalendarEventItemProps {
   eventInfo: EventDisplayInfo;
 }
 
+/** Avoid FullCalendar `timeText` SSR/client mismatches (locale dash, timezone). */
+function getStableTimeLabel(eventInfo: EventDisplayInfo): string | null {
+  const props = eventInfo.event.extendedProps as
+    | { startTime?: string; endTime?: string }
+    | undefined;
+  const start = props?.startTime;
+  const end = props?.endTime;
+  if (start && end) {
+    return `${start.slice(0, 5)} - ${end.slice(0, 5)}`;
+  }
+  return null;
+}
+
 const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
+  const isClient = useSyncExternalStore(
+    subscribeNoop,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+
   const calendarLevel = (
     eventInfo.event.extendedProps?.calendar || "primary"
   ).toLowerCase();
 
-  // Color mappings
   const colorMap: Record<
     string,
     { bg: string; dot: string; title: string; time: string }
@@ -48,6 +80,10 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
     eventInfo.view?.type &&
     eventInfo.view.type.startsWith("timeGrid");
 
+  const stableTime = getStableTimeLabel(eventInfo);
+  const timeLabel =
+    stableTime ?? (isClient ? (eventInfo.timeText ?? null) : null);
+
   if (isTimeGridView) {
     return (
       <div
@@ -70,14 +106,14 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
             {eventInfo.event.title || ""}
           </div>
         </div>
-        {eventInfo.timeText && (
+        {timeLabel && (
           <div
             className={cn(
               "mt-0.5 truncate ps-2.5 text-[10px] font-medium leading-tight sm:ps-3.5 sm:text-[11px]",
               colors.time,
             )}
           >
-            {eventInfo.timeText}
+            {timeLabel}
           </div>
         )}
       </div>
@@ -98,9 +134,9 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
           colors.dot,
         )}
       />
-      {eventInfo.timeText && (
+      {timeLabel && (
         <div className="fc-event-time me-1 p-0 text-[10px] font-normal text-gray-500 sm:me-1.5 sm:text-xs dark:text-gray-400">
-          {eventInfo.timeText}
+          {timeLabel}
         </div>
       )}
       <div className="fc-event-title truncate p-0 text-[11px] font-medium text-gray-700 sm:text-xs dark:text-white">

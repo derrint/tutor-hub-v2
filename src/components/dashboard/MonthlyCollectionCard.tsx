@@ -1,17 +1,18 @@
+"use client";
+
 import ComponentCard from "@/components/common/ComponentCard";
-import { FINANCE_SUMMARY } from "@/lib/mock-data";
+import SeeAllLink from "@/components/dashboard/SeeAllLink";
+import { useFinanceSummary } from "@/hooks/useFinanceSummary";
 import { formatRupiah } from "@/utils";
-import { getTranslations } from "next-intl/server";
-import SeeAllLink from "./SeeAllLink";
+import { useTranslations } from "next-intl";
 
-export default async function MonthlyCollectionCard() {
-  const t = await getTranslations("tutorHub.dashboard");
+export default function MonthlyCollectionCard() {
+  const t = useTranslations("tutorHub.dashboard");
+  const { totalBilled, collected, unpaid, invoiceCount } = useFinanceSummary();
 
-  const { totalBilled, collected, unpaid } = FINANCE_SUMMARY;
-  const hasInvoices = totalBilled > 0;
-  const collectedPercent = hasInvoices
-    ? Math.round((collected / totalBilled) * 100)
-    : 0;
+  const hasInvoices = invoiceCount > 0;
+  const collectedPercent =
+    totalBilled > 0 ? Math.round((collected / totalBilled) * 100) : 0;
 
   return (
     <ComponentCard
