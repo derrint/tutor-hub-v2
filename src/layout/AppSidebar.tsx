@@ -6,13 +6,13 @@ import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
 import { useSidebar } from "../context/SidebarContext";
 import {
+  BabyIcon,
   CalenderIcon,
-  DocsIcon,
   DollarLineIcon,
   FileIcon,
   GridIcon,
-  GroupIcon,
-  UserCircleIcon,
+  ReceiptTextIcon,
+  UsersIcon,
 } from "@/icons";
 
 type NavItem = {
@@ -38,17 +38,17 @@ const navItems: NavItem[] = [
   {
     key: "students",
     path: "/students",
-    icon: <GroupIcon className={navIconClass} />,
+    icon: <BabyIcon className={navIconClass} />,
   },
   {
     key: "parents",
     path: "/parents",
-    icon: <UserCircleIcon className={navIconClass} />,
+    icon: <UsersIcon className={navIconClass} />,
   },
   {
     key: "invoices",
     path: "/invoices",
-    icon: <DocsIcon className={navIconClass} />,
+    icon: <ReceiptTextIcon className={navIconClass} />,
   },
   {
     key: "reports",

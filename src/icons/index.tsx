@@ -8,6 +8,7 @@ export {
   ArrowRight as ArrowRightIcon,
   ArrowUp as ArrowUpIcon,
   AudioLines as AudioIcon,
+  Baby as BabyIcon,
   Bookmark as BookmarkIcon,
   Bolt as BoltIcon,
   Box as BoxIcon,
@@ -51,6 +52,7 @@ export {
   PieChart as PieChartIcon,
   Plug as PlugInIcon,
   Plus as PlusIcon,
+  ReceiptText as ReceiptTextIcon,
   Sparkles as ShootingStarIcon,
   Table as TableIcon,
   ClipboardList as TaskIcon,
@@ -59,6 +61,7 @@ export {
   Upload as UploadIcon,
   CircleUser as UserCircleIcon,
   User as UserIcon,
+  Users as UsersIcon,
   Video as VideoIcon,
 } from "lucide-react";
 
