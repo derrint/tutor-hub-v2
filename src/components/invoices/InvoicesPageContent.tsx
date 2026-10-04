@@ -3,42 +3,27 @@
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import InvoiceCard from "@/components/invoices/InvoiceCard";
 import PageHeader from "@/components/common/PageHeader";
-import Button from "@/components/ui/button/Button";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useInvoices } from "@/context/InvoiceContext";
 import { isFutureBillingPeriod } from "@/lib/billing-period";
-import { listParentIdsWithScheduledSessions } from "@/lib/invoices";
-import { PlusIcon } from "@/icons";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 const InvoicesPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.invoices");
   const { period } = useBillingPeriod();
-  const { invoices, createMissingInvoicesForPeriod } = useInvoices();
+  const { getInvoicesForPeriod } = useInvoices();
   const isFuture = isFutureBillingPeriod(period);
 
   const periodInvoices = useMemo(
-    () =>
-      invoices.filter(
-        (invoice) =>
-          invoice.period.month === period.month &&
-          invoice.period.year === period.year,
-      ),
-    [invoices, period.month, period.year],
+    () => getInvoicesForPeriod(period),
+    [getInvoicesForPeriod, period],
   );
 
   const unpaidCount = useMemo(
     () => periodInvoices.filter((invoice) => invoice.status === "UNPAID").length,
     [periodInvoices],
   );
-
-  const canCreate =
-    !isFuture && listParentIdsWithScheduledSessions(period).length > 0;
-
-  const handleCreate = () => {
-    createMissingInvoicesForPeriod(period);
-  };
 
   return (
     <div>
@@ -53,17 +38,6 @@ const InvoicesPageContent: React.FC = () => {
                 count: periodInvoices.length,
                 unpaidCount,
               })
-        }
-        action={
-          <Button
-            size="sm"
-            startIcon={<PlusIcon className="size-4" />}
-            onClick={handleCreate}
-            disabled={!canCreate}
-            aria-label={t("createAria")}
-          >
-            {t("create")}
-          </Button>
         }
       />
 

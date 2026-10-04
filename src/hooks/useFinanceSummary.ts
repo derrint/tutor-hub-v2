@@ -18,10 +18,10 @@ export function useFinanceSummary(
   period: InvoicePeriod = getCurrentInvoicePeriod(),
 ): FinanceSummary {
   const { absentOccurrenceIds } = useAttendance();
-  const { invoices } = useInvoices();
+  const { getInvoicesForPeriod } = useInvoices();
 
-  return useMemo(
-    () => computeFinanceSummary(invoices, absentOccurrenceIds, period),
-    [invoices, absentOccurrenceIds, period],
-  );
+  return useMemo(() => {
+    const invoices = getInvoicesForPeriod(period);
+    return computeFinanceSummary(invoices, absentOccurrenceIds, period);
+  }, [getInvoicesForPeriod, absentOccurrenceIds, period]);
 }
