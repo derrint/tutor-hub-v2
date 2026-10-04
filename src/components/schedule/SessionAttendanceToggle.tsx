@@ -2,6 +2,7 @@
 
 import Button from "@/components/ui/button/Button";
 import { useAttendance } from "@/context/AttendanceContext";
+import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
 
 type SessionAttendanceToggleProps = {
@@ -20,8 +21,8 @@ const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
   return (
     <Button
       size="sm"
-      variant={absent ? "outline" : "outline"}
-      className={compact ? "shrink-0" : undefined}
+      variant={absent ? "outlineSuccess" : "outlineWarning"}
+      className={cn(compact && "shrink-0")}
       aria-pressed={absent}
       aria-label={absent ? t("markBillableAria") : t("markAbsentAria")}
       onClick={() => toggleAbsent(occurrenceId)}
