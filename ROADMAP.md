@@ -28,7 +28,7 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 - [x] **`buildParentMonthlyWhatsAppMessage`** — day list after “yaitu tanggal:” (`formatInvoiceSessionDays`), uniform vs mixed fees
 - [x] **Invoices:** WhatsApp button → `wa.me` prefill; UI hint to attach rapot PDFs manually
 - [x] Preview modal before WhatsApp + copy message to clipboard
-- [ ] Replace placeholder parent WhatsApp numbers with real values (seed / settings UI later)
+- [x] Replace placeholder parent WhatsApp numbers with real values (`PARENTS` in mock; settings UI in Phase 3)
 
 ### Attendance (trust path)
 
@@ -62,7 +62,8 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 
 - [x] **Empty month** — empty state; Create enabled when schedule has sessions (past/current)
 - [x] **Future month** — preview copy; Create / card actions disabled
-- [ ] **Paid months (prod lock)** — mock snapshots lines on **Mark paid**; still allows **Mark unpaid**; no per-card Regenerate (removed)
+- [x] **Paid invoice snapshot (mock)** — lines snapshotted on **Mark paid**; **Mark unpaid** clears snapshot; no per-card Regenerate
+- [ ] **Paid months (prod lock)** — optional: hide **Mark unpaid** when `NODE_ENV=production` (deploy)
 - [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
 
 **Optional later (not blocking Phase 2):**
@@ -79,9 +80,9 @@ Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI
 
 ### Phase 1 — still open
 
-- [ ] Replace placeholder parent **WhatsApp** numbers (see WhatsApp section above)
-- [ ] **Exit criteria** validated by tutor on device (September 2026 mock month + billing month picker)
-- [ ] **Paid months** prod lock (Phase 3-quality; see edge case above)
+- [x] Real parent **WhatsApp** numbers in mock (see WhatsApp section above)
+- [x] **Exit criteria** validated on device (September 2026 + billing month picker; attendance → invoice → WhatsApp)
+- [ ] **Paid months (prod lock)** — only if you want no **Mark unpaid** on Vercel (see edge case above)
 
 ---
 
@@ -164,4 +165,4 @@ Do not build unless requirements change:
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** Phase 1 exit test across months (pick **September 2026** for mock seed) → Postgres (Phase 2).
+**Suggested next sprint:** **Phase 2** — Neon Postgres, migrate/seed, swap pages off `mock-data.ts` (keep `?month=` billing contract).
