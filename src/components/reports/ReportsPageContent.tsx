@@ -4,7 +4,7 @@ import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
 import ReportRow from "@/components/reports/ReportRow";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
-import { STUDENTS } from "@/lib/mock-data";
+import { useRoster } from "@/context/RosterContext";
 import { formatInvoicePeriodLabel } from "@/utils";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
@@ -16,14 +16,15 @@ import React, { useMemo } from "react";
 const ReportsPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.reports");
   const { period } = useBillingPeriod();
+  const { students } = useRoster();
 
   const reports = useMemo(
     () =>
-      STUDENTS.filter((s) => s.status === "ACTIVE").map((student, idx) => ({
+      students.filter((s) => s.status === "ACTIVE").map((student, idx) => ({
         student,
         isDraft: idx % 2 === 0,
       })),
-    [],
+    [students],
   );
 
   const draftCount = reports.filter((r) => r.isDraft).length;

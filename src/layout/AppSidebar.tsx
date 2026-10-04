@@ -12,6 +12,7 @@ import {
   FileIcon,
   GridIcon,
   GroupIcon,
+  UserCircleIcon,
 } from "@/icons";
 
 type NavItem = {
@@ -20,7 +21,7 @@ type NavItem = {
   icon: React.ReactNode;
 };
 
-// TutorHub has a single flat level of navigation — six pages, no submenus.
+// TutorHub has a single flat level of navigation — no submenus.
 const navIconClass = "size-6 shrink-0";
 
 const navItems: NavItem[] = [
@@ -38,6 +39,11 @@ const navItems: NavItem[] = [
     key: "students",
     path: "/students",
     icon: <GroupIcon className={navIconClass} />,
+  },
+  {
+    key: "parents",
+    path: "/parents",
+    icon: <UserCircleIcon className={navIconClass} />,
   },
   {
     key: "invoices",

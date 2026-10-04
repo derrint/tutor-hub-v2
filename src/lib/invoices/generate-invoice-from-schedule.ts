@@ -1,11 +1,15 @@
-import type { InvoiceChildLine, InvoicePreview } from "@/lib/mock-data";
+import type { InvoiceChildLine, InvoicePreview, Student } from "@/lib/mock-data";
 import type { InvoicePeriod } from "@/utils/format";
 import {
   MOCK_INVOICE_PERIOD,
   RECURRING_SESSIONS,
-  STUDENTS,
+  SEED_STUDENTS,
 } from "@/lib/mock-data";
 import { buildStudentOccurrenceIdForPeriodDay } from "@/lib/attendance/occurrence-id";
+import {
+  getRosterSnapshot,
+  parentDisplayName,
+} from "@/lib/roster/roster-store";
 
 /** Calendar days in `period` when this student has a recurring session. */
 export function getScheduledSessionDaysInPeriod(
@@ -37,8 +41,9 @@ function buildChildLine(
   studentId: string,
   period: InvoicePeriod,
   absentOccurrenceIds: ReadonlySet<string>,
+  students: Student[],
 ): InvoiceChildLine | null {
-  const student = STUDENTS.find((s) => s.id === studentId);
+  const student = students.find((s) => s.id === studentId);
   if (!student || student.status !== "ACTIVE") return null;
 
   const scheduledDays = getScheduledSessionDaysInPeriod(studentId, period);
@@ -65,28 +70,32 @@ export function generateInvoiceForParent(
   parentId: string,
   period: InvoicePeriod,
   absentOccurrenceIds: ReadonlySet<string>,
+  students: Student[] = getRosterSnapshot().students,
 ): Omit<InvoicePreview, "id" | "status"> | null {
-  const studentIds = STUDENTS.filter(
-    (s) => s.parentId === parentId && s.status === "ACTIVE",
-  ).map((s) => s.id);
+  const studentIds = students
+    .filter((s) => s.parentId === parentId && s.status === "ACTIVE")
+    .map((s) => s.id);
 
   if (studentIds.length === 0) return null;
 
   const children: InvoiceChildLine[] = [];
   for (const studentId of studentIds) {
-    const line = buildChildLine(studentId, period, absentOccurrenceIds);
+    const line = buildChildLine(
+      studentId,
+      period,
+      absentOccurrenceIds,
+      students,
+    );
     if (line) children.push(line);
   }
 
   if (children.length === 0) return null;
 
-  const parentName =
-    STUDENTS.find((s) => s.parentId === parentId)?.parentName ?? parentId;
   const total = children.reduce((sum, child) => sum + child.subtotal, 0);
 
   return {
     parentId,
-    parentName,
+    parentName: parentDisplayName(parentId),
     period,
     children,
     total,
@@ -101,14 +110,22 @@ export function buildInvoiceId(parentId: string, period: InvoicePeriod): string 
 /** Parent ids with at least one scheduled session in the period (ignoring absences). */
 export function listParentIdsWithScheduledSessions(
   period: InvoicePeriod = MOCK_INVOICE_PERIOD,
+  students: Student[] = getRosterSnapshot().students,
 ): string[] {
   const parentIds = new Set<string>();
 
-  for (const student of STUDENTS) {
+  for (const student of students) {
     if (student.status !== "ACTIVE") continue;
     const days = getScheduledSessionDaysInPeriod(student.id, period);
     if (days.length > 0) parentIds.add(student.parentId);
   }
 
   return [...parentIds];
+}
+
+/** Server-safe fallback when roster store is unavailable. */
+export function listParentIdsWithScheduledSessionsFromSeed(
+  period: InvoicePeriod = MOCK_INVOICE_PERIOD,
+): string[] {
+  return listParentIdsWithScheduledSessions(period, SEED_STUDENTS);
 }

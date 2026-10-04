@@ -10,6 +10,7 @@ interface ButtonProps {
   disabled?: boolean; // Disabled state
   className?: string; // Disabled state
   "aria-label"?: string; // Accessible name when the label alone is ambiguous
+  htmlType?: "button" | "submit";
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -22,6 +23,7 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   disabled = false,
   "aria-label": ariaLabel,
+  htmlType = "button",
 }) => {
   // sm: compact toolbar / inline actions (~36px). md: primary CTAs, aligned with h-11 inputs.
   const sizeClasses = {
@@ -39,6 +41,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      type={htmlType}
       className={`inline-flex items-center justify-center rounded-lg font-medium transition ${className} ${
         sizeClasses[size]
       } ${variantClasses[variant]} ${

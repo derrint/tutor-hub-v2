@@ -2,6 +2,7 @@
 
 import { AttendanceProvider } from "@/context/AttendanceContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
+import { RosterProvider } from "@/context/RosterContext";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
@@ -24,6 +25,7 @@ export default function AdminLayout({
       : "xl:ml-[90px]";
 
   return (
+    <RosterProvider>
     <AttendanceProvider>
       <InvoiceProvider>
     <div className="min-h-screen xl:flex">
@@ -42,5 +44,6 @@ export default function AdminLayout({
     </div>
       </InvoiceProvider>
     </AttendanceProvider>
+    </RosterProvider>
   );
 }

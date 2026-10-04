@@ -1,4 +1,4 @@
-import type { InvoicePreview } from "@/lib/mock-data";
+import type { InvoicePreview, Student } from "@/lib/mock-data";
 import { generateInvoiceForParent } from "./generate-invoice-from-schedule";
 
 /**
@@ -8,6 +8,7 @@ import { generateInvoiceForParent } from "./generate-invoice-from-schedule";
 export function resolveInvoiceForDisplay(
   invoice: InvoicePreview,
   absentOccurrenceIds: ReadonlySet<string>,
+  students?: Student[],
 ): InvoicePreview {
   if (invoice.status === "PAID") {
     return invoice;
@@ -17,6 +18,7 @@ export function resolveInvoiceForDisplay(
     invoice.parentId,
     invoice.period,
     absentOccurrenceIds,
+    students,
   );
 
   if (!derived) {
@@ -35,6 +37,7 @@ export function resolveInvoiceForDisplay(
 export function resolveInvoiceForBilling(
   invoice: InvoicePreview,
   absentOccurrenceIds: ReadonlySet<string>,
+  students?: Student[],
 ): InvoicePreview {
-  return resolveInvoiceForDisplay(invoice, absentOccurrenceIds);
+  return resolveInvoiceForDisplay(invoice, absentOccurrenceIds, students);
 }
