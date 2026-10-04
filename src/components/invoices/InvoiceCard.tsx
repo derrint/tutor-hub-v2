@@ -31,7 +31,16 @@ import React, { useMemo } from "react";
  * already sends by hand: a line per child with the session dates and subtotal,
  * then the grand total.
  */
-const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
+type InvoiceCardProps = {
+  invoice: InvoicePreview;
+  /** Future billing months — no send / regenerate / status changes. */
+  actionsLocked?: boolean;
+};
+
+const InvoiceCard: React.FC<InvoiceCardProps> = ({
+  invoice,
+  actionsLocked = false,
+}) => {
   const t = useTranslations("tutorHub.invoices");
   const { absentOccurrenceIds } = useAttendance();
   const { regenerateInvoice, setInvoiceStatus } = useInvoices();
@@ -48,7 +57,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   } = useModal();
 
   const whatsAppPayload = useMemo(() => {
-    if (invoice.status !== "UNPAID" || !parent) return null;
+    if (actionsLocked || invoice.status !== "UNPAID" || !parent) return null;
     const messageText = buildParentMonthlyWhatsAppMessage({
       invoice: billableInvoice,
       profile: TUTOR_PROFILE,
@@ -58,7 +67,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
       messageText,
       whatsAppUrl: buildWaMeUrl(parent.whatsapp, messageText),
     };
-  }, [billableInvoice, parent, invoice.status]);
+  }, [actionsLocked, billableInvoice, parent, invoice.status]);
 
   const studentNames = useMemo(
     () => billableInvoice.children.map((c) => c.name),
@@ -93,27 +102,32 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
               {t("sendWhatsApp")}
             </Button>
           )}
-          {invoice.status === "UNPAID" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              startIcon={<RotateCw className="size-4" />}
-              aria-label={t("regenerateAria", { parentName: invoice.parentName })}
-              onClick={() => regenerateInvoice(invoice.id)}
-            >
-              {t("regenerate")}
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              aria-label={t("markUnpaidAria", { parentName: invoice.parentName })}
-              onClick={() => setInvoiceStatus(invoice.id, "UNPAID")}
-            >
-              {t("markUnpaid")}
-            </Button>
-          )}
-          {invoice.status === "UNPAID" && (
+          {!actionsLocked &&
+            (invoice.status === "UNPAID" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                startIcon={<RotateCw className="size-4" />}
+                aria-label={t("regenerateAria", {
+                  parentName: invoice.parentName,
+                })}
+                onClick={() => regenerateInvoice(invoice.id)}
+              >
+                {t("regenerate")}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                aria-label={t("markUnpaidAria", {
+                  parentName: invoice.parentName,
+                })}
+                onClick={() => setInvoiceStatus(invoice.id, "UNPAID")}
+              >
+                {t("markUnpaid")}
+              </Button>
+            ))}
+          {!actionsLocked && invoice.status === "UNPAID" && (
             <Button
               size="sm"
               variant="outline"

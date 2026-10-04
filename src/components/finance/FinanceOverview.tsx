@@ -1,25 +1,26 @@
 "use client";
 
+import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
 import FinanceTotals from "@/components/finance/FinanceTotals";
 import PaymentComposition from "@/components/finance/PaymentComposition";
+import { billingMonthHref, useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useFinanceSummary } from "@/hooks/useFinanceSummary";
 import { Link } from "@/i18n/navigation";
+import { formatInvoicePeriodLabel } from "@/utils";
 import { useTranslations } from "next-intl";
 
-type FinanceOverviewProps = {
-  monthLabel: string;
-};
-
-const FinanceOverview: React.FC<FinanceOverviewProps> = ({ monthLabel }) => {
+const FinanceOverview: React.FC = () => {
   const t = useTranslations("tutorHub.finance");
+  const { period, monthParam } = useBillingPeriod();
+  const monthLabel = formatInvoicePeriodLabel(period);
   const {
     totalBilled,
     collected,
     unpaid,
     unpaidInvoiceCount,
     invoiceCount,
-  } = useFinanceSummary();
+  } = useFinanceSummary(period);
 
   const hasInvoices = invoiceCount > 0;
   const collectedPercent =
@@ -28,6 +29,7 @@ const FinanceOverview: React.FC<FinanceOverviewProps> = ({ monthLabel }) => {
   if (!hasInvoices) {
     return (
       <div>
+        <BillingMonthNavigator />
         <PageHeader
           title={t("title")}
           description={t("descriptionEmpty", { month: monthLabel })}
@@ -40,7 +42,7 @@ const FinanceOverview: React.FC<FinanceOverviewProps> = ({ monthLabel }) => {
             {t("emptyDescription")}
           </p>
           <Link
-            href="/invoices"
+            href={billingMonthHref("/invoices", monthParam)}
             className="text-theme-sm font-medium text-brand-500 underline-offset-4 hover:underline"
           >
             {t("emptyCta")}
@@ -52,6 +54,7 @@ const FinanceOverview: React.FC<FinanceOverviewProps> = ({ monthLabel }) => {
 
   return (
     <div>
+      <BillingMonthNavigator />
       <PageHeader
         title={t("title")}
         description={t("description", {
@@ -68,6 +71,7 @@ const FinanceOverview: React.FC<FinanceOverviewProps> = ({ monthLabel }) => {
           unpaid={unpaid}
           collectedPercent={collectedPercent}
           unpaidCount={unpaidInvoiceCount}
+          invoicesMonthParam={monthParam}
         />
         <PaymentComposition collectedPercent={collectedPercent} />
       </div>

@@ -222,9 +222,18 @@
       "columnStatus": "Status",
       "age": "{count} years old"
     },
+    "billingMonth": {
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "selectMonth": "Select billing month",
+      "futureHint": "Preview — billing actions disabled"
+    },
     "invoices": {
       "title": "Invoices",
       "description": "One invoice per parent, based on attended sessions this month.",
+      "pageSummaryEmpty": "No invoices this month",
+      "pageSummary": "{count, plural, one {# invoice} other {# invoices}} · {unpaidCount} unpaid",
+      "emptyFuture": "No invoices for this month yet. Billing actions unlock when the month starts.",
       "create": "Create invoice",
       "createAria": "Create invoices for parents missing this month",
       "regenerate": "Regenerate",

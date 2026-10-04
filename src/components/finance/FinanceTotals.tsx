@@ -1,5 +1,6 @@
 "use client";
 
+import { billingMonthHref } from "@/hooks/useBillingPeriod";
 import { Link } from "@/i18n/navigation";
 import { formatRupiah } from "@/utils";
 import { useTranslations } from "next-intl";
@@ -11,6 +12,7 @@ interface FinanceTotalsProps {
   unpaid: number;
   collectedPercent: number;
   unpaidCount: number;
+  invoicesMonthParam: string;
 }
 
 const CARD = "rounded-2xl border border-gray-200 bg-white p-5 md:p-6 dark:border-gray-800 dark:bg-white/3";
@@ -23,6 +25,7 @@ const FinanceTotals: React.FC<FinanceTotalsProps> = ({
   unpaid,
   collectedPercent,
   unpaidCount,
+  invoicesMonthParam,
 }) => {
   const t = useTranslations("tutorHub.finance");
 
@@ -58,7 +61,7 @@ const FinanceTotals: React.FC<FinanceTotalsProps> = ({
         </p>
         {unpaidCount > 0 && (
           <Link
-            href="/invoices"
+            href={billingMonthHref("/invoices", invoicesMonthParam)}
             className="mt-1 inline-block text-theme-xs font-medium text-warning-600 underline-offset-4 hover:underline dark:text-orange-400"
           >
             {t("viewUnpaid", { count: unpaidCount })}

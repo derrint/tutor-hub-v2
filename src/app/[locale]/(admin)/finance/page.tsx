@@ -1,8 +1,7 @@
 import FinanceOverview from "@/components/finance/FinanceOverview";
-import { MOCK_INVOICE_PERIOD } from "@/lib/mock-data";
-import { formatInvoicePeriodLabel } from "@/utils";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import React, { Suspense } from "react";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("tutorHub");
@@ -10,8 +9,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t("finance.title")} | ${t("brand")}` };
 }
 
-export default async function FinancePage() {
-  const monthLabel = formatInvoicePeriodLabel(MOCK_INVOICE_PERIOD);
-
-  return <FinanceOverview monthLabel={monthLabel} />;
+export default function FinancePage() {
+  return (
+    <Suspense fallback={null}>
+      <FinanceOverview />
+    </Suspense>
+  );
 }

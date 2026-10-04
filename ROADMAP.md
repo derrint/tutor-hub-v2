@@ -44,6 +44,31 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 **Exit criteria:** Tutor can tap through mark attendance → see invoice update → open WhatsApp with combined rapot+payment text, all without a database.
 
+### Billing month navigation (Invoices · Reports · Finance)
+
+**When to build:** After the Phase 1 exit criteria above are validated on **one** month (attendance → invoice → WhatsApp). Do this **before** Postgres holds real multi-month invoice/report history — ideally **last slice of Phase 1** or **first sprint of Phase 2** (replace `MOCK_INVOICE_PERIOD` everywhere before DB reads multiply the problem). **Reports and Invoices must share the same month control** in the same change (or back-to-back PRs); do not ship a month picker on Invoices while Reports/Finance still hardcode a single mock month.
+
+Goal: one **billing month** mental model — tutor thinks in calendar months, not an infinite mixed list.
+
+- [x] Shared **billing period** — `useBillingPeriod` + URL `?month=YYYY-MM` + `sessionStorage` when switching sidebar routes (`src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`)
+- [x] **Month control:** default calendar month; prev/next + `<input type="month">` (`BillingMonthNavigator`)
+- [x] **Invoices:** filter by month; count · unpaid summary; **Create** scoped to selected month
+- [x] **Finance:** totals for selected month; unpaid link preserves `?month=`
+- [x] **Reports:** header uses selected month (student list still mock until template)
+- [x] **Dashboard:** finance card uses **calendar month** only (not billing URL)
+
+**Edge cases (design once; ship with the month picker):**
+
+- [x] **Empty month** — empty state; Create enabled when schedule has sessions (past/current)
+- [x] **Future month** — preview copy; Create / card actions disabled
+- [ ] **Paid months** — v1 prod: lock paid lines (mock still allows Mark unpaid + Regenerate hidden when PAID)
+- [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
+
+**Optional later (not blocking Phase 2):**
+
+- [ ] **Compact month list** — e.g. last 12 rows: month label, total billed, unpaid count → tap opens that month in the picker (nice on desktop; secondary entry on phone)
+- [ ] **Derive-on-read unpaid invoices** — drop day-to-day **Regenerate** for absences; keep “Create / rebuild month” only (see product discussion)
+
 ---
 
 ## Phase 2 — Data layer
@@ -56,6 +81,7 @@ Goal: replace mock reads with real data; keep single-tutor, no auth unless you a
 - [ ] **Session generation** from `ScheduleRule` (weekly recurrence)
 - [ ] **Fee snapshot** on `Session` at creation; link billable sessions to `InvoiceItem` per schema
 - [ ] Swap the six TutorHub pages from `mock-data.ts` imports to DB queries
+- [ ] Query invoices / reports / finance **by billing month** (same `?month=` contract as Phase 1 navigation)
 - [ ] Keep fabricated names in **seed only**; do not commit secrets
 
 **Exit criteria:** App runs against Postgres locally; mock file unused for main routes (or kept for tests/fixtures only).
@@ -120,6 +146,7 @@ Do not build unless requirements change:
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/`, `src/context/InvoiceContext.tsx` |
+| Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** complete **Phase 1** (WhatsApp template + attendance on mock) before touching Postgres.
+**Suggested next sprint:** Phase 1 exit test across months (pick **September 2026** for mock seed) → Postgres (Phase 2).

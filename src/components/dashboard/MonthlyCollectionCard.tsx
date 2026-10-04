@@ -2,13 +2,18 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import SeeAllLink from "@/components/dashboard/SeeAllLink";
+import { getCurrentInvoicePeriod } from "@/lib/billing-period";
 import { useFinanceSummary } from "@/hooks/useFinanceSummary";
+import { useMemo } from "react";
 import { formatRupiah } from "@/utils";
 import { useTranslations } from "next-intl";
 
 export default function MonthlyCollectionCard() {
   const t = useTranslations("tutorHub.dashboard");
-  const { totalBilled, collected, unpaid, invoiceCount } = useFinanceSummary();
+  /** Dashboard always reflects the calendar month, not the billing URL month. */
+  const calendarMonth = useMemo(() => getCurrentInvoicePeriod(), []);
+  const { totalBilled, collected, unpaid, invoiceCount } =
+    useFinanceSummary(calendarMonth);
 
   const hasInvoices = invoiceCount > 0;
   const collectedPercent =
