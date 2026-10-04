@@ -26,6 +26,13 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+    ],
   },
   turbopack: {
     root: __dirname,
