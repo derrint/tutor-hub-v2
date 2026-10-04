@@ -11,47 +11,62 @@ import { useModal } from "@/hooks/useModal";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
 import StatusBadge from "@/components/common/StatusBadge";
 import { useAttendance } from "@/context/AttendanceContext";
+import { useSchedule } from "@/context/ScheduleContext";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
-import { RECURRING_SESSIONS, type RecurringSession } from "@/lib/mock-data";
+import type { RecurringSession } from "@/lib/mock-data";
 import { formatDayAndMonth } from "@/utils";
-import type { EventClickInfo } from "@fullcalendar/react";
+import type { DateSelectInfo, EventClickInfo } from "@fullcalendar/react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-const SESSIONS_BY_ID = new Map(
-  RECURRING_SESSIONS.map((session) => [session.id, session]),
-);
-
-// FullCalendar expands the weekly rule itself from daysOfWeek + startTime /
-// endTime, so moving between weeks needs no date generation on our side.
-const SESSION_EVENTS: CalendarEvent[] = RECURRING_SESSIONS.map((session) => ({
-  id: session.id,
-  title: session.studentName,
-  daysOfWeek: session.daysOfWeek,
-  startTime: session.startTime,
-  endTime: session.endTime,
-  extendedProps: {
-    calendar: session.level === "TK" ? "Primary" : "Warning",
-    startTime: session.startTime,
-    endTime: session.endTime,
-    studentId: session.studentId,
-  },
-}));
+type ScheduleCalendarProps = {
+  onTimeSlotSelect?: (info: DateSelectInfo) => void;
+};
 
 type SelectedOccurrence = {
   session: RecurringSession;
   date: Date | null;
 };
 
-const ScheduleCalendar: React.FC = () => {
+const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
+  onTimeSlotSelect,
+}) => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
+  const { recurringSessions } = useSchedule();
   const { isAbsent, absentOccurrenceIds } = useAttendance();
 
-  const attendanceRevision = useMemo(
-    () => [...absentOccurrenceIds].sort().join(","),
-    [absentOccurrenceIds],
+  const sessionsById = useMemo(
+    () => new Map(recurringSessions.map((session) => [session.id, session])),
+    [recurringSessions],
   );
+
+  const sessionEvents: CalendarEvent[] = useMemo(
+    () =>
+      recurringSessions.map((session) => ({
+        id: session.id,
+        title: session.studentName,
+        daysOfWeek: session.daysOfWeek,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        extendedProps: {
+          calendar: session.level === "TK" ? "Primary" : "Warning",
+          startTime: session.startTime,
+          endTime: session.endTime,
+          studentId: session.studentId,
+        },
+      })),
+    [recurringSessions],
+  );
+
+  const attendanceRevision = useMemo(
+    () =>
+      [...absentOccurrenceIds, ...recurringSessions.map((r) => r.id)]
+        .sort()
+        .join(","),
+    [absentOccurrenceIds, recurringSessions],
+  );
+
   const { isOpen, openModal, closeModal } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
 
@@ -75,7 +90,7 @@ const ScheduleCalendar: React.FC = () => {
   );
 
   const handleEventClick = (info: EventClickInfo) => {
-    const session = SESSIONS_BY_ID.get(info.event.id);
+    const session = sessionsById.get(info.event.id);
     if (!session) return;
 
     setSelected({ session, date: info.event.start ?? null });
@@ -87,11 +102,12 @@ const ScheduleCalendar: React.FC = () => {
       <Calendar
         readOnly
         initialView="timeGridWeek"
-        initialEvents={SESSION_EVENTS}
+        initialEvents={sessionEvents}
         slotMinTime="12:00:00"
         slotMaxTime="21:00:00"
         viewOptions={viewOptions}
         onEventClick={handleEventClick}
+        onTimeSlotSelect={onTimeSlotSelect}
         eventContentRevision={attendanceRevision}
       />
 

@@ -192,7 +192,7 @@ export type RecurringSession = {
   endTime: string;
 };
 
-export const RECURRING_SESSIONS: RecurringSession[] = [
+export const SEED_RECURRING_SESSIONS: RecurringSession[] = [
   {
     id: "r1",
     studentId: "m3",
@@ -239,6 +239,9 @@ export const RECURRING_SESSIONS: RecurringSession[] = [
     endTime: "17:30",
   },
 ];
+
+/** @deprecated Use schedule store / `useSchedule`. */
+export const RECURRING_SESSIONS = SEED_RECURRING_SESSIONS;
 
 /** Shared mock billing month (matches Prisma `Invoice.month` / `year`). */
 export const MOCK_INVOICE_PERIOD: InvoicePeriod = { month: 9, year: 2026 };
