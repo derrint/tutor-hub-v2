@@ -45,6 +45,7 @@ export {
   Mail as MailIcon,
   Ellipsis as MoreDotIcon,
   FileText as PageIcon,
+  Shapes as BrandMarkIcon,
   Send as PaperPlaneIcon,
   Pencil as PencilIcon,
   PieChart as PieChartIcon,

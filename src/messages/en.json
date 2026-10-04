@@ -158,9 +158,11 @@
     "brandShort": "TH",
     "auth": {
       "title": "Sign in",
+      "tagline": "Your tutoring day, one click away.",
+      "logoAlt": "TutorHub home",
       "description": "Use your Google account to open TutorHub.",
       "signInWithGoogle": "Sign in with Google",
-      "accessDenied": "This Google account isn’t on the allowlist. Use one of the two tutor accounts configured for this app.",
+      "accessDenied": "The Google account isn’t on the allowlist. Use one of the two tutor accounts configured for this app.",
       "signInFailed": "Sign-in didn’t complete. Check your Google account and try again.",
       "allowlistHint": "Only approved Google accounts can access this dashboard.",
       "defaultUserName": "Tutor"

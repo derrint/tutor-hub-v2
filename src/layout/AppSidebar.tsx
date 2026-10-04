@@ -1,5 +1,6 @@
 "use client";
 
+import TutorHubMark from "@/components/branding/TutorHubMark";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
@@ -81,9 +82,15 @@ const AppSidebar: React.FC = () => {
       >
         <Link
           href="/"
-          className="text-xl font-bold text-gray-900 dark:text-white/90"
+          className="inline-flex items-center gap-2.5 text-brand-500 dark:text-brand-400"
+          aria-label={tBrand("brand")}
         >
-          {isWide ? tBrand("brand") : tBrand("brandShort")}
+          <TutorHubMark className={isWide ? "size-9" : "size-10"} />
+          {isWide && (
+            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white/90">
+              {tBrand("brand")}
+            </span>
+          )}
         </Link>
       </div>
 

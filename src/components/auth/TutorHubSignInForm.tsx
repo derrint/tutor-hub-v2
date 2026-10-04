@@ -1,5 +1,6 @@
 "use client";
 
+import TutorHubAuthBrand from "@/components/branding/TutorHubAuthBrand";
 import Button from "@/components/ui/button/Button";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -29,6 +30,11 @@ export default function TutorHubSignInForm({
   return (
     <div className="flex w-full flex-1 flex-col lg:w-1/2">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center pb-10 pt-10 sm:pt-16">
+        <TutorHubAuthBrand
+          variant="onLight"
+          className="mb-10 lg:hidden"
+        />
+
         <div className="mb-8">
           <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md dark:text-white/90">
             {t("title")}
