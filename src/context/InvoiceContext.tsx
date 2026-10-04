@@ -3,12 +3,13 @@
 import { useAttendance } from "@/context/AttendanceContext";
 import {
   buildInvoiceId,
-  generateInvoiceForParent,
   listParentIdsWithScheduledSessions,
+  resolveInvoiceForDisplay,
 } from "@/lib/invoices";
 import {
   INVOICES,
   MOCK_INVOICE_PERIOD,
+  STUDENTS,
   type InvoicePreview,
   type InvoiceStatus,
 } from "@/lib/mock-data";
@@ -30,6 +31,7 @@ type InvoiceBodySnapshot = {
 
 type InvoiceMockState = {
   statuses: Record<string, InvoiceStatus>;
+  /** Snapshotted lines when marked PAID (unpaid lines are derive-on-read). */
   bodies: Record<string, InvoiceBodySnapshot>;
   extras: InvoicePreview[];
 };
@@ -100,6 +102,7 @@ function statesEqual(a: InvoiceMockState, b: InvoiceMockState): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** Persisted shell + status; UNPAID line items come from `resolveInvoiceForDisplay`. */
 export function mergeInvoiceMockState(
   state: InvoiceMockState,
   seed: InvoicePreview[] = INVOICES,
@@ -131,10 +134,16 @@ export function mergeInvoiceMockState(
   return [...merged.values()];
 }
 
+function parentDisplayName(parentId: string): string {
+  return (
+    STUDENTS.find((s) => s.parentId === parentId)?.parentName ?? parentId
+  );
+}
+
 type InvoiceContextValue = {
+  /** Display-ready invoices (unpaid derived from schedule + attendance). */
   invoices: InvoicePreview[];
   setInvoiceStatus: (invoiceId: string, status: InvoiceStatus) => void;
-  regenerateInvoice: (invoiceId: string) => void;
   createMissingInvoicesForPeriod: (
     period?: typeof MOCK_INVOICE_PERIOD,
   ) => number;
@@ -158,54 +167,52 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const invoices = useMemo(
-    () => mergeInvoiceMockState(mockState),
-    [mockState],
-  );
+  const invoices = useMemo(() => {
+    const merged = mergeInvoiceMockState(mockState);
+    return merged.map((invoice) =>
+      resolveInvoiceForDisplay(invoice, absentOccurrenceIds),
+    );
+  }, [mockState, absentOccurrenceIds]);
 
   const setInvoiceStatus = useCallback(
     (invoiceId: string, status: InvoiceStatus) => {
+      const merged = mergeInvoiceMockState(invoiceState);
+      const invoice = merged.find((inv) => inv.id === invoiceId);
+      if (!invoice) {
+        persist({
+          ...invoiceState,
+          statuses: { ...invoiceState.statuses, [invoiceId]: status },
+        });
+        return;
+      }
+
+      let bodies = invoiceState.bodies;
+
+      if (status === "PAID") {
+        const snapshot = resolveInvoiceForDisplay(
+          { ...invoice, status: "UNPAID" },
+          absentOccurrenceIds,
+        );
+        bodies = {
+          ...bodies,
+          [invoiceId]: {
+            children: snapshot.children,
+            total: snapshot.total,
+          },
+        };
+      } else if (status === "UNPAID" && bodies[invoiceId]) {
+        const nextBodies = { ...bodies };
+        delete nextBodies[invoiceId];
+        bodies = nextBodies;
+      }
+
       persist({
         ...invoiceState,
         statuses: { ...invoiceState.statuses, [invoiceId]: status },
+        bodies,
       });
     },
-    [],
-  );
-
-  const applyGeneratedBody = useCallback(
-    (invoiceId: string, generated: NonNullable<ReturnType<typeof generateInvoiceForParent>>) => {
-      persist({
-        ...invoiceState,
-        bodies: {
-          ...invoiceState.bodies,
-          [invoiceId]: {
-            children: generated.children,
-            total: generated.total,
-          },
-        },
-      });
-    },
-    [],
-  );
-
-  const regenerateInvoice = useCallback(
-    (invoiceId: string) => {
-      const invoice =
-        mergeInvoiceMockState(invoiceState).find((inv) => inv.id === invoiceId) ??
-        INVOICES.find((inv) => inv.id === invoiceId);
-      if (!invoice) return;
-
-      const generated = generateInvoiceForParent(
-        invoice.parentId,
-        invoice.period,
-        absentOccurrenceIds,
-      );
-      if (!generated) return;
-
-      applyGeneratedBody(invoiceId, generated);
-    },
-    [absentOccurrenceIds, applyGeneratedBody],
+    [absentOccurrenceIds],
   );
 
   const createMissingInvoicesForPeriod = useCallback(
@@ -228,13 +235,6 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
       for (const parentId of parentIds) {
         if (existingParentIds.has(parentId)) continue;
 
-        const generated = generateInvoiceForParent(
-          parentId,
-          period,
-          absentOccurrenceIds,
-        );
-        if (!generated) continue;
-
         const id = buildInvoiceId(parentId, period);
         if (
           INVOICES.some((inv) => inv.id === id) ||
@@ -246,7 +246,11 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
         newExtras.push({
           id,
           status: "UNPAID",
-          ...generated,
+          parentId,
+          parentName: parentDisplayName(parentId),
+          period,
+          children: [],
+          total: 0,
         });
         existingParentIds.add(parentId);
         created += 1;
@@ -261,22 +265,16 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
 
       return created;
     },
-    [absentOccurrenceIds],
+    [],
   );
 
   const value = useMemo(
     () => ({
       invoices,
       setInvoiceStatus,
-      regenerateInvoice,
       createMissingInvoicesForPeriod,
     }),
-    [
-      invoices,
-      setInvoiceStatus,
-      regenerateInvoice,
-      createMissingInvoicesForPeriod,
-    ],
+    [invoices, setInvoiceStatus, createMissingInvoicesForPeriod],
   );
 
   return (

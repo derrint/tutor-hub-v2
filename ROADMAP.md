@@ -39,7 +39,7 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 ### Invoice actions (still mock)
 
 - [x] **Create invoice** — adds missing parent invoices for the month from recurring schedule
-- [x] **Regenerate** — rebuilds lines from schedule minus absences (`InvoiceContext` + `generateInvoiceForParent`)
+- [x] **Unpaid derive-on-read** — lines from schedule + attendance live (`resolveInvoiceForDisplay`); per-card Regenerate removed
 - [x] Mark invoice **paid / unpaid** in UI (mock toggle, `localStorage`)
 
 **Exit criteria:** Tutor can tap through mark attendance → see invoice update → open WhatsApp with combined rapot+payment text, all without a database.
@@ -67,7 +67,7 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 **Optional later (not blocking Phase 2):**
 
 - [ ] **Compact month list** — e.g. last 12 rows: month label, total billed, unpaid count → tap opens that month in the picker (nice on desktop; secondary entry on phone)
-- [ ] **Derive-on-read unpaid invoices** — drop day-to-day **Regenerate** for absences; keep “Create / rebuild month” only (see product discussion)
+- [x] **Derive-on-read unpaid invoices** — `resolveInvoiceForDisplay`; mark paid snapshots lines to `localStorage`
 
 ---
 

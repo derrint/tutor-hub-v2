@@ -10,10 +10,7 @@ import {
 } from "@/lib/mock-data";
 import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
 import { useModal } from "@/hooks/useModal";
-import { computeBillableInvoice } from "@/lib/attendance";
-import { useAttendance } from "@/context/AttendanceContext";
 import { useInvoices } from "@/context/InvoiceContext";
-import { RotateCw } from "lucide-react";
 import {
   buildParentMonthlyWhatsAppMessage,
   buildWaMeUrl,
@@ -32,8 +29,9 @@ import React, { useMemo } from "react";
  * then the grand total.
  */
 type InvoiceCardProps = {
+  /** Already resolved via `InvoiceProvider` (derive-on-read when unpaid). */
   invoice: InvoicePreview;
-  /** Future billing months — no send / regenerate / status changes. */
+  /** Future billing months — no send / status changes. */
   actionsLocked?: boolean;
 };
 
@@ -42,14 +40,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   actionsLocked = false,
 }) => {
   const t = useTranslations("tutorHub.invoices");
-  const { absentOccurrenceIds } = useAttendance();
-  const { regenerateInvoice, setInvoiceStatus } = useInvoices();
+  const { setInvoiceStatus } = useInvoices();
   const parent = getParentById(invoice.parentId);
 
-  const billableInvoice = useMemo(
-    () => computeBillableInvoice(invoice, absentOccurrenceIds),
-    [invoice, absentOccurrenceIds],
-  );
   const {
     isOpen: isPreviewOpen,
     openModal: openPreview,
@@ -58,8 +51,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
 
   const whatsAppPayload = useMemo(() => {
     if (actionsLocked || invoice.status !== "UNPAID" || !parent) return null;
+    if (invoice.total <= 0 || invoice.children.length === 0) return null;
     const messageText = buildParentMonthlyWhatsAppMessage({
-      invoice: billableInvoice,
+      invoice,
       profile: TUTOR_PROFILE,
       parent,
     });
@@ -67,11 +61,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
       messageText,
       whatsAppUrl: buildWaMeUrl(parent.whatsapp, messageText),
     };
-  }, [actionsLocked, billableInvoice, parent, invoice.status]);
+  }, [actionsLocked, invoice, parent]);
 
   const studentNames = useMemo(
-    () => billableInvoice.children.map((c) => c.name),
-    [billableInvoice.children],
+    () => invoice.children.map((c) => c.name),
+    [invoice.children],
   );
 
   return (
@@ -102,31 +96,18 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
               {t("sendWhatsApp")}
             </Button>
           )}
-          {!actionsLocked &&
-            (invoice.status === "UNPAID" ? (
-              <Button
-                size="sm"
-                variant="outline"
-                startIcon={<RotateCw className="size-4" />}
-                aria-label={t("regenerateAria", {
-                  parentName: invoice.parentName,
-                })}
-                onClick={() => regenerateInvoice(invoice.id)}
-              >
-                {t("regenerate")}
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={t("markUnpaidAria", {
-                  parentName: invoice.parentName,
-                })}
-                onClick={() => setInvoiceStatus(invoice.id, "UNPAID")}
-              >
-                {t("markUnpaid")}
-              </Button>
-            ))}
+          {!actionsLocked && invoice.status === "PAID" && (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={t("markUnpaidAria", {
+                parentName: invoice.parentName,
+              })}
+              onClick={() => setInvoiceStatus(invoice.id, "UNPAID")}
+            >
+              {t("markUnpaid")}
+            </Button>
+          )}
           {!actionsLocked && invoice.status === "UNPAID" && (
             <Button
               size="sm"
@@ -142,38 +123,43 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
       </div>
 
       <div className="border-t border-gray-100 px-5 py-4 sm:px-6 dark:border-gray-800">
-        <ul className="flex flex-col gap-3">
-          {billableInvoice.children.map((child) => (
-            <li
-              key={child.id}
-              className="flex items-start justify-between gap-4"
-            >
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
-                  {child.name}
+        {invoice.children.length === 0 ? (
+          <p className="text-theme-sm text-gray-500 dark:text-gray-400">
+            {t("noBillableSessions")}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {invoice.children.map((child) => (
+              <li
+                key={child.id}
+                className="flex items-start justify-between gap-4"
+              >
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                    {child.name}
+                  </span>
+                  <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+                    {t("sessionCount", { count: child.sessionCount })}
+                    {" — "}
+                    {formatInvoiceSessionDays(child.sessionDays)}
+                  </p>
                 </span>
-                <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-                  {t("sessionCount", { count: child.sessionCount })}
-                  {" — "}
-                  {formatInvoiceSessionDays(child.sessionDays)}
-                </p>
-              </span>
-              <span className="text-gray-800 tabular-nums dark:text-white/90">
-                {formatRupiah(child.subtotal)}
-              </span>
-            </li>
-          ))}
-        </ul>
+                <span className="text-gray-800 tabular-nums dark:text-white/90">
+                  {formatRupiah(child.subtotal)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-800">
           <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
             {t("total")}
           </span>
           <span className="text-base font-bold text-gray-800 tabular-nums dark:text-white/90">
-            {formatRupiah(billableInvoice.total)}
+            {formatRupiah(invoice.total)}
           </span>
         </div>
-
       </div>
 
       {whatsAppPayload && (
