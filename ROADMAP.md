@@ -84,6 +84,12 @@ Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI
 - [x] **Students** — add / edit (parent picker); list reads live roster
 - [x] Seed parents **p1–p5** for all mock students; invoice/WhatsApp use roster parent records
 
+### Schedule (pre–Phase 2 mock CRUD)
+
+- [x] **Recurring weekly slots** — `ScheduleContext` + `localStorage` (`SEED_RECURRING_SESSIONS`); calendar reads live rules
+- [x] **Add slot** — header button + Week/Day empty-slot select with prefilled time
+- [x] **Invoices** — `listParentIdsWithScheduledSessions` / derive-on-read use persisted schedule (not static mock only)
+
 ### Phase 1 — still open
 
 - [x] Real parent **WhatsApp** numbers in mock (see WhatsApp section above)
@@ -165,6 +171,7 @@ Do not build unless requirements change:
 | Schema | `prisma/schema.prisma` |
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
 | Roster (parents/students mock CRUD) | `src/context/RosterContext.tsx`, `src/lib/roster/roster-store.ts` |
+| Schedule (recurring slots mock CRUD) | `src/context/ScheduleContext.tsx`, `src/lib/schedule/schedule-store.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |

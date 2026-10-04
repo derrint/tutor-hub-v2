@@ -46,7 +46,8 @@ Internal-only operational tool for one tutor's private practice — not intended
 Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Seven routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
-- **Parents / Students:** mock CRUD in `localStorage` (`RosterContext`); WhatsApp fields on parent; schedule still seed-based until Phase 2.
+- **Parents / Students:** mock CRUD in `localStorage` (`RosterContext`); WhatsApp fields on parent.
+- **Schedule:** recurring weekly slots in `localStorage` (`ScheduleContext`); add via header or Week/Day slot select; invoices use live rules.
 - **Access:** **Auth.js** + **Google sign-in**; only emails in `AUTH_ALLOWED_EMAILS` (two accounts). All dashboard routes require login before Vercel deploy.
 - **Schedule:** read-only calendar with recurring mock sessions, attendance (absent) on dashboard + schedule; session detail modal.
 - **Invoices:** auto-list per billing month; derive-on-read unpaid lines; mark paid (mock `localStorage`); **WhatsApp** preview + `wa.me` prefill.
