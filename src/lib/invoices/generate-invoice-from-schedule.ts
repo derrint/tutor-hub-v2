@@ -1,8 +1,8 @@
-import type { InvoiceChildLine, InvoicePreview, Student } from "@/lib/mock-data";
+import type { InvoiceChildLine, InvoicePreview, RecurringSession, Student } from "@/lib/mock-data";
 import type { InvoicePeriod } from "@/utils/format";
 import {
   MOCK_INVOICE_PERIOD,
-  RECURRING_SESSIONS,
+  SEED_RECURRING_SESSIONS,
   SEED_STUDENTS,
 } from "@/lib/mock-data";
 import { buildStudentOccurrenceIdForPeriodDay } from "@/lib/attendance/occurrence-id";
@@ -10,13 +10,15 @@ import {
   getRosterSnapshot,
   parentDisplayName,
 } from "@/lib/roster/roster-store";
+import { getScheduleSnapshot } from "@/lib/schedule/schedule-store";
 
 /** Calendar days in `period` when this student has a recurring session. */
 export function getScheduledSessionDaysInPeriod(
   studentId: string,
   period: InvoicePeriod,
+  recurringSessions: RecurringSession[] = getScheduleSnapshot().recurringSessions,
 ): number[] {
-  const rules = RECURRING_SESSIONS.filter(
+  const rules = recurringSessions.filter(
     (session) => session.studentId === studentId,
   );
   if (rules.length === 0) return [];
@@ -71,6 +73,7 @@ export function generateInvoiceForParent(
   period: InvoicePeriod,
   absentOccurrenceIds: ReadonlySet<string>,
   students: Student[] = getRosterSnapshot().students,
+  recurringSessions: RecurringSession[] = getScheduleSnapshot().recurringSessions,
 ): Omit<InvoicePreview, "id" | "status"> | null {
   const studentIds = students
     .filter((s) => s.parentId === parentId && s.status === "ACTIVE")
@@ -111,12 +114,17 @@ export function buildInvoiceId(parentId: string, period: InvoicePeriod): string 
 export function listParentIdsWithScheduledSessions(
   period: InvoicePeriod = MOCK_INVOICE_PERIOD,
   students: Student[] = getRosterSnapshot().students,
+  recurringSessions: RecurringSession[] = getScheduleSnapshot().recurringSessions,
 ): string[] {
   const parentIds = new Set<string>();
 
   for (const student of students) {
     if (student.status !== "ACTIVE") continue;
-    const days = getScheduledSessionDaysInPeriod(student.id, period);
+    const days = getScheduledSessionDaysInPeriod(
+      student.id,
+      period,
+      recurringSessions,
+    );
     if (days.length > 0) parentIds.add(student.parentId);
   }
 
@@ -127,5 +135,9 @@ export function listParentIdsWithScheduledSessions(
 export function listParentIdsWithScheduledSessionsFromSeed(
   period: InvoicePeriod = MOCK_INVOICE_PERIOD,
 ): string[] {
-  return listParentIdsWithScheduledSessions(period, SEED_STUDENTS);
+  return listParentIdsWithScheduledSessions(
+    period,
+    SEED_STUDENTS,
+    SEED_RECURRING_SESSIONS,
+  );
 }

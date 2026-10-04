@@ -1,4 +1,4 @@
-import type { InvoicePreview, Student } from "@/lib/mock-data";
+import type { InvoicePreview, RecurringSession, Student } from "@/lib/mock-data";
 import type { InvoicePeriod } from "@/utils/format";
 import { parentDisplayName } from "@/lib/roster/roster-store";
 import {
@@ -15,6 +15,7 @@ export function buildInvoiceShellsForPeriod(
   state: InvoiceMockState,
   period: InvoicePeriod,
   students: Student[],
+  recurringSessions?: RecurringSession[],
 ): InvoicePreview[] {
   const merged = mergeInvoiceMockState(state);
   const byParentId = new Map<string, InvoicePreview>();
@@ -28,7 +29,11 @@ export function buildInvoiceShellsForPeriod(
     }
   }
 
-  for (const parentId of listParentIdsWithScheduledSessions(period, students)) {
+  for (const parentId of listParentIdsWithScheduledSessions(
+    period,
+    students,
+    recurringSessions,
+  )) {
     if (byParentId.has(parentId)) continue;
 
     const id = buildInvoiceId(parentId, period);

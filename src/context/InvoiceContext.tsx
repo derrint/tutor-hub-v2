@@ -2,6 +2,7 @@
 
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
+import { useSchedule } from "@/context/ScheduleContext";
 import {
   buildInvoiceShellsForPeriod,
   parseInvoiceId,
@@ -73,6 +74,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   );
   const { absentOccurrenceIds } = useAttendance();
   const { students } = useRoster();
+  const { recurringSessions } = useSchedule();
 
   useEffect(() => {
     const stored = readInvoiceMockState();
@@ -84,12 +86,22 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
 
   const getInvoicesForPeriod = useCallback(
     (period: InvoicePeriod) => {
-      const shells = buildInvoiceShellsForPeriod(mockState, period, students);
+      const shells = buildInvoiceShellsForPeriod(
+        mockState,
+        period,
+        students,
+        recurringSessions,
+      );
       return shells.map((invoice) =>
-        resolveInvoiceForDisplay(invoice, absentOccurrenceIds, students),
+        resolveInvoiceForDisplay(
+          invoice,
+          absentOccurrenceIds,
+          students,
+          recurringSessions,
+        ),
       );
     },
-    [mockState, absentOccurrenceIds, students],
+    [mockState, absentOccurrenceIds, students, recurringSessions],
   );
 
   const setInvoiceStatus = useCallback(
@@ -129,6 +141,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
           { ...invoice, status: "UNPAID" },
           absentOccurrenceIds,
           students,
+          recurringSessions,
         );
         bodies = {
           ...bodies,
@@ -150,7 +163,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
         bodies,
       });
     },
-    [absentOccurrenceIds, students],
+    [absentOccurrenceIds, students, recurringSessions],
   );
 
   const value = useMemo(
