@@ -8,37 +8,36 @@ Operational dashboard for a **solo private tutor**: schedule, students, monthly 
 
 ---
 
-## Current status (Milestone 0)
+## Current status (Phase 1 mock)
 
-The app is a **working UI shell** with **mock data only** — no Postgres connection and no `PrismaClient` in pages.
+The app runs on **mock data** with **client-side persistence** (attendance, invoice status). **Postgres (Neon)** is Phase 2 — not required for local UI work.
 
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard — today’s sessions, active students, collection summary |
-| `/schedule` | Weekly schedule (FullCalendar, read-only recurring sessions) |
+| `/schedule` | Weekly schedule (FullCalendar, recurring sessions, mark absent) |
 | `/students` | Student list |
-| `/invoices` | Invoices per parent / month |
+| `/invoices` | Invoices per parent / month (derive-on-read, WhatsApp preview) |
 | `/reports` | Monthly report status per student (draft placeholder) |
-| `/finance` | Billed / collected / unpaid totals |
+| `/finance` | Billed / collected / unpaid totals (billing month picker) |
 
-- User-facing copy is **English** (`en-US` dates); **Rp** amounts and future **WhatsApp** invoice text stay Indonesian-style per product rules.
-- **Add**, **Create invoice**, **Write draft**, etc. are visible but **not wired to persistence** yet.
-- **WhatsApp** on Invoices opens a combined rapot + payment prefill ([`src/lib/whatsapp/`](./src/lib/whatsapp/)); attach PDF rapot manually in WhatsApp.
+- **Sign-in:** Google OAuth via Auth.js — only emails listed in `AUTH_ALLOWED_EMAILS` (two accounts). Unauthenticated visitors are redirected to `/signin`.
+- User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
 - Names, fees, and dates in `src/lib/mock-data.ts` are **fabricated placeholders**, not real customer data.
 
-TailAdmin **demo routes** (ecommerce, UI element galleries, etc.) may still exist on disk; they are not part of TutorHub navigation.
+TailAdmin **demo routes** may still exist on disk; they are auth-gated like the rest of the admin shell.
 
 ---
 
 ## Stack
 
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **Auth.js** (`next-auth` v5) — Google provider, allowlist
 - **Tailwind CSS v4** (theme in `src/app/globals.css`)
-- **next-intl** (locale `en` in config; English product copy in `src/messages/en.json`)
-- **Lucide** icons via `@/icons` (legacy TailAdmin names as aliases)
-- **FullCalendar v7** on Schedule (read-only for TutorHub)
-- **Prisma** schema + `prisma.config.ts` prepared; **database not required** to run the app today
-- **pnpm** 10.11.0 (`packageManager` in `package.json`)
+- **next-intl** (locale `en`; English copy in `src/messages/en.json`)
+- **FullCalendar v7** on Schedule
+- **Prisma** schema prepared; target host **Neon Postgres** (Phase 2)
+- **pnpm** 10.11.0
 
 ---
 
@@ -47,7 +46,20 @@ TailAdmin **demo routes** (ecommerce, UI element galleries, etc.) may still exis
 ### Prerequisites
 
 - Node.js **≥ 20.9**
-- **pnpm** 10.11.0 — enable with `corepack enable` if needed
+- **pnpm** 10.11.0 — `corepack enable` if needed
+- Google OAuth credentials and allowlisted emails for sign-in (see below)
+
+### Environment
+
+Copy `.env.example` to `.env.local` (or `.env`) and set:
+
+| Variable | Purpose |
+|----------|---------|
+| `AUTH_SECRET` | Session encryption (`openssl rand -base64 32`) |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_CLIENT_SECRET` | Google Cloud OAuth client |
+| `AUTH_ALLOWED_EMAILS` | Two comma-separated Google emails allowed to sign in |
+
+Google **Authorized redirect URI:** `http://localhost:3000/api/auth/callback/google` (and your production URL on Vercel).
 
 ### Install and run
 
@@ -56,11 +68,11 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The TutorHub sidebar lists the six product pages.
+Open [http://localhost:3000](http://localhost:3000) — you should land on **Sign in** until Google auth succeeds.
 
-### Optional: database (later phases)
+### Optional: Neon (Phase 2)
 
-See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer). Copy `.env.example` to `.env` and set `DATABASE_URL` when you provision Postgres — **not needed** for mock-only development.
+See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer). Set `DATABASE_URL` (pooled) and `DIRECT_URL` when you connect Prisma to Neon.
 
 ### Scripts
 
@@ -77,31 +89,30 @@ pnpm lint     # ESLint
 
 ```
 src/
-├── app/[locale]/(admin)/     # TutorHub pages (dashboard + five feature routes)
-├── components/               # Feature UI (dashboard, schedule, invoices, …)
-├── lib/mock-data.ts          # Temporary data until Phase 2 (profile, parents, invoices)
-├── lib/whatsapp/             # Combined parent monthly message (Bahasa templates)
-├── layout/                   # AppSidebar, AppHeader
-├── messages/en.json          # English UI strings (tutorHub.*)
-├── utils/format.ts           # Rp, en-US dates, WhatsApp month names (id-ID)
-prisma/schema.prisma          # Target data model (Profile, Student, Session, Invoice, …)
+├── auth.ts                   # Auth.js config (Google + allowlist)
+├── proxy.ts                  # Auth gate + next-intl (Next.js 16)
+├── app/[locale]/(admin)/     # TutorHub pages
+├── app/api/auth/[...nextauth]/
+├── lib/mock-data.ts          # Mock until Phase 2
+├── lib/invoices/             # Schedule derive, resolve display
+├── lib/whatsapp/             # Combined parent monthly message
+├── context/                  # Attendance, Invoice mock state
+prisma/schema.prisma          # Target model (Neon)
 ```
 
 ---
 
 ## Roadmap summary
 
-1. **Phase 1** — WhatsApp message templates, attendance on mock, invoice preview  
-2. **Phase 2** — Postgres, seed, replace mock reads  
-3. **Phase 3** — CRUD, real invoice generation, reports (when Montessori template exists)  
+1. **Phase 1** — Mock workflow (attendance, invoices, WhatsApp, billing month) + **Google auth gate**  
+2. **Phase 2** — **Neon**, seed, replace mock reads  
+3. **Phase 3** — CRUD, persisted billing, reports when template exists  
 4. **Phase 4** — Polish, demo cleanup, deploy  
 
-Details and checklists: [`ROADMAP.md`](./ROADMAP.md).
+Details: [`ROADMAP.md`](./ROADMAP.md).
 
 ---
 
 ## Based on TailAdmin
 
-This repo started from [TailAdmin’s free Next.js dashboard](https://github.com/TailAdmin/free-nextjs-admin-dashboard). The MIT license for the template portions applies where applicable; TutorHub-specific code and docs are part of this project.
-
-For template changelog and upstream docs, see [tailadmin.com/docs](https://tailadmin.com/docs).
+This repo started from [TailAdmin’s free Next.js dashboard](https://github.com/TailAdmin/free-nextjs-admin-dashboard). TutorHub-specific code and docs are part of this project.

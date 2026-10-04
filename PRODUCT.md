@@ -41,24 +41,24 @@ Internal-only operational tool for one tutor's private practice — not intended
 - Progress reports are monthly per student (Montessori-area structure pending real template). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs attached in WhatsApp after the app opens the prefill).
 - Currency is Indonesian Rupiah (`Rp 1.500.000` with Indonesian-style grouping); UI copy and routes are English; **WhatsApp** invoice/report prefill remains Bahasa Indonesia. Code identifiers (variables, models, fields) stay in English.
 
-## Current implementation (Milestone 0)
+## Current implementation (Phase 1 mock)
 
 Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Six routes: Dashboard, Schedule, Students, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
-- **Schedule:** read-only calendar with recurring mock sessions, session detail modal, view switcher (Year / Month / Week / Day).
-- **Invoices:** cards per parent; **`period`** + per-child **`sessionDays`**; UNPAID/PAID badges; **WhatsApp** opens combined rapot+invoice prefill (`TUTOR_PROFILE` + `PARENTS` mock).
-- **Finance / Dashboard:** monthly totals derived from attendance-aware invoice totals (`useFinanceSummary`).
-- **Reports:** draft/published badges; editor not implemented (template pending).
-- Create/edit buttons (**Add**, **Create invoice**, **Write draft**, …) are **non-functional** — no server actions, API, or localStorage persistence.
-- **WhatsApp** prefill on invoice cards (mock parent numbers); no report PDF generation yet.
-- **No** auth, **no** live Postgres.
+- **Access:** **Auth.js** + **Google sign-in**; only emails in `AUTH_ALLOWED_EMAILS` (two accounts). All dashboard routes require login before Vercel deploy.
+- **Schedule:** read-only calendar with recurring mock sessions, attendance (absent) on dashboard + schedule; session detail modal.
+- **Invoices:** derive-on-read unpaid lines from schedule + attendance; create / mark paid (mock `localStorage`); **WhatsApp** preview + `wa.me` prefill.
+- **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
+- **Finance / Dashboard:** totals from resolved invoices; dashboard finance card uses calendar month.
+- **Reports:** draft/published placeholders; editor waits on Montessori template.
+- **Data:** mock file + client persistence (attendance, invoice status); **Neon Postgres** planned Phase 2 (`.env.example`).
 
 ## Capabilities and Constraints
 
 Confirmed decisions (from product discussion):
 
-- **Single-tutor only.** No multi-user auth/roles planned for v1.
+- **Single-tutor operation** with **two allowed Google logins** (tutor + partner) — no public sign-up, no roles product.
 - **Recurring schedule**: weekly-repeating sessions are supported; edits/cancellations apply per individual occurrence only (no "this and following" / "all events" editing mode — deliberately simplified vs. Google Calendar).
 - **Attendance & billing**: a session marked absent is excluded from that month's invoice total; this must be visually obvious (disabled/grey) wherever sessions are shown.
 - **Student status**: `ACTIVE` / `INACTIVE`. Deactivating a student auto-stops their recurring schedule rule (sets an end date) and removes not-yet-occurred future sessions; past sessions remain untouched for billing/report history.

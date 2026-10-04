@@ -1,11 +1,21 @@
-import SignInForm from "@/components/auth/SignInForm";
-import { Metadata } from "next";
+import TutorHubSignInForm from "@/components/auth/TutorHubSignInForm";
+import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Next.js SignIn Page | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Signin Page TailAdmin Dashboard Template",
+type SignInPageProps = {
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
 };
 
-export default function SignIn() {
-  return <SignInForm />;
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("tutorHub.auth");
+
+  return { title: `${t("title")} | TutorHub` };
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const { error, callbackUrl } = await searchParams;
+
+  return (
+    <TutorHubSignInForm error={error ?? null} callbackUrl={callbackUrl ?? null} />
+  );
 }

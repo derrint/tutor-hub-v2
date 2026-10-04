@@ -34,11 +34,12 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 - [x] Mark **absent** per session on Dashboard (today) and Schedule (session modal); default = billable (no “mark attended”)
 - [x] **Visual distinction:** absent sessions dimmed + badge; stored in `localStorage` via `AttendanceContext`
-- [x] Absent sessions **excluded** from invoice card totals and WhatsApp prefill (`computeBillableInvoice`)
+- [x] Absent sessions **excluded** from unpaid invoice lines and WhatsApp (`resolveInvoiceForDisplay` / schedule derive)
+- [x] Schedule **calendar** chips match dashboard (absent = dimmed / strikethrough)
 
 ### Invoice actions (still mock)
 
-- [x] **Create invoice** — adds missing parent invoices for the month from recurring schedule
+- [x] **Create invoice** — adds missing **UNPAID shells** per parent for the selected month (lines derived on read)
 - [x] **Unpaid derive-on-read** — lines from schedule + attendance live (`resolveInvoiceForDisplay`); per-card Regenerate removed
 - [x] Mark invoice **paid / unpaid** in UI (mock toggle, `localStorage`)
 
@@ -46,7 +47,7 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 ### Billing month navigation (Invoices · Reports · Finance)
 
-**When to build:** After the Phase 1 exit criteria above are validated on **one** month (attendance → invoice → WhatsApp). Do this **before** Postgres holds real multi-month invoice/report history — ideally **last slice of Phase 1** or **first sprint of Phase 2** (replace `MOCK_INVOICE_PERIOD` everywhere before DB reads multiply the problem). **Reports and Invoices must share the same month control** in the same change (or back-to-back PRs); do not ship a month picker on Invoices while Reports/Finance still hardcode a single mock month.
+*(Shipped in Phase 1 — keep `?month=` contract when moving to Postgres.)*
 
 Goal: one **billing month** mental model — tutor thinks in calendar months, not an infinite mixed list.
 
@@ -61,21 +62,34 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 
 - [x] **Empty month** — empty state; Create enabled when schedule has sessions (past/current)
 - [x] **Future month** — preview copy; Create / card actions disabled
-- [ ] **Paid months** — v1 prod: lock paid lines (mock still allows Mark unpaid + Regenerate hidden when PAID)
+- [ ] **Paid months (prod lock)** — mock snapshots lines on **Mark paid**; still allows **Mark unpaid**; no per-card Regenerate (removed)
 - [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
 
 **Optional later (not blocking Phase 2):**
 
 - [ ] **Compact month list** — e.g. last 12 rows: month label, total billed, unpaid count → tap opens that month in the picker (nice on desktop; secondary entry on phone)
-- [x] **Derive-on-read unpaid invoices** — `resolveInvoiceForDisplay`; mark paid snapshots lines to `localStorage`
+
+### Access control (deploy gate)
+
+- [x] **Auth.js** (NextAuth v5) — Google OAuth, email allowlist (`AUTH_ALLOWED_EMAILS`, two accounts)
+- [x] **`src/proxy.ts`** — unauthenticated users → `/signin`; `/signup` disabled; API auth excluded from matcher
+- [x] TutorHub sign-in UI + header **Sign out** (session from Google profile)
+
+Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI `…/api/auth/callback/google`. See `.env.example`.
+
+### Phase 1 — still open
+
+- [ ] Replace placeholder parent **WhatsApp** numbers (see WhatsApp section above)
+- [ ] **Exit criteria** validated by tutor on device (September 2026 mock month + billing month picker)
+- [ ] **Paid months** prod lock (Phase 3-quality; see edge case above)
 
 ---
 
 ## Phase 2 — Data layer
 
-Goal: replace mock reads with real data; keep single-tutor, no auth unless you add a minimal gate later.
+Goal: replace mock reads with real data on **Neon Postgres** (single-tutor; auth gate already in Phase 1).
 
-- [ ] Provision Postgres; `DATABASE_URL` in `.env` (see `.env.example`)
+- [ ] Provision **Neon** project; `DATABASE_URL` (pooled) + `DIRECT_URL` in `.env` / Vercel (see `.env.example`)
 - [ ] `prisma migrate`, seed script aligned with current mock shapes
 - [ ] Server-side data access (Server Components / server actions / small `lib/db` module — pick one pattern and stay consistent)
 - [ ] **Session generation** from `ScheduleRule` (weekly recurrence)
@@ -100,7 +114,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ### Tagihan & keuangan
 
-- [ ] **Generate invoice** for calendar month from **ATTENDED** sessions only (`ABSENT` excluded)
+- [ ] **Generate invoice** for calendar month from **ATTENDED** sessions only (`ABSENT` excluded) — *mock parity: Phase 1 derive-on-read*
 - [ ] One invoice per parent per month; line per child; persist `UNPAID` / `PAID` only
 - [ ] Keuangan totals derived from invoice status (not a full accounting system)
 
@@ -128,7 +142,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 Do not build unless requirements change:
 
-- Multi-tutor / roles / full auth product
+- Multi-tutor / roles / sign-up beyond the two Google allowlist accounts
 - WhatsApp Business API
 - Recurring edit modes like Google Calendar (“all events”, “this and following”)
 - Stored invoice **overdue** status
@@ -145,8 +159,9 @@ Do not build unless requirements change:
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
-| Invoice generation (mock) | `src/lib/invoices/`, `src/context/InvoiceContext.tsx` |
+| Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
+| Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
 **Suggested next sprint:** Phase 1 exit test across months (pick **September 2026** for mock seed) → Postgres (Phase 2).

@@ -12,7 +12,7 @@ export type FinanceSummary = {
   invoiceCount: number;
 };
 
-/** Aggregates billable invoice totals; respects absent sessions via `computeBillableInvoice`. */
+/** Aggregates billable invoice totals via `resolveInvoiceForBilling`. */
 export function computeFinanceSummary(
   invoices: InvoicePreview[],
   absentOccurrenceIds: ReadonlySet<string>,

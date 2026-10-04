@@ -1,3 +1,4 @@
+import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { isRtl } from "@/i18n/languages";
@@ -38,9 +39,11 @@ export default async function RootLayout({
     <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <NextIntlClientProvider>
-          <ThemeProvider>
-            <SidebarProvider>{children}</SidebarProvider>
-          </ThemeProvider>
+          <AuthSessionProvider>
+            <ThemeProvider>
+              <SidebarProvider>{children}</SidebarProvider>
+            </ThemeProvider>
+          </AuthSessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

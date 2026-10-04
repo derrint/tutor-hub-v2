@@ -156,6 +156,15 @@
   "tutorHub": {
     "brand": "TutorHub",
     "brandShort": "TH",
+    "auth": {
+      "title": "Sign in",
+      "description": "Use your Google account to open TutorHub.",
+      "signInWithGoogle": "Sign in with Google",
+      "accessDenied": "This Google account isn’t on the allowlist. Use one of the two tutor accounts configured for this app.",
+      "signInFailed": "Sign-in didn’t complete. Check your Google account and try again.",
+      "allowlistHint": "Only approved Google accounts can access this dashboard.",
+      "defaultUserName": "Tutor"
+    },
     "attendance": {
       "markAbsent": "Mark absent",
       "markBillable": "Count session",
