@@ -9,6 +9,10 @@ import LevelBadge from "@/components/common/LevelBadge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
+import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
+import StatusBadge from "@/components/common/StatusBadge";
+import { useAttendance } from "@/context/AttendanceContext";
+import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import { RECURRING_SESSIONS, type RecurringSession } from "@/lib/mock-data";
 import { formatDayAndMonth } from "@/utils";
 import type { EventClickInfo } from "@fullcalendar/react";
@@ -38,8 +42,19 @@ type SelectedOccurrence = {
 const ScheduleCalendar: React.FC = () => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
+  const { isAbsent } = useAttendance();
   const { isOpen, openModal, closeModal } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
+
+  const selectedOccurrenceId =
+    selected?.date != null
+      ? buildStudentOccurrenceIdFromDate(
+          selected.session.studentId,
+          selected.date,
+        )
+      : null;
+  const selectedIsAbsent =
+    selectedOccurrenceId != null && isAbsent(selectedOccurrenceId);
 
   const viewOptions = useMemo(
     () =>
@@ -109,6 +124,22 @@ const ScheduleCalendar: React.FC = () => {
             <p className="mt-6 text-theme-xs text-gray-500 dark:text-gray-400">
               {t("detailNote")}
             </p>
+
+            {selectedOccurrenceId && (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-theme-sm text-gray-500 dark:text-gray-400">
+                    {t("attendanceLabel")}
+                  </span>
+                  <StatusBadge
+                    variant={selectedIsAbsent ? "absent" : "scheduled"}
+                  />
+                </div>
+                <SessionAttendanceToggle
+                  occurrenceId={selectedOccurrenceId}
+                />
+              </div>
+            )}
 
             <div className="mt-6 flex justify-end">
               <Button size="sm" variant="outline" onClick={closeModal}>

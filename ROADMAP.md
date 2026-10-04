@@ -32,9 +32,9 @@ Goal: validate flows on **mock data** before Postgres. Still no `PrismaClient` i
 
 ### Attendance (trust path)
 
-- [ ] Mark sessions **Hadir / Absen** from Dashboard “Hari ini” and/or Jadwal (client mock state or lightweight store is fine)
-- [ ] **Visual distinction:** absent/inactive vs attended (grey vs success — already partially styled; wire to interaction)
-- [ ] Ensure absent sessions are **excluded** when previewing/generating invoice totals (even on mock)
+- [x] Mark **absent** per session on Dashboard (today) and Schedule (session modal); default = billable (no “mark attended”)
+- [x] **Visual distinction:** absent sessions dimmed + badge; stored in `localStorage` via `AttendanceContext`
+- [x] Absent sessions **excluded** from invoice card totals and WhatsApp prefill (`computeBillableInvoice`)
 
 ### Invoice actions (still mock)
 

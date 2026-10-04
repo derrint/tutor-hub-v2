@@ -10,6 +10,8 @@ import {
 } from "@/lib/mock-data";
 import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
 import { useModal } from "@/hooks/useModal";
+import { computeBillableInvoice } from "@/lib/attendance";
+import { useAttendance } from "@/context/AttendanceContext";
 import {
   buildParentMonthlyWhatsAppMessage,
   buildWaMeUrl,
@@ -29,7 +31,13 @@ import React, { useMemo } from "react";
  */
 const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   const t = useTranslations("tutorHub.invoices");
+  const { absentOccurrenceIds } = useAttendance();
   const parent = getParentById(invoice.parentId);
+
+  const billableInvoice = useMemo(
+    () => computeBillableInvoice(invoice, absentOccurrenceIds),
+    [invoice, absentOccurrenceIds],
+  );
   const {
     isOpen: isPreviewOpen,
     openModal: openPreview,
@@ -39,7 +47,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
   const whatsAppPayload = useMemo(() => {
     if (invoice.status !== "UNPAID" || !parent) return null;
     const messageText = buildParentMonthlyWhatsAppMessage({
-      invoice,
+      invoice: billableInvoice,
       profile: TUTOR_PROFILE,
       parent,
     });
@@ -47,11 +55,11 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
       messageText,
       whatsAppUrl: buildWaMeUrl(parent.whatsapp, messageText),
     };
-  }, [invoice, parent]);
+  }, [billableInvoice, parent, invoice.status]);
 
   const studentNames = useMemo(
-    () => invoice.children.map((c) => c.name),
-    [invoice.children],
+    () => billableInvoice.children.map((c) => c.name),
+    [billableInvoice.children],
   );
 
   return (
@@ -97,7 +105,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
 
       <div className="border-t border-gray-100 px-5 py-4 sm:px-6 dark:border-gray-800">
         <ul className="flex flex-col gap-3">
-          {invoice.children.map((child) => (
+          {billableInvoice.children.map((child) => (
             <li
               key={child.id}
               className="flex items-start justify-between gap-4"
@@ -124,7 +132,7 @@ const InvoiceCard: React.FC<{ invoice: InvoicePreview }> = ({ invoice }) => {
             {t("total")}
           </span>
           <span className="text-base font-bold text-gray-800 tabular-nums dark:text-white/90">
-            {formatRupiah(invoice.total)}
+            {formatRupiah(billableInvoice.total)}
           </span>
         </div>
 

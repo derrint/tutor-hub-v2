@@ -1,28 +1,52 @@
+"use client";
+
 import LevelBadge from "@/components/common/LevelBadge";
 import StatusBadge from "@/components/common/StatusBadge";
+import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
 import { TimeIcon } from "@/icons";
+import { useAttendance } from "@/context/AttendanceContext";
+import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { TodaySession } from "@/lib/mock-data";
 import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface SessionListProps {
   sessions: TodaySession[];
+  /** Calendar date for occurrence keys (defaults to today). */
+  sessionDate?: Date;
   emptyMessage: string;
   ariaLabel: string;
 }
 
 /**
- * Today's concrete sessions, shared by the dashboard card and the mobile
- * agenda on /schedule. An absent or attended session is dimmed so the day's
- * remaining work stays the thing that stands out.
+ * Today's concrete sessions. Sessions count toward billing unless explicitly
+ * marked absent. No "mark attended" step — default is billable.
  */
 const SessionList: React.FC<SessionListProps> = ({
   sessions,
+  sessionDate,
   emptyMessage,
   ariaLabel,
 }) => {
   const t = useTranslations("tutorHub.dashboard");
+  const { isAbsent } = useAttendance();
+
+  const date = useMemo(
+    () => sessionDate ?? new Date(),
+    [sessionDate],
+  );
+
+  const occurrenceBySessionId = useMemo(
+    () =>
+      new Map(
+        sessions.map((session) => [
+          session.id,
+          buildStudentOccurrenceIdFromDate(session.studentId, date),
+        ]),
+      ),
+    [sessions, date],
+  );
 
   if (sessions.length === 0) {
     return (
@@ -32,23 +56,26 @@ const SessionList: React.FC<SessionListProps> = ({
     );
   }
 
-  // "Next" is the first session that hasn't happened yet — status-aware, not
-  // just array position, so it stays accurate as the day progresses.
-  const nextSessionId = sessions.find((s) => s.status === "SCHEDULED")?.id;
+  const nextSessionId = sessions.find((session) => {
+    const occurrenceId = occurrenceBySessionId.get(session.id);
+    return occurrenceId && !isAbsent(occurrenceId);
+  })?.id;
 
   return (
     <ul className="flex flex-col gap-2" aria-label={ariaLabel}>
       {sessions.map((session) => {
-        const isNext = session.id === nextSessionId;
-        const isResolved = session.status !== "SCHEDULED";
+        const occurrenceId = occurrenceBySessionId.get(session.id)!;
+        const absent = isAbsent(occurrenceId);
+        const isNext = !absent && session.id === nextSessionId;
 
         return (
           <li
             key={session.id}
             className={cn(
-              "flex items-center gap-4 rounded-lg border border-gray-200 p-3 dark:border-gray-800",
-              isNext && "border-brand-200 bg-brand-50/50 dark:border-brand-500/30 dark:bg-brand-500/5",
-              isResolved && "opacity-60",
+              "flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 p-3 sm:flex-nowrap sm:gap-4 dark:border-gray-800",
+              isNext &&
+                "border-brand-200 bg-brand-50/50 dark:border-brand-500/30 dark:bg-brand-500/5",
+              absent && "opacity-60",
             )}
           >
             <div className="w-14 shrink-0 text-end">
@@ -60,25 +87,26 @@ const SessionList: React.FC<SessionListProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-1 items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <p className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
                 {session.studentName}
               </p>
               <LevelBadge level={session.level} />
             </div>
 
-            {isResolved ? (
-              <StatusBadge
-                variant={session.status === "ATTENDED" ? "attended" : "absent"}
-              />
-            ) : isNext ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-theme-xs font-medium text-brand-500 dark:bg-brand-500/15 dark:text-brand-400">
-                <TimeIcon className="size-3.5" />
-                {t("next")}
-              </span>
-            ) : (
-              <StatusBadge variant="scheduled" />
-            )}
+            <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+              {absent ? (
+                <StatusBadge variant="absent" />
+              ) : isNext ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-theme-xs font-medium text-brand-500 dark:bg-brand-500/15 dark:text-brand-400">
+                  <TimeIcon className="size-3.5" />
+                  {t("next")}
+                </span>
+              ) : (
+                <StatusBadge variant="scheduled" />
+              )}
+              <SessionAttendanceToggle occurrenceId={occurrenceId} compact />
+            </div>
           </li>
         );
       })}

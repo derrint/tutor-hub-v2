@@ -131,29 +131,29 @@ export const STUDENTS: Student[] = [
 
 export type TodaySession = {
   id: string;
+  studentId: string;
   studentName: string;
   level: EducationLevel;
   startTime: string;
   endTime: string;
-  status: SessionStatus;
 };
 
 export const TODAY_SCHEDULE: TodaySession[] = [
   {
     id: "s1",
+    studentId: "m3",
     studentName: "Gavendra",
     level: "TK",
     startTime: "17:00",
     endTime: "18:00",
-    status: "SCHEDULED",
   },
   {
     id: "s2",
+    studentId: "m4",
     studentName: "Azka",
     level: "TK",
     startTime: "18:45",
     endTime: "19:45",
-    status: "SCHEDULED",
   },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { AttendanceProvider } from "@/context/AttendanceContext";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
@@ -22,6 +23,7 @@ export default function AdminLayout({
       : "xl:ml-[90px]";
 
   return (
+    <AttendanceProvider>
     <div className="min-h-screen xl:flex">
       {/* Sidebar and Backdrop */}
       <AppSidebar />
@@ -36,5 +38,6 @@ export default function AdminLayout({
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
       </div>
     </div>
+    </AttendanceProvider>
   );
 }

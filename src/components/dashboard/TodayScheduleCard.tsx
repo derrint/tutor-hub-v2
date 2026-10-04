@@ -1,11 +1,13 @@
+"use client";
+
 import ComponentCard from "@/components/common/ComponentCard";
+import SeeAllLink from "@/components/dashboard/SeeAllLink";
 import SessionList from "@/components/schedule/SessionList";
 import { TODAY_SCHEDULE } from "@/lib/mock-data";
-import { getTranslations } from "next-intl/server";
-import SeeAllLink from "./SeeAllLink";
+import { useTranslations } from "next-intl";
 
-export default async function TodayScheduleCard() {
-  const t = await getTranslations("tutorHub.dashboard");
+export default function TodayScheduleCard() {
+  const t = useTranslations("tutorHub.dashboard");
 
   return (
     <ComponentCard
