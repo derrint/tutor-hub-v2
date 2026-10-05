@@ -88,6 +88,7 @@ Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI
 
 - [x] **Recurring weekly slots** — `ScheduleContext` + `localStorage` (`SEED_RECURRING_SESSIONS`); calendar reads live rules
 - [x] **Add slot** — header button + Week/Day empty-slot select with prefilled time
+- [x] **Remove weekly slot** — session detail modal + confirm (hard delete rule; per-date cancel still Phase 3)
 - [x] **Invoices** — `listParentIdsWithScheduledSessions` / derive-on-read use persisted schedule (not static mock only)
 
 ### Phase 1 — still open

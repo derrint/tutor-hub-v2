@@ -6,6 +6,7 @@ import {
   type CalendarEvent,
 } from "@/components/calendar/types";
 import LevelBadge from "@/components/common/LevelBadge";
+import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
@@ -14,6 +15,7 @@ import { useAttendance } from "@/context/AttendanceContext";
 import { useSchedule } from "@/context/ScheduleContext";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { RecurringSession } from "@/lib/mock-data";
+import { formatWeekdayLabels } from "@/lib/schedule/format-weekdays";
 import { formatDayAndMonth } from "@/utils";
 import type { DateSelectInfo, EventClickInfo } from "@fullcalendar/react";
 import { useTranslations } from "next-intl";
@@ -33,7 +35,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 }) => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
-  const { recurringSessions } = useSchedule();
+  const { recurringSessions, deleteRecurringSession } = useSchedule();
   const { isAbsent, absentOccurrenceIds } = useAttendance();
 
   const sessionsById = useMemo(
@@ -95,6 +97,27 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 
     setSelected({ session, date: info.event.start ?? null });
     openModal();
+  };
+
+  const handleRemoveWeeklySlot = () => {
+    if (!selected) return;
+
+    const weekdays = formatWeekdayLabels(selected.session.daysOfWeek, (key) =>
+      t(`weekdays.${key}`),
+    );
+    const confirmed = window.confirm(
+      t("removeWeeklySlotConfirm", {
+        studentName: selected.session.studentName,
+        weekdays,
+        startTime: selected.session.startTime,
+        endTime: selected.session.endTime,
+      }),
+    );
+    if (!confirmed) return;
+
+    deleteRecurringSession(selected.session.id);
+    closeModal();
+    setSelected(null);
   };
 
   return (
@@ -166,6 +189,23 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                 />
               </div>
             )}
+
+            <div className="mt-6 border-t border-gray-100 pt-4 dark:border-gray-800">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-error-200 text-error-600 hover:bg-error-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10"
+                onClick={handleRemoveWeeklySlot}
+                aria-label={t("removeWeeklySlotAria", {
+                  studentName: selected.session.studentName,
+                })}
+              >
+                {t("removeWeeklySlot")}
+              </Button>
+              <p className="mt-2 text-theme-xs text-gray-500 dark:text-gray-400">
+                {t("removeWeeklySlotHint")}
+              </p>
+            </div>
           </div>
         )}
       </Modal>

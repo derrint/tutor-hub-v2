@@ -122,6 +122,15 @@ export function upsertRecurringSession(
   return session;
 }
 
+export function deleteRecurringSession(ruleId: string): boolean {
+  const next = scheduleState.recurringSessions.filter((r) => r.id !== ruleId);
+  if (next.length === scheduleState.recurringSessions.length) {
+    return false;
+  }
+  persist({ recurringSessions: next });
+  return true;
+}
+
 /** Refresh denormalized student names/levels from roster (after student rename). */
 export function refreshRecurringSessionLabels(): void {
   const recurringSessions = scheduleState.recurringSessions.map((rule) => {

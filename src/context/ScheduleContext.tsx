@@ -2,6 +2,7 @@
 
 import type { RecurringSession } from "@/lib/mock-data";
 import {
+  deleteRecurringSession,
   getScheduleServerSnapshot,
   getScheduleSnapshot,
   subscribeSchedule,
@@ -22,6 +23,7 @@ type ScheduleContextValue = {
   upsertRecurringSession: (
     input: RecurringSessionInput,
   ) => RecurringSession | null;
+  deleteRecurringSession: (ruleId: string) => boolean;
 };
 
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
@@ -41,6 +43,7 @@ export function ScheduleProvider({ children }: { children: React.ReactNode }) {
     () => ({
       recurringSessions: schedule.recurringSessions,
       upsertRecurringSession,
+      deleteRecurringSession,
     }),
     [schedule.recurringSessions],
   );
