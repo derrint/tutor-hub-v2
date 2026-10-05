@@ -1,16 +1,17 @@
+"use client";
+
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
 import { formatFullDate, getTimeOfDayPeriod } from "@/utils";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 
 /**
  * Personal greeting instead of a stock illustration, so the dashboard stays
  * specific to TutorHub rather than reading as a generic admin template.
  */
-export default async function GreetingBanner({
-  classesToday,
-}: {
-  classesToday: number;
-}) {
-  const t = await getTranslations("tutorHub.dashboard");
+export default function GreetingBanner() {
+  const t = useTranslations("tutorHub.dashboard");
+  const { todaySessions } = useAdminBootstrap();
+  const classesToday = todaySessions.length;
   const now = new Date();
   const period = getTimeOfDayPeriod(now);
 

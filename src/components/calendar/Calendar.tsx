@@ -33,11 +33,7 @@ import {
   ChevronRightIcon,
   CloseIcon,
 } from "@/icons";
-import type {
-  CalendarEvent,
-  CalendarViewOption,
-  EventFormData,
-} from "./types";
+import type { CalendarEvent, CalendarViewOption, EventFormData } from "./types";
 
 /** Time grid axis labels and event ranges (Schedule + demo calendar). */
 const CALENDAR_SLOT_HEADER_24H: FormatterInput = {
@@ -297,6 +293,7 @@ const Calendar: React.FC<CalendarProps> = ({
           {...optionalOptions}
           slotHeaderFormat={CALENDAR_SLOT_HEADER_24H}
           eventTimeFormat={CALENDAR_EVENT_TIME_24H}
+          firstDay={1}
           direction={isRtlLayout ? "rtl" : "ltr"}
           // Toolbar Header configuration
           headerToolbar={{

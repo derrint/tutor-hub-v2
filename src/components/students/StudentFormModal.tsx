@@ -77,14 +77,14 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
     }
   }, [isOpen, student, parents, students]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const age = Number.parseInt(form.age, 10);
     const feePerSession = Number.parseInt(form.feePerSession, 10);
     if (!form.parentId || !Number.isFinite(age) || !Number.isFinite(feePerSession)) {
       return;
     }
-    upsertStudent({
+    await upsertStudent({
       id: student?.id,
       name: form.name,
       age,

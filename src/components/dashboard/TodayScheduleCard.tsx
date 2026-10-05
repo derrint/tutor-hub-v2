@@ -3,11 +3,12 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import SeeAllLink from "@/components/dashboard/SeeAllLink";
 import SessionList from "@/components/schedule/SessionList";
-import { TODAY_SCHEDULE } from "@/lib/mock-data";
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
 import { useTranslations } from "next-intl";
 
 export default function TodayScheduleCard() {
   const t = useTranslations("tutorHub.dashboard");
+  const { todaySessions } = useAdminBootstrap();
 
   return (
     <ComponentCard
@@ -15,7 +16,7 @@ export default function TodayScheduleCard() {
       action={<SeeAllLink href="/schedule" label={t("seeAll")} />}
     >
       <SessionList
-        sessions={TODAY_SCHEDULE}
+        sessions={todaySessions}
         emptyMessage={t("noScheduleToday")}
         ariaLabel={t("todayTitle")}
       />

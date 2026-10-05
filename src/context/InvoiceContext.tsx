@@ -1,169 +1,103 @@
 "use client";
 
-import { useAttendance } from "@/context/AttendanceContext";
+import { setInvoiceStatusAction } from "@/app/actions/invoices";
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
 import { useRoster } from "@/context/RosterContext";
-import { useSchedule } from "@/context/ScheduleContext";
+import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
 import {
-  buildInvoiceShellsForPeriod,
-  parseInvoiceId,
-} from "@/lib/invoices/build-period-invoices";
-import {
-  EMPTY_INVOICE_STATE,
-  INVOICE_STORAGE_KEY,
-  mergeInvoiceMockState,
-  readInvoiceMockState,
-  type InvoiceMockState,
-} from "@/lib/invoices/invoice-mock-store";
-import { resolveInvoiceForDisplay } from "@/lib/invoices";
-import { parentDisplayName } from "@/lib/roster/roster-store";
-import type { InvoicePreview, InvoiceStatus } from "@/lib/mock-data";
+  deriveInvoiceForParent,
+  listParentIdsWithSessionsInPeriod,
+} from "@/lib/invoices/derive-from-sessions";
+import type { InvoicePreview, InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
+import { buildInvoiceId } from "@/lib/invoices/generate-invoice-from-schedule";
+import { useRouter } from "@/i18n/navigation";
 import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useSyncExternalStore,
 } from "react";
-
-let invoiceState = readInvoiceMockState();
-const listeners = new Set<() => void>();
-
-function emitChange() {
-  listeners.forEach((listener) => listener());
-}
-
-function persist(next: InvoiceMockState) {
-  invoiceState = next;
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(next));
-  }
-  emitChange();
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getSnapshot() {
-  return invoiceState;
-}
-
-function getServerSnapshot() {
-  return EMPTY_INVOICE_STATE;
-}
-
-function statesEqual(a: InvoiceMockState, b: InvoiceMockState): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
 
 type InvoiceContextValue = {
   getInvoicesForPeriod: (period: InvoicePeriod) => InvoicePreview[];
-  setInvoiceStatus: (invoiceId: string, status: InvoiceStatus) => void;
+  setInvoiceStatus: (
+    invoiceId: string,
+    status: InvoiceStatus,
+  ) => Promise<void>;
 };
 
 const InvoiceContext = createContext<InvoiceContextValue | null>(null);
 
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
-  const mockState = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
+  const { sessions, paidInvoices, absentOccurrenceIds } = useAdminBootstrap();
+  const { students, parents } = useRoster();
+  const router = useRouter();
+  const absentSet = useMemo(
+    () => new Set(absentOccurrenceIds),
+    [absentOccurrenceIds],
   );
-  const { absentOccurrenceIds } = useAttendance();
-  const { students } = useRoster();
-  const { recurringSessions } = useSchedule();
-
-  useEffect(() => {
-    const stored = readInvoiceMockState();
-    if (!statesEqual(stored, invoiceState)) {
-      invoiceState = stored;
-      emitChange();
-    }
-  }, []);
 
   const getInvoicesForPeriod = useCallback(
     (period: InvoicePeriod) => {
-      const shells = buildInvoiceShellsForPeriod(
-        mockState,
+      const paidForPeriod = paidInvoices.filter(
+        (inv) =>
+          inv.period.month === period.month && inv.period.year === period.year,
+      );
+      const paidByParent = new Map(
+        paidForPeriod.map((inv) => [inv.parentId, inv]),
+      );
+
+      const parentIds = listParentIdsWithSessionsInPeriod(
         period,
         students,
-        recurringSessions,
+        sessions,
       );
-      return shells.map((invoice) =>
-        resolveInvoiceForDisplay(
-          invoice,
-          absentOccurrenceIds,
+
+      const shells: InvoicePreview[] = [];
+
+      for (const parentId of parentIds) {
+        const paid = paidByParent.get(parentId);
+        if (paid) {
+          shells.push(paid);
+          continue;
+        }
+
+        const derived = deriveInvoiceForParent(
+          parentId,
+          period,
+          absentSet,
           students,
-          recurringSessions,
-        ),
-      );
+          sessions,
+          parents,
+        );
+        if (!derived) continue;
+
+        shells.push({
+          ...derived,
+          status: "UNPAID",
+        });
+      }
+
+      return shells.sort((a, b) => a.parentName.localeCompare(b.parentName));
     },
-    [mockState, absentOccurrenceIds, students, recurringSessions],
+    [paidInvoices, students, sessions, parents, absentSet],
   );
 
   const setInvoiceStatus = useCallback(
-    (invoiceId: string, status: InvoiceStatus) => {
-      const merged = mergeInvoiceMockState(invoiceState);
-      let invoice = merged.find((inv) => inv.id === invoiceId);
+    async (invoiceId: string, status: InvoiceStatus) => {
+      const parsed = parseInvoiceId(invoiceId);
+      const period = parsed?.period ?? { month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+      const parentId = parsed?.parentId ?? "";
 
-      if (!invoice) {
-        const parsed = parseInvoiceId(invoiceId);
-        if (!parsed) {
-          persist({
-            ...invoiceState,
-            statuses: { ...invoiceState.statuses, [invoiceId]: status },
-          });
-          return;
-        }
-        invoice = {
-          id: invoiceId,
-          status: "UNPAID",
-          parentId: parsed.parentId,
-          parentName: parentDisplayName(parsed.parentId),
-          period: parsed.period,
-          children: [],
-          total: 0,
-        };
+      if (!parentId) {
+        return;
       }
 
-      let extras = invoiceState.extras;
-      if (!merged.some((inv) => inv.id === invoiceId)) {
-        extras = [...invoiceState.extras, invoice];
-      }
-
-      let bodies = invoiceState.bodies;
-
-      if (status === "PAID") {
-        const snapshot = resolveInvoiceForDisplay(
-          { ...invoice, status: "UNPAID" },
-          absentOccurrenceIds,
-          students,
-          recurringSessions,
-        );
-        bodies = {
-          ...bodies,
-          [invoiceId]: {
-            children: snapshot.children,
-            total: snapshot.total,
-          },
-        };
-      } else if (status === "UNPAID" && bodies[invoiceId]) {
-        const nextBodies = { ...bodies };
-        delete nextBodies[invoiceId];
-        bodies = nextBodies;
-      }
-
-      persist({
-        ...invoiceState,
-        extras,
-        statuses: { ...invoiceState.statuses, [invoiceId]: status },
-        bodies,
-      });
+      await setInvoiceStatusAction(invoiceId, status, period, parentId);
+      router.refresh();
     },
-    [absentOccurrenceIds, students, recurringSessions],
+    [router],
   );
 
   const value = useMemo(
@@ -187,5 +121,4 @@ export function useInvoices() {
   return context;
 }
 
-/** @deprecated Import from `@/lib/invoices/invoice-mock-store`. */
-export { mergeInvoiceMockState } from "@/lib/invoices/invoice-mock-store";
+export { buildInvoiceId };

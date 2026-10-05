@@ -46,9 +46,9 @@ const ParentFormModal: React.FC<ParentFormModalProps> = ({
     }
   }, [isOpen, parent]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    upsertParent({
+    await upsertParent({
       id: parent?.id,
       ...form,
     });

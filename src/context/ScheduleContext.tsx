@@ -1,51 +1,68 @@
 "use client";
 
-import type { RecurringSession } from "@/lib/mock-data";
 import {
-  deleteRecurringSession,
-  getScheduleServerSnapshot,
-  getScheduleSnapshot,
-  subscribeSchedule,
-  syncScheduleFromStorage,
-  upsertRecurringSession,
+  deleteRecurringSessionAction,
+  upsertRecurringSessionAction,
   type RecurringSessionInput,
-} from "@/lib/schedule/schedule-store";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useSyncExternalStore,
-} from "react";
+} from "@/app/actions/schedule";
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import type { RecurringSession } from "@/lib/domain/types";
+import { useRouter } from "@/i18n/navigation";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 
 type ScheduleContextValue = {
   recurringSessions: RecurringSession[];
   upsertRecurringSession: (
     input: RecurringSessionInput,
-  ) => RecurringSession | null;
-  deleteRecurringSession: (ruleId: string) => boolean;
+  ) => Promise<RecurringSession | null>;
+  deleteRecurringSession: (ruleId: string) => Promise<boolean>;
 };
 
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: React.ReactNode }) {
-  const schedule = useSyncExternalStore(
-    subscribeSchedule,
-    getScheduleSnapshot,
-    getScheduleServerSnapshot,
+  const { recurringSessions } = useAdminBootstrap();
+  const router = useRouter();
+
+  const upsertRecurringSession = useCallback(
+    async (input: RecurringSessionInput) => {
+      const anchorId = await upsertRecurringSessionAction(input);
+      router.refresh();
+      if (!anchorId) return null;
+      const existing =
+        recurringSessions.find((s) => s.id === anchorId) ??
+        recurringSessions.find((s) => s.id === input.id);
+      return (
+        existing ?? {
+          id: anchorId,
+          studentId: input.studentId,
+          studentName: "",
+          level: "TK",
+          daysOfWeek: input.daysOfWeek,
+          startTime: input.startTime,
+          endTime: input.endTime,
+        }
+      );
+    },
+    [router, recurringSessions],
   );
 
-  useEffect(() => {
-    syncScheduleFromStorage();
-  }, []);
+  const deleteRecurringSession = useCallback(
+    async (ruleId: string) => {
+      const ok = await deleteRecurringSessionAction(ruleId);
+      if (ok) router.refresh();
+      return ok;
+    },
+    [router],
+  );
 
   const value = useMemo<ScheduleContextValue>(
     () => ({
-      recurringSessions: schedule.recurringSessions,
+      recurringSessions,
       upsertRecurringSession,
       deleteRecurringSession,
     }),
-    [schedule.recurringSessions],
+    [recurringSessions, upsertRecurringSession, deleteRecurringSession],
   );
 
   return (
@@ -60,3 +77,5 @@ export function useSchedule() {
   }
   return context;
 }
+
+export type { RecurringSessionInput };

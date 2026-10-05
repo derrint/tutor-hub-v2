@@ -62,16 +62,16 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
     setEndTime(base.endTime);
   }, [isOpen, prefill, activeStudents]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId) return;
-    const created = upsertRecurringSession({
+    const created = await upsertRecurringSession({
       studentId,
       daysOfWeek: [dayOfWeek],
       startTime,
       endTime,
     });
-    if (created) onClose();
+    if (created !== null) onClose();
   };
 
   return (

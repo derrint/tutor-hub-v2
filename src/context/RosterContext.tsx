@@ -1,63 +1,120 @@
 "use client";
 
-import type { MockParent, Student } from "@/lib/mock-data";
 import {
-  deleteParent,
-  deleteStudent,
-  getRosterServerSnapshot,
-  getRosterSnapshot,
-  parentDisplayName,
-  subscribeRoster,
-  syncRosterFromStorage,
-  upsertParent,
-  upsertStudent,
+  deleteParentAction,
+  upsertParentAction,
+  upsertStudentAction,
+  deleteStudentAction,
   type ParentInput,
   type StudentInput,
-} from "@/lib/roster/roster-store";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useSyncExternalStore,
-} from "react";
+} from "@/app/actions/roster";
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import type { ParentRecord, StudentRecord } from "@/lib/domain/types";
+import { useRouter } from "@/i18n/navigation";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 
 type RosterContextValue = {
-  parents: MockParent[];
-  students: Student[];
-  getParentById: (id: string) => MockParent | undefined;
+  parents: ParentRecord[];
+  students: StudentRecord[];
+  getParentById: (parentId: string) => ParentRecord | undefined;
   parentDisplayName: (parentId: string) => string;
-  upsertParent: (input: ParentInput) => MockParent;
-  deleteParent: (parentId: string) => boolean;
-  upsertStudent: (input: StudentInput) => Student;
-  deleteStudent: (studentId: string) => void;
+  upsertParent: (input: ParentInput) => Promise<ParentRecord>;
+  deleteParent: (parentId: string) => Promise<boolean>;
+  upsertStudent: (input: StudentInput) => Promise<StudentRecord>;
+  deleteStudent: (studentId: string) => Promise<void>;
 };
 
 const RosterContext = createContext<RosterContextValue | null>(null);
 
 export function RosterProvider({ children }: { children: React.ReactNode }) {
-  const roster = useSyncExternalStore(
-    subscribeRoster,
-    getRosterSnapshot,
-    getRosterServerSnapshot,
+  const { parents, students } = useAdminBootstrap();
+  const router = useRouter();
+
+  const getParentById = useCallback(
+    (parentId: string) => parents.find((p) => p.id === parentId),
+    [parents],
   );
 
-  useEffect(() => {
-    syncRosterFromStorage();
-  }, []);
+  const parentDisplayName = useCallback(
+    (parentId: string) => {
+      const parent = getParentById(parentId);
+      return parent?.name ?? parent?.salutation ?? parentId;
+    },
+    [getParentById],
+  );
+
+  const upsertParent = useCallback(
+    async (input: ParentInput) => {
+      const row = await upsertParentAction(input);
+      router.refresh();
+      return {
+        id: row.id,
+        name: row.name,
+        salutation: row.salutation,
+        honorific: row.honorific,
+        whatsapp: row.whatsapp ?? "",
+      };
+    },
+    [router],
+  );
+
+  const deleteParent = useCallback(
+    async (parentId: string) => {
+      const result = await deleteParentAction(parentId);
+      if (result.ok) router.refresh();
+      return result.ok;
+    },
+    [router],
+  );
+
+  const upsertStudent = useCallback(
+    async (input: StudentInput) => {
+      const row = await upsertStudentAction(input);
+      router.refresh();
+      return {
+        id: row.id,
+        name: row.name,
+        age: row.age ?? 0,
+        level: row.level,
+        feePerSession: row.feePerSession,
+        status: row.status,
+        parentId: row.parentId ?? "",
+        calendarColorKey:
+          row.calendarColorKey as StudentRecord["calendarColorKey"],
+      };
+    },
+    [router],
+  );
+
+  const deleteStudent = useCallback(
+    async (studentId: string) => {
+      await deleteStudentAction(studentId);
+      router.refresh();
+    },
+    [router],
+  );
 
   const value = useMemo<RosterContextValue>(
     () => ({
-      parents: roster.parents,
-      students: roster.students,
-      getParentById: (id) => roster.parents.find((p) => p.id === id),
+      parents,
+      students,
+      getParentById,
       parentDisplayName,
       upsertParent,
       deleteParent,
-      deleteStudent,
       upsertStudent,
+      deleteStudent,
     }),
-    [roster.parents, roster.students],
+    [
+      parents,
+      students,
+      getParentById,
+      parentDisplayName,
+      upsertParent,
+      deleteParent,
+      upsertStudent,
+      deleteStudent,
+    ],
   );
 
   return (

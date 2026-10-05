@@ -133,9 +133,12 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     );
     if (!confirmed) return;
 
-    deleteRecurringSession(selected.session.id);
-    closeModal();
-    setSelected(null);
+    void deleteRecurringSession(selected.session.id).then((ok) => {
+      if (ok) {
+        closeModal();
+        setSelected(null);
+      }
+    });
   };
 
   return (

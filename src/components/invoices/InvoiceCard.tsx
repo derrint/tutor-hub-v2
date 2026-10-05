@@ -3,8 +3,9 @@
 import StatusBadge from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { ChatIcon, CheckLineIcon } from "@/icons";
+import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
 import { useRoster } from "@/context/RosterContext";
-import { TUTOR_PROFILE, type InvoicePreview } from "@/lib/mock-data";
+import type { InvoicePreview } from "@/lib/mock-data";
 import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
 import { useModal } from "@/hooks/useModal";
 import { useInvoices } from "@/context/InvoiceContext";
@@ -38,6 +39,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
 }) => {
   const t = useTranslations("tutorHub.invoices");
   const { setInvoiceStatus } = useInvoices();
+  const { profile } = useAdminBootstrap();
   const { getParentById } = useRoster();
   const parent = getParentById(invoice.parentId);
 
@@ -52,7 +54,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     if (invoice.total <= 0 || invoice.children.length === 0) return null;
     const messageText = buildParentMonthlyWhatsAppMessage({
       invoice,
-      profile: TUTOR_PROFILE,
+      profile,
       parent,
     });
     return {
