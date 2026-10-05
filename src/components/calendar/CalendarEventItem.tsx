@@ -2,6 +2,10 @@
 
 import { useAttendance } from "@/context/AttendanceContext";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
+import {
+  STUDENT_CALENDAR_EVENT_COLORS,
+  isStudentCalendarColorKey,
+} from "@/lib/students/calendar-colors";
 import { cn } from "@/utils";
 import type { EventDisplayInfo } from "@fullcalendar/react";
 import React, { useSyncExternalStore } from "react";
@@ -48,36 +52,6 @@ function getOccurrenceId(eventInfo: EventDisplayInfo): string | null {
   return buildStudentOccurrenceIdFromDate(studentId, start);
 }
 
-const levelColorMap: Record<
-  string,
-  { bg: string; dot: string; title: string; time: string }
-> = {
-  success: {
-    bg: "border border-success-100 bg-success-50 dark:border-success-500/20 dark:bg-success-500/15",
-    dot: "bg-success-500",
-    title: "text-success-700 dark:text-success-400",
-    time: "text-success-600/80 dark:text-success-400/80",
-  },
-  danger: {
-    bg: "border border-error-100 bg-error-50 dark:border-error-500/20 dark:bg-error-500/15",
-    dot: "bg-error-500",
-    title: "text-error-700 dark:text-error-400",
-    time: "text-error-600/80 dark:text-error-400/80",
-  },
-  primary: {
-    bg: "border border-brand-100 bg-brand-50 dark:border-brand-500/20 dark:bg-brand-500/15",
-    dot: "bg-brand-500",
-    title: "text-brand-700 dark:text-brand-400",
-    time: "text-brand-600/80 dark:text-brand-400/80",
-  },
-  warning: {
-    bg: "border border-orange-100 bg-orange-50 dark:border-orange-500/20 dark:bg-orange-500/15",
-    dot: "bg-orange-500",
-    title: "text-orange-700 dark:text-orange-400",
-    time: "text-orange-600/80 dark:text-orange-400/80",
-  },
-};
-
 /** Matches dashboard list — absent sessions are dimmed and de-emphasized. */
 const absentColorMap = {
   bg: "border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80",
@@ -94,16 +68,19 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
   );
   const { isAbsent } = useAttendance();
 
-  const calendarLevel = (
-    eventInfo.event.extendedProps?.calendar || "primary"
+  const calendarKeyRaw = String(
+    eventInfo.event.extendedProps?.calendar ?? "primary",
   ).toLowerCase();
+  const calendarKey = isStudentCalendarColorKey(calendarKeyRaw)
+    ? calendarKeyRaw
+    : "primary";
 
   const occurrenceId = getOccurrenceId(eventInfo);
   const absent = occurrenceId != null && isAbsent(occurrenceId);
 
   const colors = absent
     ? absentColorMap
-    : (levelColorMap[calendarLevel] ?? levelColorMap.primary);
+    : STUDENT_CALENDAR_EVENT_COLORS[calendarKey];
 
   const isTimeGridView =
     !eventInfo.event?.allDay &&

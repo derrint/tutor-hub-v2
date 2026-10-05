@@ -229,7 +229,7 @@
         "friday": "Friday",
         "saturday": "Saturday"
       },
-      "weeklyHint": "Sessions repeat every week, colored by level. Tap a session for details, or drag on an empty time slot in Week/Day view to add.",
+      "weeklyHint": "Sessions repeat every week — each child has their own color. Tap a session for details, or drag on an empty time slot in Week/Day view to add.",
       "todayTitle": "Today’s agenda",
       "todayAgendaLabel": "Today’s session schedule",
       "noSessionsToday": "No sessions scheduled today.",
@@ -259,6 +259,16 @@
       "editAria": "Edit {name}",
       "fieldName": "Name",
       "fieldAge": "Age",
+      "fieldCalendarColor": "Calendar color",
+      "calendarColors": {
+        "primary": "Blue",
+        "success": "Green",
+        "info": "Sky",
+        "warning": "Orange",
+        "danger": "Red",
+        "purple": "Purple",
+        "pink": "Pink"
+      },
       "statusActive": "Active",
       "statusInactive": "Inactive",
       "noParentsHint": "Add a parent first.",

@@ -59,7 +59,12 @@ const StudentsTable: React.FC<StudentsTableProps> = ({ onEdit }) => {
               <TableRow key={student.id}>
                 <TableCell className="px-5 py-4 text-start">
                   <div className="flex items-center gap-3">
-                    <StudentAvatar name={student.name} level={student.level} />
+                    <StudentAvatar
+                      name={student.name}
+                      level={student.level}
+                      studentId={student.id}
+                      calendarColorKey={student.calendarColorKey}
+                    />
                     <div>
                       <span className="block text-theme-sm font-medium text-gray-800 dark:text-white/90">
                         {student.name}

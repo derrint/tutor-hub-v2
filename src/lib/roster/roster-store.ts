@@ -4,6 +4,10 @@ import {
   type MockParent,
   type Student,
 } from "@/lib/mock-data";
+import {
+  pickNextStudentCalendarColorKey,
+  resolveStudentCalendarColorKey,
+} from "@/lib/students/calendar-colors";
 import { normalizeHonorificStored } from "@/lib/whatsapp/format-honorific";
 
 const STORAGE_KEY = "tutorhub-roster-state";
@@ -17,6 +21,21 @@ const EMPTY_STATE: RosterState = {
   parents: SEED_PARENTS,
   students: SEED_STUDENTS,
 };
+
+function normalizeStudent(student: Student): Student {
+  const seedMatch = SEED_STUDENTS.find((s) => s.id === student.id);
+  return {
+    ...student,
+    calendarColorKey: resolveStudentCalendarColorKey(
+      student.calendarColorKey ?? seedMatch?.calendarColorKey,
+      student.id,
+    ),
+  };
+}
+
+function normalizeStudents(students: Student[]): Student[] {
+  return students.map(normalizeStudent);
+}
 
 function readState(): RosterState {
   if (typeof window === "undefined") {
@@ -36,7 +55,7 @@ function readState(): RosterState {
           }))
         : SEED_PARENTS,
       students: Array.isArray(record.students)
-        ? (record.students as Student[])
+        ? normalizeStudents(record.students as Student[])
         : SEED_STUDENTS,
     };
   } catch {
@@ -138,6 +157,17 @@ export type StudentInput = Omit<Student, "id"> & { id?: string };
 
 export function upsertStudent(input: StudentInput): Student {
   const id = input.id ?? newId("m");
+  const students = [...rosterState.students];
+  const index = students.findIndex((s) => s.id === id);
+  const existing = index >= 0 ? students[index] : undefined;
+
+  const calendarColorKey =
+    input.calendarColorKey ??
+    existing?.calendarColorKey ??
+    pickNextStudentCalendarColorKey(
+      students.map((s) => s.calendarColorKey),
+    );
+
   const student: Student = {
     id,
     name: input.name.trim(),
@@ -146,10 +176,9 @@ export function upsertStudent(input: StudentInput): Student {
     feePerSession: input.feePerSession,
     status: input.status,
     parentId: input.parentId,
+    calendarColorKey,
   };
 
-  const students = [...rosterState.students];
-  const index = students.findIndex((s) => s.id === id);
   if (index >= 0) {
     students[index] = student;
   } else {

@@ -78,6 +78,8 @@ model Student {
   level         EducationLevel
   feePerSession Int            // in Rupiah, can be overridden per student
   status        StudentStatus  @default(ACTIVE)
+  /// Calendar chip + avatar hue (`primary`, `success`, `info`, …) — see `src/lib/students/calendar-colors.ts`.
+  calendarColorKey String @default("primary")
 
   parent   Parent? @relation(fields: [parentId], references: [id])
   parentId String?

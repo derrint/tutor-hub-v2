@@ -6,6 +6,11 @@ import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useRoster } from "@/context/RosterContext";
 import type { EducationLevel, Student, StudentStatus } from "@/lib/mock-data";
+import {
+  STUDENT_CALENDAR_COLOR_KEYS,
+  pickNextStudentCalendarColorKey,
+  type StudentCalendarColorKey,
+} from "@/lib/students/calendar-colors";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
@@ -23,6 +28,7 @@ type FormState = {
   feePerSession: string;
   status: StudentStatus;
   parentId: string;
+  calendarColorKey: StudentCalendarColorKey;
 };
 
 const emptyForm: FormState = {
@@ -32,6 +38,7 @@ const emptyForm: FormState = {
   feePerSession: "",
   status: "ACTIVE",
   parentId: "",
+  calendarColorKey: "primary",
 };
 
 const selectClassName =
@@ -44,7 +51,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
 }) => {
   const t = useTranslations("tutorHub.students");
   const tCommon = useTranslations("common");
-  const { parents, upsertStudent } = useRoster();
+  const { parents, students, upsertStudent } = useRoster();
   const [form, setForm] = useState<FormState>(emptyForm);
 
   useEffect(() => {
@@ -57,14 +64,18 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
         feePerSession: String(student.feePerSession),
         status: student.status,
         parentId: student.parentId,
+        calendarColorKey: student.calendarColorKey,
       });
     } else {
       setForm({
         ...emptyForm,
         parentId: parents[0]?.id ?? "",
+        calendarColorKey: pickNextStudentCalendarColorKey(
+          students.map((s) => s.calendarColorKey),
+        ),
       });
     }
-  }, [isOpen, student, parents]);
+  }, [isOpen, student, parents, students]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +92,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
       feePerSession,
       status: form.status,
       parentId: form.parentId,
+      calendarColorKey: form.calendarColorKey,
     });
     onClose();
   };
@@ -149,6 +161,26 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
             }
             required
           />
+        </div>
+        <div>
+          <Label htmlFor="student-calendar-color">{t("fieldCalendarColor")}</Label>
+          <select
+            id="student-calendar-color"
+            className={selectClassName}
+            value={form.calendarColorKey}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                calendarColorKey: e.target.value as StudentCalendarColorKey,
+              }))
+            }
+          >
+            {STUDENT_CALENDAR_COLOR_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {t(`calendarColors.${key}`)}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <Label htmlFor="student-status">{t("columnStatus")}</Label>

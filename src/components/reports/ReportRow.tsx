@@ -17,7 +17,12 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft }) => {
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/3">
-      <StudentAvatar name={student.name} level={student.level} />
+      <StudentAvatar
+        name={student.name}
+        level={student.level}
+        studentId={student.id}
+        calendarColorKey={student.calendarColorKey}
+      />
 
       <div className="flex-1">
         <div className="flex items-center gap-2">

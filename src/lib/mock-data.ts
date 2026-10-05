@@ -5,6 +5,7 @@
 // Every name, fee, and date below is a fabricated placeholder for development.
 // None of it is real customer data.
 
+import type { StudentCalendarColorKey } from "@/lib/students/calendar-colors";
 import type { InvoicePeriod } from "@/utils/format";
 
 export type EducationLevel = "TK" | "SD";
@@ -91,6 +92,8 @@ export type Student = {
   feePerSession: number;
   status: StudentStatus;
   parentId: string;
+  /** Stable calendar / avatar hue for this child (see `STUDENT_CALENDAR_COLOR_KEYS`). */
+  calendarColorKey: StudentCalendarColorKey;
 };
 
 export const SEED_STUDENTS: Student[] = [
@@ -102,6 +105,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 125000,
     status: "ACTIVE",
     parentId: "p1",
+    calendarColorKey: "primary",
   },
   {
     id: "m2",
@@ -111,6 +115,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 125000,
     status: "ACTIVE",
     parentId: "p1",
+    calendarColorKey: "success",
   },
   {
     id: "m3",
@@ -120,6 +125,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 110000,
     status: "ACTIVE",
     parentId: "p2",
+    calendarColorKey: "info",
   },
   {
     id: "m4",
@@ -129,6 +135,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 110000,
     status: "ACTIVE",
     parentId: "p3",
+    calendarColorKey: "danger",
   },
   {
     id: "m5",
@@ -138,6 +145,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 135000,
     status: "ACTIVE",
     parentId: "p4",
+    calendarColorKey: "warning",
   },
   {
     id: "m6",
@@ -147,6 +155,7 @@ export const SEED_STUDENTS: Student[] = [
     feePerSession: 135000,
     status: "INACTIVE",
     parentId: "p5",
+    calendarColorKey: "purple",
   },
 ];
 

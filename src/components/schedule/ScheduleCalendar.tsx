@@ -12,7 +12,9 @@ import { useModal } from "@/hooks/useModal";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
 import StatusBadge from "@/components/common/StatusBadge";
 import { useAttendance } from "@/context/AttendanceContext";
+import { useRoster } from "@/context/RosterContext";
 import { useSchedule } from "@/context/ScheduleContext";
+import { resolveStudentCalendarColorKey } from "@/lib/students/calendar-colors";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { RecurringSession } from "@/lib/mock-data";
 import { formatWeekdayLabels } from "@/lib/schedule/format-weekdays";
@@ -36,7 +38,22 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
   const { recurringSessions, deleteRecurringSession } = useSchedule();
+  const { students } = useRoster();
   const { isAbsent, absentOccurrenceIds } = useAttendance();
+
+  const studentColorById = useMemo(
+    () =>
+      new Map(
+        students.map((student) => [
+          student.id,
+          resolveStudentCalendarColorKey(
+            student.calendarColorKey,
+            student.id,
+          ),
+        ]),
+      ),
+    [students],
+  );
 
   const sessionsById = useMemo(
     () => new Map(recurringSessions.map((session) => [session.id, session])),
@@ -52,13 +69,14 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         startTime: session.startTime,
         endTime: session.endTime,
         extendedProps: {
-          calendar: session.level === "TK" ? "Primary" : "Warning",
+          calendar:
+            studentColorById.get(session.studentId) ?? "primary",
           startTime: session.startTime,
           endTime: session.endTime,
           studentId: session.studentId,
         },
       })),
-    [recurringSessions],
+    [recurringSessions, studentColorById],
   );
 
   const attendanceRevision = useMemo(
