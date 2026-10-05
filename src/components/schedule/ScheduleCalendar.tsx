@@ -68,6 +68,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         daysOfWeek: session.daysOfWeek,
         startTime: session.startTime,
         endTime: session.endTime,
+        startRecur: session.startDate,
         extendedProps: {
           calendar:
             studentColorById.get(session.studentId) ?? "primary",

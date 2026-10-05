@@ -48,6 +48,8 @@ export type RecurringSession = {
   daysOfWeek: number[];
   startTime: string;
   endTime: string;
+  /** First day the recurrence applies (`YYYY-MM-DD`, UTC calendar parts). */
+  startDate: string;
 };
 
 export type InvoiceChildLine = {

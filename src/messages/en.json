@@ -217,6 +217,8 @@
       "addSlotHint": "Repeats every week on the chosen day. Billing uses this schedule for invoice lines.",
       "fieldStudent": "Student",
       "fieldWeekday": "Repeats on",
+      "fieldStartDate": "First lesson date",
+      "fieldStartDateHint": "Sessions before this date are not scheduled or billed.",
       "fieldStartTime": "Start",
       "fieldEndTime": "End",
       "noActiveStudents": "Add an active student first.",

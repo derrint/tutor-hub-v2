@@ -41,6 +41,7 @@ export function ScheduleProvider({ children }: { children: React.ReactNode }) {
           daysOfWeek: input.daysOfWeek,
           startTime: input.startTime,
           endTime: input.endTime,
+          startDate: input.startDate,
         }
       );
     },

@@ -128,6 +128,9 @@ export const SEED_STUDENTS = [
   },
 ];
 
+/** Seed schedule rules align with `prisma/seed.ts` rule `startDate`. */
+const SEED_RULE_START_DATE = "2026-01-01";
+
 export const SEED_RECURRING_SESSIONS = [
   {
     id: "r1",
@@ -137,6 +140,7 @@ export const SEED_RECURRING_SESSIONS = [
     daysOfWeek: [1, 3, 5],
     startTime: "17:00",
     endTime: "18:00",
+    startDate: SEED_RULE_START_DATE,
   },
   {
     id: "r2",
@@ -146,6 +150,7 @@ export const SEED_RECURRING_SESSIONS = [
     daysOfWeek: [2, 4],
     startTime: "18:45",
     endTime: "19:45",
+    startDate: SEED_RULE_START_DATE,
   },
   {
     id: "r3",
@@ -155,6 +160,7 @@ export const SEED_RECURRING_SESSIONS = [
     daysOfWeek: [1, 3],
     startTime: "15:00",
     endTime: "16:00",
+    startDate: SEED_RULE_START_DATE,
   },
   {
     id: "r4",
@@ -164,6 +170,7 @@ export const SEED_RECURRING_SESSIONS = [
     daysOfWeek: [1, 3],
     startTime: "16:00",
     endTime: "17:00",
+    startDate: SEED_RULE_START_DATE,
   },
   {
     id: "r5",
@@ -173,6 +180,7 @@ export const SEED_RECURRING_SESSIONS = [
     daysOfWeek: [2, 4, 6],
     startTime: "16:00",
     endTime: "17:30",
+    startDate: SEED_RULE_START_DATE,
   },
 ];
 

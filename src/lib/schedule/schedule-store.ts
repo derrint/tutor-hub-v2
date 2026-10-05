@@ -92,6 +92,7 @@ export type RecurringSessionInput = {
   daysOfWeek: number[];
   startTime: string;
   endTime: string;
+  startDate?: string;
 };
 
 export function upsertRecurringSession(
@@ -108,6 +109,7 @@ export function upsertRecurringSession(
     daysOfWeek: [...input.daysOfWeek].sort((a, b) => a - b),
     startTime: input.startTime,
     endTime: input.endTime,
+    startDate: input.startDate ?? "2026-01-01",
   };
 
   const recurringSessions = [...scheduleState.recurringSessions];

@@ -1,15 +1,8 @@
-import type { EducationLevel } from "@/lib/domain/types";
+import type { EducationLevel, RecurringSession } from "@/lib/domain/types";
+import { storedDateToIsoDate } from "@/lib/datetime/calendar-date";
 import type { ScheduleRule, Student } from "@prisma/client";
 
-export type RecurringSessionView = {
-  id: string;
-  studentId: string;
-  studentName: string;
-  level: EducationLevel;
-  daysOfWeek: number[];
-  startTime: string;
-  endTime: string;
-};
+export type RecurringSessionView = RecurringSession;
 
 type RuleWithStudent = ScheduleRule & { student: Student };
 
@@ -25,11 +18,15 @@ export function groupScheduleRulesForCalendar(
   for (const rule of rules) {
     const key = `${rule.studentId}|${rule.startTime}|${rule.endTime}`;
     const level = rule.student.level as EducationLevel;
+    const ruleStartDate = storedDateToIsoDate(rule.startDate);
     const existing = map.get(key);
     if (existing) {
       if (!existing.daysOfWeek.includes(rule.dayOfWeek)) {
         existing.daysOfWeek.push(rule.dayOfWeek);
         existing.daysOfWeek.sort((a, b) => a - b);
+      }
+      if (ruleStartDate < existing.startDate) {
+        existing.startDate = ruleStartDate;
       }
       continue;
     }
@@ -41,6 +38,7 @@ export function groupScheduleRulesForCalendar(
       daysOfWeek: [rule.dayOfWeek],
       startTime: rule.startTime,
       endTime: rule.endTime,
+      startDate: ruleStartDate,
     });
   }
 

@@ -127,11 +127,10 @@ const Calendar: React.FC<CalendarProps> = ({
     ...(slotMaxTime ? { slotMaxTime } : {}),
   };
 
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+  const [editableEvents, setEditableEvents] =
+    useState<CalendarEvent[]>(initialEvents);
+  const events = readOnly ? initialEvents : editableEvents;
 
-  useEffect(() => {
-    setEvents(initialEvents);
-  }, [initialEvents]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null,
   );
@@ -220,7 +219,7 @@ const Calendar: React.FC<CalendarProps> = ({
     const levelVal = formData.level || "Primary";
 
     if (selectedEvent) {
-      setEvents((prevEvents) =>
+      setEditableEvents((prevEvents) =>
         prevEvents.map((ev) =>
           String(ev.id) === String(selectedEvent.id)
             ? {
@@ -242,7 +241,7 @@ const Calendar: React.FC<CalendarProps> = ({
         allDay: true,
         extendedProps: { calendar: levelVal },
       };
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
+      setEditableEvents((prevEvents) => [...prevEvents, newEvent]);
     }
     closeModal();
   };

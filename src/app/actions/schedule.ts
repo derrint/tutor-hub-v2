@@ -1,6 +1,9 @@
 "use server";
 
-import { calendarDateToStoredDate } from "@/lib/datetime/calendar-date";
+import {
+  parseIsoDateToStoredDate,
+  todayIsoDateLocal,
+} from "@/lib/datetime/calendar-date";
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -12,14 +15,14 @@ import {
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
 
-const RULE_START_FALLBACK = calendarDateToStoredDate(2026, 1, 1);
-
 export type RecurringSessionInput = {
   id?: string;
   studentId: string;
   daysOfWeek: number[];
   startTime: string;
   endTime: string;
+  /** First calendar day the weekly slot applies (`YYYY-MM-DD`). */
+  startDate: string;
 };
 
 export async function upsertRecurringSessionAction(input: RecurringSessionInput) {
@@ -30,6 +33,11 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
 
   const days = [...new Set(input.daysOfWeek)].sort((a, b) => a - b);
   if (days.length === 0) return null;
+
+  const startDate =
+    parseIsoDateToStoredDate(input.startDate) ??
+    parseIsoDateToStoredDate(todayIsoDateLocal());
+  if (!startDate) return null;
 
   const allRules = await prisma.scheduleRule.findMany({
     include: { student: true },
@@ -55,10 +63,18 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
         dayOfWeek,
         startTime: input.startTime,
         endTime: input.endTime,
-        startDate: RULE_START_FALLBACK,
+        startDate,
       },
     });
   }
+
+  const newRuleIds = days.map((dayOfWeek) => `${groupId}-d${dayOfWeek}`);
+  await prisma.session.deleteMany({
+    where: {
+      scheduleRuleId: { in: newRuleIds },
+      date: { lt: startDate },
+    },
+  });
 
   await generateSessionsInWindow(defaultSessionGenerationWindow());
   revalidateAdminRoutes();

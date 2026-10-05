@@ -6,6 +6,7 @@ import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useRoster } from "@/context/RosterContext";
 import { useSchedule } from "@/context/ScheduleContext";
+import { todayIsoDateLocal } from "@/lib/datetime/calendar-date";
 import type { SlotPrefill } from "@/lib/schedule/parse-slot-select";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -48,6 +49,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
   const [dayOfWeek, setDayOfWeek] = useState(1);
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:00");
+  const [startDate, setStartDate] = useState(() => todayIsoDateLocal());
 
   useEffect(() => {
     if (!isOpen) return;
@@ -60,6 +62,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
     setDayOfWeek(base.dayOfWeek);
     setStartTime(base.startTime);
     setEndTime(base.endTime);
+    setStartDate(todayIsoDateLocal());
   }, [isOpen, prefill, activeStudents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,6 +73,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
       daysOfWeek: [dayOfWeek],
       startTime,
       endTime,
+      startDate,
     });
     if (created !== null) onClose();
   };
@@ -109,6 +113,20 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
               ))}
             </select>
           )}
+        </div>
+
+        <div>
+          <Label htmlFor="slot-start-date">{t("fieldStartDate")}</Label>
+          <Input
+            id="slot-start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+          />
+          <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">
+            {t("fieldStartDateHint")}
+          </p>
         </div>
 
         <div>
