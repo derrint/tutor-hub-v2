@@ -70,17 +70,26 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) — you should land on **Sign in** until Google auth succeeds.
 
-### Optional: Neon (Phase 2)
+### Neon Postgres (Phase 2)
 
-See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer). Set `DATABASE_URL` (pooled) and `DIRECT_URL` when you connect Prisma to Neon.
+Copy `.env.example` → `.env.local`. Map Neon console URLs: **pooler** → `DATABASE_URL`, **direct** → `DIRECT_URL`.
+
+```bash
+pnpm db:migrate   # apply migrations (Neon)
+pnpm db:seed      # seed from mock fixtures + generate sessions
+pnpm db:reset     # reset DB and re-seed (destructive)
+```
+
+See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer).
 
 ### Scripts
 
 ```bash
-pnpm dev      # development server (Turbopack)
-pnpm build    # production build
-pnpm start    # run production build
-pnpm lint     # ESLint
+pnpm dev          # development server (Turbopack)
+pnpm build        # prisma generate + production build
+pnpm start        # run production build
+pnpm lint         # ESLint
+pnpm db:generate  # Prisma client only
 ```
 
 ---
@@ -93,11 +102,14 @@ src/
 ├── proxy.ts                  # Auth gate + next-intl (Next.js 16)
 ├── app/[locale]/(admin)/     # TutorHub pages
 ├── app/api/auth/[...nextauth]/
-├── lib/mock-data.ts          # Mock until Phase 2
-├── lib/invoices/             # Schedule derive, resolve display
+├── lib/db/                   # Prisma client, admin bootstrap load
+├── lib/mock-data.ts          # Seed fixtures only
+├── lib/invoices/             # Session derive, paid snapshots
+├── app/actions/              # Server actions (roster, schedule, …)
 ├── lib/whatsapp/             # Combined parent monthly message
-├── context/                  # Attendance, Invoice mock state
-prisma/schema.prisma          # Target model (Neon)
+├── context/                  # Client state hydrated from Postgres
+prisma/schema.prisma          # Postgres model (Neon)
+prisma/seed.ts                # Seed + session generation
 ```
 
 ---
@@ -105,8 +117,8 @@ prisma/schema.prisma          # Target model (Neon)
 ## Roadmap summary
 
 1. **Phase 1** — Mock workflow (attendance, invoices, WhatsApp, billing month) + **Google auth gate**  
-2. **Phase 2** — **Neon**, seed, replace mock reads  
-3. **Phase 3** — CRUD, persisted billing, reports when template exists  
+2. **Phase 2** — **Neon**, seed, Postgres-backed pages *(done)*  
+3. **Phase 3** — CRUD edge cases, billing correctness, reports when template exists  
 4. **Phase 4** — Polish, demo cleanup, deploy  
 
 Details: [`ROADMAP.md`](./ROADMAP.md).

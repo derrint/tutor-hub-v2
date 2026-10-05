@@ -15,7 +15,7 @@ web
 - **next-intl** — English user-facing copy (`en-US` dates); routing configured in `src/i18n/`
 - **Lucide** (`lucide-react`) for icons; country flags remain custom SVGs
 - **FullCalendar** for Schedule (read-only recurring schedule in the current milestone)
-- **Prisma** + **PostgreSQL** — schema and `prisma.config.ts` are in repo; **runtime DB is Phase 2** ([`ROADMAP.md`](./ROADMAP.md)). Pages today read **`src/lib/mock-data.ts` only**.
+- **Prisma** + **Neon PostgreSQL** — runtime data via **`src/lib/db/`** and server actions; **`src/lib/mock-data.ts`** is seed/fixtures only ([`ROADMAP.md`](./ROADMAP.md) Phase 2).
 
 An earlier Google Stitch exploration was abandoned in favor of building directly in code.
 
@@ -46,15 +46,15 @@ Internal-only operational tool for one tutor's private practice — not intended
 Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Seven routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
-- **Parents / Students:** mock CRUD in `localStorage` (`RosterContext`); WhatsApp fields on parent.
-- **Schedule:** recurring weekly slots in `localStorage` (`ScheduleContext`); add via header or Week/Day slot select; invoices use live rules.
+- **Parents / Students:** CRUD via server actions (`RosterContext` + Postgres); WhatsApp fields on parent.
+- **Schedule:** recurring weekly slots in Postgres (`ScheduleRule` + generated `Session` rows); add via header or Week/Day slot select.
 - **Access:** **Auth.js** + **Google sign-in**; only emails in `AUTH_ALLOWED_EMAILS` (two accounts). All dashboard routes require login before Vercel deploy.
 - **Schedule:** read-only calendar with recurring mock sessions, attendance (absent) on dashboard + schedule; session detail modal.
 - **Invoices:** auto-list per billing month; derive-on-read unpaid lines; mark paid (mock `localStorage`); **WhatsApp** preview + `wa.me` prefill.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
 - **Finance / Dashboard:** totals from resolved invoices; dashboard finance card uses calendar month.
 - **Reports:** draft/published placeholders; editor waits on Montessori template.
-- **Data:** mock file + client persistence (attendance, invoice status); **Neon Postgres** planned Phase 2 (`.env.example`).
+- **Data:** **Neon Postgres** (attendance on `Session.status`, invoices derive-on-read + paid snapshots); seed in `prisma/seed.ts`.
 
 ## Capabilities and Constraints
 

@@ -103,14 +103,14 @@ Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI
 
 Goal: replace mock reads with real data on **Neon Postgres** (single-tutor; auth gate already in Phase 1).
 
-- [ ] Provision **Neon** project; `DATABASE_URL` (pooled) + `DIRECT_URL` in `.env` / Vercel (see `.env.example`)
-- [ ] `prisma migrate`, seed script aligned with current mock shapes
-- [ ] Server-side data access (Server Components / server actions / small `lib/db` module — pick one pattern and stay consistent)
-- [ ] **Session generation** from `ScheduleRule` (weekly recurrence)
-- [ ] **Fee snapshot** on `Session` at creation; link billable sessions to `InvoiceItem` per schema
-- [ ] Swap the six TutorHub pages from `mock-data.ts` imports to DB queries
-- [ ] Query invoices / reports / finance **by billing month** (same `?month=` contract as Phase 1 navigation)
-- [ ] Keep fabricated names in **seed only**; do not commit secrets
+- [x] Provision **Neon** project; `DATABASE_URL` (pooled) + `DIRECT_URL` in `.env` / Vercel (see `.env.example`)
+- [x] `prisma migrate`, seed script aligned with current mock shapes
+- [x] Server-side data access (Server Components / server actions / small `lib/db` module — pick one pattern and stay consistent)
+- [x] **Session generation** from `ScheduleRule` (weekly recurrence)
+- [x] **Fee snapshot** on `Session` at creation; link billable sessions to `InvoiceItem` per schema
+- [x] Swap the six TutorHub pages from `mock-data.ts` imports to DB queries
+- [x] Query invoices / reports / finance **by billing month** (same `?month=` contract as Phase 1 navigation)
+- [x] Keep fabricated names in **seed only**; do not commit secrets
 
 **Exit criteria:** App runs against Postgres locally; mock file unused for main routes (or kept for tests/fixtures only).
 
@@ -171,8 +171,9 @@ Do not build unless requirements change:
 | Product spec | `PRODUCT.md` |
 | Schema | `prisma/schema.prisma` |
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
-| Roster (parents/students mock CRUD) | `src/context/RosterContext.tsx`, `src/lib/roster/roster-store.ts` |
-| Schedule (recurring slots mock CRUD) | `src/context/ScheduleContext.tsx`, `src/lib/schedule/schedule-store.ts` |
+| Roster (parents/students) | `src/context/RosterContext.tsx`, `src/app/actions/roster.ts` |
+| Schedule (recurring slots) | `src/context/ScheduleContext.tsx`, `src/app/actions/schedule.ts`, `src/lib/schedule/generate-sessions.ts` |
+| DB access | `src/lib/db/prisma.ts`, `src/lib/db/load-admin-bootstrap.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
@@ -180,4 +181,4 @@ Do not build unless requirements change:
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** **Phase 2** — Neon Postgres, migrate/seed, swap pages off `mock-data.ts` (keep `?month=` billing contract).
+**Suggested next sprint:** **Phase 3** — persistent CRUD edge cases, billing correctness, reports when template exists.
