@@ -18,8 +18,8 @@ export type RosterState = {
 };
 
 const EMPTY_STATE: RosterState = {
-  parents: SEED_PARENTS,
-  students: SEED_STUDENTS,
+  parents: SEED_PARENTS.map((parent) => ({ ...parent })),
+  students: SEED_STUDENTS.map((student) => ({ ...student })),
 };
 
 function normalizeStudent(student: Student): Student {
