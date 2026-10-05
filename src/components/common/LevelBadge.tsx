@@ -4,7 +4,7 @@ import React from "react";
 
 const LEVEL_COLOR = {
   TK: "primary",
-  SD: "warning",
+  SD: "error",
 } as const;
 
 /**

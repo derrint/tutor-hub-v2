@@ -9,7 +9,7 @@ import React from "react";
 
 const LEVEL_STYLES: Record<EducationLevel, string> = {
   TK: "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400",
-  SD: "bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400",
+  SD: "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500",
 };
 
 interface StudentAvatarProps {
