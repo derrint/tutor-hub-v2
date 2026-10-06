@@ -17,7 +17,7 @@ export default function GreetingBanner() {
 
   return (
     <div className="rounded-2xl bg-brand-500 px-5 py-5 text-white md:px-6">
-      <p className="text-theme-xl font-semibold">
+      <p className="whitespace-pre-line text-theme-xl font-semibold">
         {t("greetingHeadline", {
           opener: t(`greetingOpener.${period}`),
           date: formatFullDate(now),

@@ -194,7 +194,7 @@
         "evening": "Good evening",
         "night": "Good evening"
       },
-      "greetingHeadline": "{opener}! It's {date}.",
+      "greetingHeadline": "{opener}!\nIt's {date}.",
       "classesWaiting": "{count, plural, one {# class waiting today.} other {# classes waiting today.}}",
       "noClassesToday": "No classes today — time to rest.",
       "classesToday": "Classes today",
