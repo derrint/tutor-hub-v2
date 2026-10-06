@@ -8,24 +8,26 @@ Operational dashboard for a **solo private tutor**: schedule, students, monthly 
 
 ---
 
-## Current status (Phase 1 mock)
+## Current status (Phase 3 v1)
 
-The app runs on **mock data** with **client-side persistence** (attendance, invoice status). **Postgres (Neon)** is Phase 2 — not required for local UI work.
+The app runs on **Neon Postgres** with **server actions** for roster, schedule, invoices, and reports. **`src/lib/mock-data.ts`** is used for **seed/fixtures only**.
 
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard — today’s sessions, active students, collection summary |
-| `/schedule` | Weekly schedule (FullCalendar, recurring sessions, mark absent) |
-| `/students` | Student list |
-| `/invoices` | Invoices per parent / month (derive-on-read, WhatsApp preview) |
-| `/reports` | Monthly report status per student (draft placeholder) |
+| `/schedule` | Weekly schedule (FullCalendar, recurring slots, mark absent) |
+| `/students` | Student list + CRUD |
+| `/parents` | Parent list + CRUD (WhatsApp / invoice grouping) |
+| `/invoices` | Invoices per parent / month, mark paid, WhatsApp preview |
+| `/reports` | Monthly report editor + on-demand PDF download |
 | `/finance` | Billed / collected / unpaid totals (billing month picker) |
+| `/settings` | **Settings** — bank details, account holder (WhatsApp + PDF signature) |
 
-- **Sign-in:** Google OAuth via Auth.js — only emails listed in `AUTH_ALLOWED_EMAILS` (two accounts). Unauthenticated visitors are redirected to `/signin`.
+- **Sign-in:** Google OAuth via Auth.js — only emails in `AUTH_ALLOWED_EMAILS`.
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
-- Names, fees, and dates in `src/lib/mock-data.ts` are **fabricated placeholders**, not real customer data.
+- **Billing month:** `?month=YYYY-MM` on Invoices, Reports, Finance.
 
-TailAdmin **demo routes** may still exist on disk; they are auth-gated like the rest of the admin shell.
+TailAdmin **demo routes** may still exist on disk; they are auth-gated like the rest of the admin shell (Phase 4 may hide them).
 
 ---
 
@@ -33,10 +35,10 @@ TailAdmin **demo routes** may still exist on disk; they are auth-gated like the 
 
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
 - **Auth.js** (`next-auth` v5) — Google provider, allowlist
+- **Prisma** + **Neon PostgreSQL**
 - **Tailwind CSS v4** (theme in `src/app/globals.css`)
-- **next-intl** (locale `en`; English copy in `src/messages/en.json`)
-- **FullCalendar v7** on Schedule
-- **Prisma** schema prepared; target host **Neon Postgres** (Phase 2)
+- **next-intl** (locale `en`; copy in `src/messages/en.json`)
+- **FullCalendar v7** on Schedule · **@react-pdf/renderer** for report PDFs
 - **pnpm** 10.11.0
 
 ---
@@ -57,9 +59,11 @@ Copy `.env.example` to `.env.local` (or `.env`) and set:
 |----------|---------|
 | `AUTH_SECRET` | Session encryption (`openssl rand -base64 32`) |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_CLIENT_SECRET` | Google Cloud OAuth client |
-| `AUTH_ALLOWED_EMAILS` | Two comma-separated Google emails allowed to sign in |
+| `AUTH_ALLOWED_EMAILS` | Comma-separated Google emails allowed to sign in |
+| `DATABASE_URL` | Neon **pooler** URL |
+| `DIRECT_URL` | Neon **direct** URL (migrations) |
 
-Google **Authorized redirect URI:** `http://localhost:3000/api/auth/callback/google` (and your production URL on Vercel).
+Google **Authorized redirect URI:** `http://localhost:3000/api/auth/callback/google` (and your production URL on deploy).
 
 ### Install and run
 
@@ -70,17 +74,16 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) — you should land on **Sign in** until Google auth succeeds.
 
-### Neon Postgres (Phase 2)
-
-Copy `.env.example` → `.env.local`. Map Neon console URLs: **pooler** → `DATABASE_URL`, **direct** → `DIRECT_URL`.
+### Database (Neon)
 
 ```bash
-pnpm db:migrate   # apply migrations (Neon)
-pnpm db:seed      # seed from mock fixtures + generate sessions
-pnpm db:reset     # reset DB and re-seed (destructive)
+pnpm db:migrate        # local dev: create/apply migrations
+pnpm db:migrate:deploy # production / CI: apply pending migrations only
+pnpm db:seed           # seed from fixtures + generate sessions
+pnpm db:reset          # reset DB and re-seed (destructive)
 ```
 
-See [ROADMAP.md — Phase 2](./ROADMAP.md#phase-2--data-layer).
+After schema changes, restart `pnpm dev` so the Prisma client reloads (see `src/lib/db/prisma.ts` fingerprint).
 
 ### Scripts
 
@@ -102,10 +105,11 @@ src/
 ├── proxy.ts                  # Auth gate + next-intl (Next.js 16)
 ├── app/[locale]/(admin)/     # TutorHub pages
 ├── app/api/auth/[...nextauth]/
+├── app/api/reports/pdf/      # On-demand rapot PDF
+├── app/actions/              # Server actions (roster, schedule, reports, profile, …)
 ├── lib/db/                   # Prisma client, admin bootstrap load
-├── lib/mock-data.ts          # Seed fixtures only
+├── lib/reports/              # contentJson schema + PDF template
 ├── lib/invoices/             # Session derive, paid snapshots
-├── app/actions/              # Server actions (roster, schedule, …)
 ├── lib/whatsapp/             # Combined parent monthly message
 ├── context/                  # Client state hydrated from Postgres
 prisma/schema.prisma          # Postgres model (Neon)
@@ -116,10 +120,10 @@ prisma/seed.ts                # Seed + session generation
 
 ## Roadmap summary
 
-1. **Phase 1** — Mock workflow (attendance, invoices, WhatsApp, billing month) + **Google auth gate**  
-2. **Phase 2** — **Neon**, seed, Postgres-backed pages *(done)*  
-3. **Phase 3** — CRUD edge cases, billing correctness, reports when template exists  
-4. **Phase 4** — Polish, demo cleanup, deploy  
+1. **Phase 1** — Mock workflow + Google auth gate *(done)*  
+2. **Phase 2** — Neon, seed, Postgres-backed pages *(done)*  
+3. **Phase 3** — CRUD, billing correctness, reports + PDF, settings *(done)*  
+4. **Phase 4** — Mobile polish, demo cleanup, deploy hardening  
 
 Details: [`ROADMAP.md`](./ROADMAP.md).
 

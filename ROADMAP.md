@@ -137,8 +137,11 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 - [x] Wait for **Montessori report template** from the tutor before locking UI fields
 - [x] Draft editor → `contentJson` v1 (can do / still learning / goals / photos / notes) + `DRAFT` / `PUBLISHED`
 - [x] **PDF export** (approach B — `@react-pdf/renderer`, on-demand `/api/reports/pdf`; attach in WhatsApp from Invoices)
+- [x] **Settings** (`/settings`) — bank + account holder for WhatsApp and PDF signature; save keeps `PUBLISHED` report status, **Re-download PDF** when content changed after last export
 
-**Exit criteria:** End-to-end month: teach → mark attendance → generate invoice → WhatsApp → mark paid; reports draft when template ready.
+**Exit criteria:** End-to-end month: teach → mark attendance → invoice → WhatsApp → mark paid; reports save → download PDF → attach in WhatsApp.
+
+**Phase 3 complete** — next: **Phase 4**.
 
 ---
 
@@ -147,7 +150,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 - [ ] Mobile pass: one-handed use, calendar scroll, sidebar drawer (layout uses `xl` for docked sidebar)
 - [ ] Hide or remove unused **TailAdmin demo** routes from product builds if they confuse the tutor
 - [ ] Optional: **overdue** as computed UI hint only (never persist `OVERDUE`)
-- [ ] Update `PRODUCT.md` deferred bullets (DB, CRUD, calendar) to match shipped reality
+- [x] Update `PRODUCT.md` / `README.md` to match shipped reality (ongoing tweaks as Phase 4 ships)
 - [ ] Deploy target (Vercel + managed Postgres, or self-host) — decide when Phase 2 is stable
 
 ---
@@ -181,4 +184,4 @@ Do not build unless requirements change:
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** **Phase 3** — persistent CRUD edge cases, billing correctness, reports when template exists.
+**Suggested next sprint:** **Phase 4** — mobile pass, hide demo routes, deploy hardening.

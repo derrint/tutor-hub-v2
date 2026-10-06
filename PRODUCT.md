@@ -38,21 +38,22 @@ Internal-only operational tool for one tutor's private practice — not intended
 - **Session dates in WhatsApp** use **sorted day-of-month list** after “yaitu tanggal:” (e.g. `2, 7, 9, 23, 29, 30`) — month is already in “selama bulan September ini”. On-screen invoice cards match (day list; month on card header). `formatInvoiceSessionDaysForMessage` remains available if a future template needs month repeated.
 - **Template inputs (data, not hardcoded names):** tutor `Profile` (bank name, account number, holder); parent **salutation** (e.g. "Mama Askara dan Arga"), **honorific** (e.g. "Ma", dot added in WhatsApp templates), **WhatsApp** digits for `wa.me`; per-child lines from invoice (`sessionCount`, `sessionDays`, fees); combined total. Greeting time (`Selamat pagi/siang/sore/malam`) is derived from send time.
 - One parent can have multiple children enrolled (siblings), which is why invoices are grouped per parent rather than per child.
-- Progress reports are monthly per student (Montessori-area structure pending real template). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs attached in WhatsApp after the app opens the prefill).
+- Progress reports are monthly per student (Canva-style **MONTHLY REPORT** PDF: can do / still learning / goals on page 1; photos + notes + tutor signature on page 2). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs downloaded in-app, then attached manually in WhatsApp).
 - Currency is Indonesian Rupiah (`Rp 1.500.000` with Indonesian-style grouping); UI copy and routes are English; **WhatsApp** invoice/report prefill remains Bahasa Indonesia. Code identifiers (variables, models, fields) stay in English.
 
 ## Current implementation (Phase 3 v1)
 
 Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
-- Seven routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
+- Eight routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance, **Settings** (`/settings`) — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
 - **Parents / Students:** CRUD via server actions; **INACTIVE** stops rules (`endDate`) and deletes future sessions; fee changes sync `Session.fee` in unpaid calendar months.
 - **Schedule:** add/edit/remove weekly slots; mark absent per date on calendar; optimistic absent toggle.
 - **Access:** **Auth.js** + **Google sign-in**; allowlist in `AUTH_ALLOWED_EMAILS`.
 - **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** dev-only; **WhatsApp** preview + `wa.me`.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
 - **Finance / Dashboard:** totals from session-derived invoice previews (same as invoice cards).
-- **Reports:** `MonthlyReport.contentJson` (v1: can do / still learning / goals / photos / notes); save in app; **PDF on demand** (`/api/reports/pdf`, not stored); attach in WhatsApp manually.
+- **Reports:** `MonthlyReport.contentJson` (v1: can do / still learning / goals / photos / notes); **Save** persists without clearing “PDF ready”; edits after export show **Re-download PDF** until exported again; **PDF on demand** (`/api/reports/pdf`, not stored); attach in WhatsApp manually.
+- **Settings:** `Profile` row (bank, account holder, optional tutor WhatsApp) editable at `/settings` — used in WhatsApp footers and rapot PDF signature name.
 - **Data:** **Neon Postgres**; seed in `prisma/seed.ts`; `mock-data.ts` for fixtures only.
 
 ## Capabilities and Constraints
@@ -66,12 +67,12 @@ Confirmed decisions (from product discussion):
 - **Invoice period**: calendar month (1st–end of month), not a custom date range.
 - **Invoice status**: intentionally simple — `UNPAID` / `PAID` only. No stored "overdue" status (may be computed/derived in the UI later, but not persisted).
 - **WhatsApp**: v1 uses `wa.me` with **`buildParentMonthlyWhatsAppMessage`** (Indonesian template blocks in `src/lib/whatsapp/templates.ts`). PDF rapot is **not** attached by the app — tutor attaches in WhatsApp. No WhatsApp Business API.
-- **Reports**: `DRAFT` / `PUBLISHED` per student per month; PDF/content editor pending Montessori template. Send path is the **combined** parent message on Invoices, not a second WhatsApp button on Reports.
+- **Reports**: `DRAFT` / `PUBLISHED` per student per month (`PUBLISHED` = last successful PDF download). Send path is the **combined** parent message on Invoices, not a second WhatsApp button on Reports.
 
 ### Planned next (see ROADMAP)
 
-- **Phase 4:** Mobile polish, hide demo routes, deploy hardening.
-- **Still deferred:** multi-tutor, WhatsApp Business API, complex recurrence edit modes, persisted "overdue" status, full Montessori report form until template arrives.
+- **Phase 4:** Mobile polish, hide demo routes, deploy hardening, optional overdue hint.
+- **Still deferred:** multi-tutor, WhatsApp Business API, complex recurrence edit modes, persisted "overdue" status, blob storage for report photos, handwritten signature image on PDF.
 
 ## Brand Commitments
 
@@ -81,7 +82,7 @@ Product name: **TutorHub** (confirmed). UI uses TailAdmin theme tokens: **brand*
 
 - Real WhatsApp invoice message text provided by the user (see Operating Context) — the only real production content available; all other names, amounts, and schedules currently in the app (`src/lib/mock-data.ts`) are fabricated placeholders for development and must not be treated as real user/business data.
 - Early Stitch screenshots informed page **shape** only; v2 UI follows TailAdmin layout and components.
-- No monthly report template exists yet; the tutor (user's wife) will provide her own format later.
+- Monthly report **PDF layout** follows the tutor’s Canva reference (implemented in `src/lib/reports/pdf/`); copy is entered in the app per student per month.
 
 ## Product Principles
 
