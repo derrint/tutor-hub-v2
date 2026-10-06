@@ -138,13 +138,14 @@ model Session {
 
   // used to prevent the same session from being counted twice in an invoice.
   invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
-  invoiceItemId String?      @unique
+  invoiceItemId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([studentId, date, startTime])
   @@index([studentId, date])
+  @@index([invoiceItemId])
 }
 
 model MonthlyReport {
