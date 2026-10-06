@@ -155,11 +155,8 @@ model MonthlyReport {
   month Int // 1-12
   year  Int
 
-  // Per-area content is stored flexibly (JSON) for now, until the final
-  // Montessori TK/SD report template is ready.
-  contentJson      Json?
-  generalNotes     String?
-  nextMonthTarget  String?
+  // Structured body: see `src/lib/reports/content-schema.ts` (v1).
+  contentJson Json?
 
   status      ReportStatus @default(DRAFT)
   publishedAt DateTime?

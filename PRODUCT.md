@@ -52,7 +52,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 - **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** dev-only; **WhatsApp** preview + `wa.me`.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
 - **Finance / Dashboard:** totals from session-derived invoice previews (same as invoice cards).
-- **Reports:** `MonthlyReport` in Postgres — draft/publish with stub notes editor until Montessori template.
+- **Reports:** `MonthlyReport.contentJson` (v1: can do / still learning / goals / photos / notes); save in app; **PDF on demand** (`/api/reports/pdf`, not stored); attach in WhatsApp manually.
 - **Data:** **Neon Postgres**; seed in `prisma/seed.ts`; `mock-data.ts` for fixtures only.
 
 ## Capabilities and Constraints

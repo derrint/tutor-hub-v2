@@ -3,13 +3,16 @@
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
 import ReportEditorModal from "@/components/reports/ReportEditorModal";
-import ReportRow from "@/components/reports/ReportRow";
+import ReportRow, {
+  type ReportRowState,
+} from "@/components/reports/ReportRow";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useRoster } from "@/context/RosterContext";
 import {
   listMonthlyReportsForPeriod,
   type MonthlyReportRow,
 } from "@/app/actions/reports";
+import { emptyMonthlyReportContent } from "@/lib/reports/content-schema";
 import type { StudentRecord } from "@/lib/domain/types";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -69,12 +72,16 @@ const ReportsPageContent: React.FC = () => {
       <div className="flex flex-col gap-3">
         {activeStudents.map((student) => {
           const row = reportByStudentId.get(student.id);
-          const isDraft = !row || row.status === "DRAFT";
+          const state: ReportRowState = !row
+            ? "notStarted"
+            : row.status === "PUBLISHED"
+              ? "published"
+              : "draft";
           return (
             <ReportRow
               key={student.id}
               student={student}
-              isDraft={isDraft}
+              state={state}
               onEdit={() => setEditingStudent(student)}
             />
           );
@@ -87,8 +94,9 @@ const ReportsPageContent: React.FC = () => {
           onClose={() => setEditingStudent(null)}
           student={editingStudent}
           period={period}
-          initialNotes={editingReport?.generalNotes ?? ""}
-          isPublished={editingReport?.status === "PUBLISHED"}
+          initialContent={
+            editingReport?.content ?? emptyMonthlyReportContent()
+          }
           onSaved={() => void loadReports()}
         />
       )}

@@ -135,8 +135,8 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 ### Laporan
 
 - [x] Wait for **Montessori report template** from the tutor before locking UI fields
-- [x] Draft editor → `contentJson` + `DRAFT` / `PUBLISHED` (stub notes until template); send flow on Invoices when template exists
-- [x] Do not invent the final report form until real template arrives
+- [x] Draft editor → `contentJson` v1 (can do / still learning / goals / photos / notes) + `DRAFT` / `PUBLISHED`
+- [x] **PDF export** (approach B — `@react-pdf/renderer`, on-demand `/api/reports/pdf`; attach in WhatsApp from Invoices)
 
 **Exit criteria:** End-to-end month: teach → mark attendance → generate invoice → WhatsApp → mark paid; reports draft when template ready.
 

@@ -7,14 +7,34 @@ import type { StudentRecord } from "@/lib/domain/types";
 import { useTranslations } from "next-intl";
 import React from "react";
 
+export type ReportRowState = "notStarted" | "draft" | "published";
+
 interface ReportRowProps {
   student: StudentRecord;
-  isDraft: boolean;
+  state: ReportRowState;
   onEdit: () => void;
 }
 
-const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft, onEdit }) => {
+const ReportRow: React.FC<ReportRowProps> = ({ student, state, onEdit }) => {
   const t = useTranslations("tutorHub.reports");
+
+  const badgeVariant =
+    state === "published" ? "published" : "draft";
+  const badgeLabel =
+    state === "published"
+      ? t("publishedLabel")
+      : state === "draft"
+        ? t("draftSavedLabel")
+        : t("notStartedLabel");
+
+  const buttonVariant =
+    state === "notStarted" ? "primary" : "outline";
+  const buttonLabel =
+    state === "published"
+      ? t("edit")
+      : state === "draft"
+        ? t("editDraft")
+        : t("writeDraft");
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/3">
@@ -33,26 +53,28 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft, onEdit }) => {
           <LevelBadge level={student.level} />
         </div>
         <div className="mt-1">
-          <StatusBadge
-            variant={isDraft ? "draft" : "published"}
-            label={isDraft ? undefined : t("publishedLabel")}
-          />
+          <StatusBadge variant={badgeVariant} label={badgeLabel} />
         </div>
       </div>
 
       <Button
         size="sm"
-        variant={isDraft ? "primary" : "outline"}
+        variant={buttonVariant}
         className="shrink-0"
         onClick={onEdit}
         startIcon={
           <PencilIcon className="size-4 shrink-0 overflow-visible" />
         }
-        aria-label={t(isDraft ? "writeDraftAria" : "editAria", {
-          name: student.name,
-        })}
+        aria-label={t(
+          state === "notStarted"
+            ? "writeDraftAria"
+            : state === "draft"
+              ? "editDraftAria"
+              : "editAria",
+          { name: student.name },
+        )}
       >
-        {isDraft ? t("writeDraft") : t("edit")}
+        {buttonLabel}
       </Button>
     </div>
   );
