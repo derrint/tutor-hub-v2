@@ -49,7 +49,11 @@ const ReportsPageContent: React.FC = () => {
     () =>
       activeStudents.filter((student) => {
         const row = reportByStudentId.get(student.id);
-        return !row || row.status === "DRAFT";
+        return (
+          !row ||
+          row.status === "DRAFT" ||
+          (row.status === "PUBLISHED" && row.pdfNeedsRefresh)
+        );
       }).length,
     [activeStudents, reportByStudentId],
   );
@@ -75,7 +79,9 @@ const ReportsPageContent: React.FC = () => {
           const state: ReportRowState = !row
             ? "notStarted"
             : row.status === "PUBLISHED"
-              ? "published"
+              ? row.pdfNeedsRefresh
+                ? "publishedStale"
+                : "published"
               : "draft";
           return (
             <ReportRow
@@ -97,6 +103,7 @@ const ReportsPageContent: React.FC = () => {
           initialContent={
             editingReport?.content ?? emptyMonthlyReportContent()
           }
+          pdfNeedsRefresh={editingReport?.pdfNeedsRefresh ?? false}
           onSaved={() => void loadReports()}
         />
       )}

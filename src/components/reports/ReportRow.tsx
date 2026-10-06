@@ -7,7 +7,11 @@ import type { StudentRecord } from "@/lib/domain/types";
 import { useTranslations } from "next-intl";
 import React from "react";
 
-export type ReportRowState = "notStarted" | "draft" | "published";
+export type ReportRowState =
+  | "notStarted"
+  | "draft"
+  | "published"
+  | "publishedStale";
 
 interface ReportRowProps {
   student: StudentRecord;
@@ -19,18 +23,24 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, state, onEdit }) => {
   const t = useTranslations("tutorHub.reports");
 
   const badgeVariant =
-    state === "published" ? "published" : "draft";
+    state === "publishedStale"
+      ? "unpaid"
+      : state === "published"
+        ? "published"
+        : "draft";
   const badgeLabel =
-    state === "published"
-      ? t("publishedLabel")
-      : state === "draft"
-        ? t("draftSavedLabel")
-        : t("notStartedLabel");
+    state === "publishedStale"
+      ? t("pdfStaleLabel")
+      : state === "published"
+        ? t("publishedLabel")
+        : state === "draft"
+          ? t("draftSavedLabel")
+          : t("notStartedLabel");
 
   const buttonVariant =
     state === "notStarted" ? "primary" : "outline";
   const buttonLabel =
-    state === "published"
+    state === "published" || state === "publishedStale"
       ? t("edit")
       : state === "draft"
         ? t("editDraft")
@@ -70,7 +80,9 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, state, onEdit }) => {
             ? "writeDraftAria"
             : state === "draft"
               ? "editDraftAria"
-              : "editAria",
+              : state === "publishedStale"
+                ? "editStaleAria"
+                : "editAria",
           { name: student.name },
         )}
       >

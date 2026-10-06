@@ -30,6 +30,7 @@ type ReportEditorModalProps = {
   student: StudentRecord;
   period: InvoicePeriod;
   initialContent: MonthlyReportContentV1;
+  pdfNeedsRefresh?: boolean;
   onSaved: () => void;
 };
 
@@ -49,6 +50,7 @@ const ReportEditorModal: React.FC<ReportEditorModalProps> = ({
   student,
   period,
   initialContent,
+  pdfNeedsRefresh = false,
   onSaved,
 }) => {
   const t = useTranslations("tutorHub.reports");
@@ -198,7 +200,7 @@ const ReportEditorModal: React.FC<ReportEditorModalProps> = ({
         {formatInvoicePeriodLabel(period)}
       </p>
       <p className="mt-3 text-theme-xs text-gray-500 dark:text-gray-400">
-        {t("editorHint")}
+        {pdfNeedsRefresh ? t("editorHintStale") : t("editorHint")}
       </p>
 
       <div className="mt-6 max-h-[min(70vh,640px)] space-y-5 overflow-y-auto pe-1 custom-scrollbar">

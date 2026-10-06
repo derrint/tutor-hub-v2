@@ -17,7 +17,18 @@ export type MonthlyReportRow = {
   year: number;
   status: "DRAFT" | "PUBLISHED";
   content: MonthlyReportContentV1;
+  /** Saved content changed after the last PDF download (`publishedAt`). */
+  pdfNeedsRefresh: boolean;
 };
+
+function computePdfNeedsRefresh(input: {
+  status: string;
+  updatedAt: Date;
+  publishedAt: Date | null;
+}): boolean {
+  if (input.status !== "PUBLISHED" || !input.publishedAt) return false;
+  return input.updatedAt.getTime() > input.publishedAt.getTime();
+}
 
 export async function listMonthlyReportsForPeriod(
   period: InvoicePeriod,
@@ -31,6 +42,8 @@ export async function listMonthlyReportsForPeriod(
       year: true,
       status: true,
       contentJson: true,
+      updatedAt: true,
+      publishedAt: true,
     },
   });
   return rows.map((row) => ({
@@ -40,6 +53,7 @@ export async function listMonthlyReportsForPeriod(
     year: row.year,
     status: row.status as "DRAFT" | "PUBLISHED",
     content: parseMonthlyReportContent(row.contentJson),
+    pdfNeedsRefresh: computePdfNeedsRefresh(row),
   }));
 }
 
@@ -66,7 +80,6 @@ export async function upsertMonthlyReportDraftAction(input: {
       contentJson,
     },
     update: {
-      status: "DRAFT",
       contentJson,
     },
     select: {
@@ -76,6 +89,8 @@ export async function upsertMonthlyReportDraftAction(input: {
       year: true,
       status: true,
       contentJson: true,
+      updatedAt: true,
+      publishedAt: true,
     },
   });
 
@@ -87,6 +102,7 @@ export async function upsertMonthlyReportDraftAction(input: {
     year: row.year,
     status: row.status as "DRAFT" | "PUBLISHED",
     content: parseMonthlyReportContent(row.contentJson),
+    pdfNeedsRefresh: computePdfNeedsRefresh(row),
   };
 }
 
