@@ -1,5 +1,6 @@
 // Seed fixtures for prisma/seed.ts and development reference.
 // Runtime TutorHub routes read from Postgres — see `src/lib/db/`.
+// All names, phone numbers, and bank details below are fictional demo data only.
 
 import type { StudentCalendarColorKey } from "@/lib/students/calendar-colors";
 import type { InvoicePeriod } from "@/utils/format";
@@ -23,45 +24,45 @@ import type { TutorProfile } from "@/lib/domain/types";
 /** Tutor bank details for WhatsApp invoice footers (mirrors `Profile`). */
 export const TUTOR_PROFILE: TutorProfile = {
   studioName: "TutorHub",
-  bankName: "BCA",
-  bankAccountNumber: "0113164902",
-  accountHolderName: "Anastasia Ceasaria Andini, S.Pd",
+  bankName: "Example Bank",
+  bankAccountNumber: "1234567890",
+  accountHolderName: "Demo Tutor, S.Pd",
   whatsappNumber: "",
 };
 
 export const SEED_PARENTS = [
   {
     id: "p1",
-    name: "Mama Askara",
-    salutation: "Mama Askara dan Arga",
+    name: "Parent One",
+    salutation: "Mama Adi dan Beni",
     honorific: "Ma",
     whatsapp: "6281234567001",
   },
   {
     id: "p2",
-    name: "Michelle",
-    salutation: "Michelle",
-    honorific: "Ka",
+    name: "Parent Two",
+    salutation: "Pak Citra",
+    honorific: "Pak",
     whatsapp: "6281234567002",
   },
   {
     id: "p3",
-    name: "Ibu Azka",
-    salutation: "Ibu Azka",
+    name: "Parent Three",
+    salutation: "Ibu Dina",
     honorific: "Bu",
     whatsapp: "6281234567003",
   },
   {
     id: "p4",
-    name: "Ibu Aurell",
-    salutation: "Ibu Aurell",
+    name: "Parent Four",
+    salutation: "Ibu Eko",
     honorific: "Bu",
     whatsapp: "6281234567004",
   },
   {
     id: "p5",
-    name: "Ibu Milena",
-    salutation: "Ibu Milena",
+    name: "Parent Five",
+    salutation: "Ibu Fira",
     honorific: "Bu",
     whatsapp: "6281234567005",
   },
@@ -70,7 +71,7 @@ export const SEED_PARENTS = [
 export const SEED_STUDENTS = [
   {
     id: "m1",
-    name: "Askara",
+    name: "Adi",
     age: 5,
     level: "TK" as const,
     feePerSession: 125000,
@@ -80,7 +81,7 @@ export const SEED_STUDENTS = [
   },
   {
     id: "m2",
-    name: "Arga",
+    name: "Beni",
     age: 6,
     level: "TK" as const,
     feePerSession: 125000,
@@ -90,7 +91,7 @@ export const SEED_STUDENTS = [
   },
   {
     id: "m3",
-    name: "Gavendra",
+    name: "Citra",
     age: 3,
     level: "TK" as const,
     feePerSession: 110000,
@@ -100,7 +101,7 @@ export const SEED_STUDENTS = [
   },
   {
     id: "m4",
-    name: "Azka",
+    name: "Dina",
     age: 5,
     level: "TK" as const,
     feePerSession: 110000,
@@ -110,7 +111,7 @@ export const SEED_STUDENTS = [
   },
   {
     id: "m5",
-    name: "Aurell",
+    name: "Eko",
     age: 7,
     level: "SD" as const,
     feePerSession: 135000,
@@ -120,7 +121,7 @@ export const SEED_STUDENTS = [
   },
   {
     id: "m6",
-    name: "Milena",
+    name: "Fira",
     age: 6,
     level: "SD" as const,
     feePerSession: 135000,
@@ -137,7 +138,7 @@ export const SEED_RECURRING_SESSIONS = [
   {
     id: "r1",
     studentId: "m3",
-    studentName: "Gavendra",
+    studentName: "Citra",
     level: "TK" as const,
     daysOfWeek: [1, 3, 5],
     startTime: "17:00",
@@ -147,7 +148,7 @@ export const SEED_RECURRING_SESSIONS = [
   {
     id: "r2",
     studentId: "m4",
-    studentName: "Azka",
+    studentName: "Dina",
     level: "TK" as const,
     daysOfWeek: [2, 4],
     startTime: "18:45",
@@ -157,7 +158,7 @@ export const SEED_RECURRING_SESSIONS = [
   {
     id: "r3",
     studentId: "m1",
-    studentName: "Askara",
+    studentName: "Adi",
     level: "TK" as const,
     daysOfWeek: [1, 3],
     startTime: "15:00",
@@ -167,7 +168,7 @@ export const SEED_RECURRING_SESSIONS = [
   {
     id: "r4",
     studentId: "m2",
-    studentName: "Arga",
+    studentName: "Beni",
     level: "TK" as const,
     daysOfWeek: [1, 3],
     startTime: "16:00",
@@ -177,7 +178,7 @@ export const SEED_RECURRING_SESSIONS = [
   {
     id: "r5",
     studentId: "m5",
-    studentName: "Aurell",
+    studentName: "Eko",
     level: "SD" as const,
     daysOfWeek: [2, 4, 6],
     startTime: "16:00",

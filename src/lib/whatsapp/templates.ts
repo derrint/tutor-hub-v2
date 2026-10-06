@@ -5,15 +5,15 @@ import { honorificInMessage } from "./format-honorific";
  * Dashboard UI stays English; only outbound parent messages use these strings.
  *
  * Placeholders are filled by `buildParentMonthlyWhatsAppMessage` — keep wording
- * aligned with `PRODUCT.md` (real tutor example).
+ * aligned with `PRODUCT.md`.
  */
 
 export type ParentMonthlyWhatsAppTemplateContext = {
   /** e.g. "Selamat siang" */
   greetingTime: string;
-  /** e.g. "Mama Askara dan Arga" */
+  /** e.g. "Mama Adi dan Beni" */
   parentSalutation: string;
-  /** e.g. "Askara dan Arga" */
+  /** e.g. "Adi dan Beni" */
   studentNameList: string;
   /** Short honorific after "ya," — stored without dot, e.g. "Ma" */
   honorific: string;

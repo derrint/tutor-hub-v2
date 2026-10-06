@@ -21,7 +21,7 @@ An earlier Google Stitch exploration was abandoned in favor of building directly
 
 ## Users
 
-Single primary user: a private tutor (the user's wife) who teaches Montessori-based material to young children individually. Her students span two education levels — TK (kindergarten) and SD (elementary school). She personally manages her own schedule, billing, and progress reporting for each student's parent. There is no other staff; this is explicitly a single-tutor operation (confirmed — no multi-tutor/multi-user support planned).
+Single primary user: a solo private tutor who teaches Montessori-based material to young children individually. Students span two education levels — TK (kindergarten) and SD (elementary school). The tutor personally manages schedule, billing, and progress reporting for each student's parent. There is no other staff; this is explicitly a single-tutor operation (no multi-tutor / multi-user support planned).
 
 ## Product Purpose
 
@@ -29,14 +29,14 @@ TutorHub replaces ad-hoc manual tracking (e.g. typing up WhatsApp messages by ha
 
 ## Positioning
 
-Internal-only operational tool for one tutor's private practice — not intended to be sold or offered to other tutors (confirmed). It is not a general-purpose tutoring/school-management SaaS; scope is deliberately narrow to this single tutor's real workflow (confirmed by the real WhatsApp invoice message she currently sends manually, which the invoice feature directly replicates).
+Operational tool for one tutor's private practice — not intended as multi-tenant SaaS for other tutors. Scope is deliberately narrow: replicate a familiar WhatsApp invoice + rapot workflow in software rather than rebuilding a generic school-management product.
 
 ## Operating Context
 
-- The tutor works from her phone most of the time; the app must be comfortable to use one-handed during or between sessions (**mobile-first**, but also usable on desktop).
-- **One WhatsApp per parent per month** combines **rapot** (PDF attached manually in WhatsApp) and **payment text** in a single message — not separate invoice-only and report-only sends. Canonical structure: time-of-day greeting + parent salutation → rapot intro (all children on that invoice) → per-child payment paragraph → fee/total → bank transfer block → closing. Real example captured in product discussion (Askara & Arga / September); code lives in `src/lib/whatsapp/` (`parentMonthlyWhatsAppTemplates` + `buildParentMonthlyWhatsAppMessage`).
+- The tutor works from a phone most of the time; the app must be comfortable to use one-handed during or between sessions (**mobile-first**, but also usable on desktop).
+- **One WhatsApp per parent per month** combines **rapot** (PDF attached manually in WhatsApp) and **payment text** in a single message — not separate invoice-only and report-only sends. Canonical structure: time-of-day greeting + parent salutation → rapot intro (all children on that invoice) → per-child payment paragraph → fee/total → bank transfer block → closing. Implementation: `src/lib/whatsapp/` (`parentMonthlyWhatsAppTemplates` + `buildParentMonthlyWhatsAppMessage`).
 - **Session dates in WhatsApp** use **sorted day-of-month list** after “yaitu tanggal:” (e.g. `2, 7, 9, 23, 29, 30`) — month is already in “selama bulan September ini”. On-screen invoice cards match (day list; month on card header). `formatInvoiceSessionDaysForMessage` remains available if a future template needs month repeated.
-- **Template inputs (data, not hardcoded names):** tutor `Profile` (bank name, account number, holder); parent **salutation** (e.g. "Mama Askara dan Arga"), **honorific** (e.g. "Ma", dot added in WhatsApp templates), **WhatsApp** digits for `wa.me`; per-child lines from invoice (`sessionCount`, `sessionDays`, fees); combined total. Greeting time (`Selamat pagi/siang/sore/malam`) is derived from send time.
+- **Template inputs (data, not hardcoded names):** tutor `Profile` (bank name, account number, holder); parent **salutation** (e.g. "Mama Adi dan Beni" for two siblings), **honorific** (e.g. "Ma", dot added in WhatsApp templates), **WhatsApp** digits for `wa.me`; per-child lines from invoice (`sessionCount`, `sessionDays`, fees); combined total. Greeting time (`Selamat pagi/siang/sore/malam`) is derived from send time.
 - One parent can have multiple children enrolled (siblings), which is why invoices are grouped per parent rather than per child.
 - Progress reports are monthly per student (Canva-style **MONTHLY REPORT** PDF: can do / still learning / goals on page 1; photos + notes + tutor signature on page 2). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs downloaded in-app, then attached manually in WhatsApp).
 - Currency is Indonesian Rupiah (`Rp 1.500.000` with Indonesian-style grouping); UI copy and routes are English; **WhatsApp** invoice/report prefill remains Bahasa Indonesia. Code identifiers (variables, models, fields) stay in English.

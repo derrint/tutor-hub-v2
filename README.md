@@ -10,7 +10,7 @@ Operational dashboard for a **solo private tutor**: schedule, students, monthly 
 
 ## Current status (Phase 4 v1)
 
-The app runs on **Neon Postgres** with **server actions** for roster, schedule, invoices, and reports. **`src/lib/mock-data.ts`** is used for **seed/fixtures only**.
+The app runs on **Neon Postgres** with **server actions** for roster, schedule, invoices, and reports. **`src/lib/mock-data.ts`** is used for **seed/fixtures only** — names, phone numbers, and bank details there are **fictional demo data**, not production records.
 
 | Route | Purpose |
 |-------|---------|
