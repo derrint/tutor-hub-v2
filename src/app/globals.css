@@ -969,6 +969,10 @@ pre[class*="language-"].line-numbers {
   scrollbar-width: thin;
 }
 
+.schedule-timegrid-scroll .fc-scroller {
+  overscroll-behavior: contain;
+}
+
 .custom-calendar .fc-classic-yth {
   @apply gap-0!;
 }

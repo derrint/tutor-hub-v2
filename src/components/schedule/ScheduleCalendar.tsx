@@ -158,6 +158,8 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         slotMinTime="12:00:00"
         slotMaxTime="21:00:00"
         viewOptions={viewOptions}
+        containerClassName="schedule-timegrid-scroll"
+        timeGridHeight="min(70vh, 720px)"
         onEventClick={handleEventClick}
         onTimeSlotSelect={onTimeSlotSelect}
       />

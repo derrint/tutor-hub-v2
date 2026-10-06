@@ -16,6 +16,9 @@ type SidebarContextType = {
   toggleSubmenu: (item: string) => void;
 };
 
+/** Match TailAdmin docked sidebar (`xl:`) — below this, nav is drawer + backdrop. */
+const SIDEBAR_XL_BREAKPOINT_PX = 1280;
+
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const useSidebar = () => {
@@ -43,10 +46,12 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
+      const belowXl = window.innerWidth < SIDEBAR_XL_BREAKPOINT_PX;
+      setIsMobile(belowXl);
+      if (!belowXl) {
         setIsMobileOpen(false);
+      } else {
+        setIsExpanded(false);
       }
     };
 

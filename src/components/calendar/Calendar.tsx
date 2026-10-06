@@ -93,6 +93,10 @@ export interface CalendarProps {
   onTimeSlotSelect?: (info: DateSelectInfo) => void;
   /** Bumps event content when attendance (or similar) changes outside FC state. */
   eventContentRevision?: string;
+  /** Extra class on the inner calendar root (e.g. schedule scroll constraints). */
+  containerClassName?: string;
+  /** Fixed height for time-grid views; default `auto`. */
+  timeGridHeight?: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -107,6 +111,8 @@ const Calendar: React.FC<CalendarProps> = ({
   onEventClick,
   onTimeSlotSelect,
   eventContentRevision = "",
+  containerClassName = "",
+  timeGridHeight,
 }) => {
   const appLocale = useLocale();
   const isRtlLayout = isRtl(appLocale as Locale);
@@ -273,7 +279,7 @@ const Calendar: React.FC<CalendarProps> = ({
       data-color-scheme={theme}
     >
       <div
-        className={`custom-calendar relative ${currentView === "multiMonthYear" ? "fc-multimonth" : ""}`}
+        className={`custom-calendar relative ${currentView === "multiMonthYear" ? "fc-multimonth" : ""} ${containerClassName}`.trim()}
         data-color-scheme={theme}
         ref={calendarContainerRef}
       >
@@ -552,7 +558,12 @@ const Calendar: React.FC<CalendarProps> = ({
             },
           }}
           // Body configuration
-          height="auto"
+          height={
+            timeGridHeight &&
+            (currentView === "timeGridWeek" || currentView === "timeGridDay")
+              ? timeGridHeight
+              : "auto"
+          }
           borderless={true}
           viewClass="border-t! border-b-0! border-x-0! border-gray-200! bg-transparent! dark:border-gray-800! dark:bg-transparent!"
           tableHeaderClass="border-0! bg-gray-50! dark:bg-gray-900!"

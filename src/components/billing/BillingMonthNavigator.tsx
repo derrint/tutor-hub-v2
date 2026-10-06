@@ -32,7 +32,7 @@ const BillingMonthNavigator: React.FC<BillingMonthNavigatorProps> = ({
         </span>
       )}
 
-      <div className="flex items-center gap-1">
+      <div className="flex max-w-full flex-wrap items-center justify-end gap-1">
         <button
           type="button"
           onClick={goToPreviousMonth}

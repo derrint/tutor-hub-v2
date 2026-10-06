@@ -74,13 +74,19 @@ const InvoiceWhatsAppPreviewModal: React.FC<InvoiceWhatsAppPreviewModalProps> = 
           </pre>
         </div>
 
-        <div className="mt-6 flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={handleClose}>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            className="min-h-11 w-full sm:min-h-0 sm:w-auto"
+            onClick={handleClose}
+          >
             {tCommon("close")}
           </Button>
           <Button
             size="sm"
             variant="outline"
+            className="min-h-11 w-full sm:min-h-0 sm:w-auto"
             startIcon={<CopyIcon className="size-4" />}
             onClick={handleCopy}
           >
@@ -89,6 +95,7 @@ const InvoiceWhatsAppPreviewModal: React.FC<InvoiceWhatsAppPreviewModalProps> = 
           <Button
             size="sm"
             variant="primary"
+            className="min-h-11 w-full sm:min-h-0 sm:w-auto"
             startIcon={<ChatIcon className="size-4" />}
             onClick={handleOpenWhatsApp}
           >

@@ -306,10 +306,11 @@ const ReportEditorModal: React.FC<ReportEditorModalProps> = ({
         </p>
       )}
 
-      <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+      <div className="mt-6 flex flex-col-reverse gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end dark:border-gray-800">
         <Button
           size="sm"
           variant="outline"
+          className="min-h-11 w-full sm:min-h-0 sm:w-auto"
           onClick={handleSave}
           disabled={busy}
         >
@@ -317,6 +318,7 @@ const ReportEditorModal: React.FC<ReportEditorModalProps> = ({
         </Button>
         <Button
           size="sm"
+          className="min-h-11 w-full sm:min-h-0 sm:w-auto"
           onClick={handleDownloadPdf}
           disabled={busy}
           startIcon={
