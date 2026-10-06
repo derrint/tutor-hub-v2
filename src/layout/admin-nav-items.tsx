@@ -35,6 +35,10 @@ export const bottomNavIconClass = "size-5 shrink-0";
 export const bottomNavInsetClass =
   "bottom-[calc(4rem+env(safe-area-inset-bottom))]";
 
+/** Main content padding below bottom nav (use until `xl` where the bar is hidden). */
+export const bottomNavContentPaddingClass =
+  "pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-6";
+
 export const adminNavItems: AdminNavItem[] = [
   { key: "dashboard", path: "/", Icon: GridIcon },
   { key: "schedule", path: "/schedule", Icon: CalenderIcon },
