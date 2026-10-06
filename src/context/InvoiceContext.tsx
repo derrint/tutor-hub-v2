@@ -2,6 +2,7 @@
 
 import { setInvoiceStatusAction } from "@/app/actions/invoices";
 import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
 import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
 import {
@@ -30,13 +31,11 @@ type InvoiceContextValue = {
 const InvoiceContext = createContext<InvoiceContextValue | null>(null);
 
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
-  const { sessions, paidInvoices, absentOccurrenceIds } = useAdminBootstrap();
+  const { sessions, paidInvoices } = useAdminBootstrap();
+  const { absentOccurrenceIds } = useAttendance();
   const { students, parents } = useRoster();
   const router = useRouter();
-  const absentSet = useMemo(
-    () => new Set(absentOccurrenceIds),
-    [absentOccurrenceIds],
-  );
+  const absentSet = absentOccurrenceIds;
 
   const getInvoicesForPeriod = useCallback(
     (period: InvoicePeriod) => {

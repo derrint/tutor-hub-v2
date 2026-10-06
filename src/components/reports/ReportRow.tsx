@@ -3,16 +3,17 @@ import StatusBadge from "@/components/common/StatusBadge";
 import StudentAvatar from "@/components/common/StudentAvatar";
 import Button from "@/components/ui/button/Button";
 import { PencilIcon } from "@/icons";
-import type { Student } from "@/lib/mock-data";
+import type { StudentRecord } from "@/lib/domain/types";
 import { useTranslations } from "next-intl";
 import React from "react";
 
 interface ReportRowProps {
-  student: Student;
+  student: StudentRecord;
   isDraft: boolean;
+  onEdit: () => void;
 }
 
-const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft }) => {
+const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft, onEdit }) => {
   const t = useTranslations("tutorHub.reports");
 
   return (
@@ -43,6 +44,7 @@ const ReportRow: React.FC<ReportRowProps> = ({ student, isDraft }) => {
         size="sm"
         variant={isDraft ? "primary" : "outline"}
         className="shrink-0"
+        onClick={onEdit}
         startIcon={
           <PencilIcon className="size-4 shrink-0 overflow-visible" />
         }

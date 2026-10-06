@@ -589,7 +589,7 @@ const Calendar: React.FC<CalendarProps> = ({
           eventClick={handleEventClick}
           eventContent={(eventInfo: EventDisplayInfo) => (
             <CalendarEventItem
-              key={`${eventInfo.event.id}-${eventInfo.event.startStr ?? ""}-${eventContentRevision}`}
+              key={`${eventInfo.event.id}-${eventInfo.event.startStr ?? ""}`}
               eventInfo={eventInfo}
             />
           )}

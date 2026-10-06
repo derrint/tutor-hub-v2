@@ -14,6 +14,7 @@ import { PlusIcon } from "@/icons";
 import type { DateSelectInfo } from "@fullcalendar/react";
 import { formatFullDate } from "@/utils";
 import { useTranslations } from "next-intl";
+import type { RecurringSession } from "@/lib/domain/types";
 import { useCallback, useState } from "react";
 
 const SchedulePageContent: React.FC = () => {
@@ -43,6 +44,23 @@ const SchedulePageContent: React.FC = () => {
     openAddSlot(slotPrefillFromDateSelect(info));
   };
 
+  const handleEditWeeklySlot = (
+    session: RecurringSession,
+    occurrenceDate: Date | null,
+  ) => {
+    const dayOfWeek =
+      occurrenceDate?.getDay() ?? session.daysOfWeek[0] ?? new Date().getDay();
+    openAddSlot({
+      ruleId: session.id,
+      studentId: session.studentId,
+      startDate: session.startDate,
+      daysOfWeek: session.daysOfWeek,
+      dayOfWeek,
+      startTime: session.startTime,
+      endTime: session.endTime,
+    });
+  };
+
   return (
     <div>
       <PageHeader
@@ -63,7 +81,10 @@ const SchedulePageContent: React.FC = () => {
         {t("weeklyHint")}
       </p>
 
-      <ScheduleCalendar onTimeSlotSelect={handleTimeSlotSelect} />
+      <ScheduleCalendar
+        onTimeSlotSelect={handleTimeSlotSelect}
+        onEditWeeklySlot={handleEditWeeklySlot}
+      />
 
       <ScheduleSlotFormModal
         isOpen={isOpen}

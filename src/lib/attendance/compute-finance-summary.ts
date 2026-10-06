@@ -1,7 +1,6 @@
-import type { InvoicePreview } from "@/lib/mock-data";
-import { MOCK_INVOICE_PERIOD } from "@/lib/mock-data";
+import type { InvoicePreview } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
-import { resolveInvoiceForBilling } from "@/lib/invoices";
+import { getCurrentInvoicePeriod } from "@/lib/billing-period";
 
 export type FinanceSummary = {
   period: InvoicePeriod;
@@ -12,11 +11,13 @@ export type FinanceSummary = {
   invoiceCount: number;
 };
 
-/** Aggregates billable invoice totals via `resolveInvoiceForBilling`. */
+/**
+ * Aggregates invoice totals for a billing month. Invoices are already
+ * session-derived (UNPAID) or snapshotted (PAID) from InvoiceContext.
+ */
 export function computeFinanceSummary(
   invoices: InvoicePreview[],
-  absentOccurrenceIds: ReadonlySet<string>,
-  period: InvoicePeriod = MOCK_INVOICE_PERIOD,
+  period: InvoicePeriod = getCurrentInvoicePeriod(),
 ): FinanceSummary {
   const inPeriod = invoices.filter(
     (invoice) =>
@@ -29,10 +30,9 @@ export function computeFinanceSummary(
   let unpaidInvoiceCount = 0;
 
   for (const invoice of inPeriod) {
-    const billable = resolveInvoiceForBilling(invoice, absentOccurrenceIds);
-    totalBilled += billable.total;
+    totalBilled += invoice.total;
     if (invoice.status === "PAID") {
-      collected += billable.total;
+      collected += invoice.total;
     } else {
       unpaidInvoiceCount += 1;
     }

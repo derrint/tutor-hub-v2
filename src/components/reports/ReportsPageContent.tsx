@@ -2,29 +2,58 @@
 
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
+import ReportEditorModal from "@/components/reports/ReportEditorModal";
 import ReportRow from "@/components/reports/ReportRow";
+import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useRoster } from "@/context/RosterContext";
+import {
+  listMonthlyReportsForPeriod,
+  type MonthlyReportRow,
+} from "@/app/actions/reports";
+import type { StudentRecord } from "@/lib/domain/types";
 import { useTranslations } from "next-intl";
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-/**
- * One row per active student for the selected billing month. Report editor
- * fields wait on the tutor's Montessori template (Phase 3).
- */
 const ReportsPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.reports");
+  const { period } = useBillingPeriod();
   const { students } = useRoster();
+  const [dbReports, setDbReports] = useState<MonthlyReportRow[]>([]);
+  const [editingStudent, setEditingStudent] = useState<StudentRecord | null>(
+    null,
+  );
 
-  const reports = useMemo(
-    () =>
-      students.filter((s) => s.status === "ACTIVE").map((student, idx) => ({
-        student,
-        isDraft: idx % 2 === 0,
-      })),
+  const loadReports = useCallback(async () => {
+    const rows = await listMonthlyReportsForPeriod(period);
+    setDbReports(rows);
+  }, [period]);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
+  const reportByStudentId = useMemo(
+    () => new Map(dbReports.map((r) => [r.studentId, r])),
+    [dbReports],
+  );
+
+  const activeStudents = useMemo(
+    () => students.filter((s) => s.status === "ACTIVE"),
     [students],
   );
 
-  const draftCount = reports.filter((r) => r.isDraft).length;
+  const draftCount = useMemo(
+    () =>
+      activeStudents.filter((student) => {
+        const row = reportByStudentId.get(student.id);
+        return !row || row.status === "DRAFT";
+      }).length,
+    [activeStudents, reportByStudentId],
+  );
+
+  const editingReport = editingStudent
+    ? reportByStudentId.get(editingStudent.id)
+    : undefined;
 
   return (
     <div>
@@ -32,16 +61,37 @@ const ReportsPageContent: React.FC = () => {
         title={t("title")}
         description={t("description", {
           draftCount,
-          total: reports.length,
+          total: activeStudents.length,
         })}
         action={<BillingMonthNavigator />}
       />
 
       <div className="flex flex-col gap-3">
-        {reports.map(({ student, isDraft }) => (
-          <ReportRow key={student.id} student={student} isDraft={isDraft} />
-        ))}
+        {activeStudents.map((student) => {
+          const row = reportByStudentId.get(student.id);
+          const isDraft = !row || row.status === "DRAFT";
+          return (
+            <ReportRow
+              key={student.id}
+              student={student}
+              isDraft={isDraft}
+              onEdit={() => setEditingStudent(student)}
+            />
+          );
+        })}
       </div>
+
+      {editingStudent && (
+        <ReportEditorModal
+          isOpen={editingStudent != null}
+          onClose={() => setEditingStudent(null)}
+          student={editingStudent}
+          period={period}
+          initialNotes={editingReport?.generalNotes ?? ""}
+          isPublished={editingReport?.status === "PUBLISHED"}
+          onSaved={() => void loadReports()}
+        />
+      )}
     </div>
   );
 };

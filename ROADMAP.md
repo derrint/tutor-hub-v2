@@ -63,7 +63,7 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 - [x] **Empty month** — empty state when no scheduled sessions in month
 - [x] **Future month** — preview copy; card actions disabled
 - [x] **Paid invoice snapshot (mock)** — lines snapshotted on **Mark paid**; **Mark unpaid** clears snapshot; no per-card Regenerate
-- [ ] **Paid months (prod lock)** — optional: hide **Mark unpaid** when `NODE_ENV=production` (deploy)
+- [x] **Paid months (prod lock)** — hide **Mark unpaid** when `NODE_ENV=production` (deploy)
 - [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
 
 **Optional later (not blocking Phase 2):**
@@ -95,7 +95,7 @@ Configure before Vercel deploy: `AUTH_SECRET`, Google OAuth client, redirect URI
 
 - [x] Real parent **WhatsApp** numbers in mock (see WhatsApp section above)
 - [x] **Exit criteria** validated on device (September 2026 + billing month picker; attendance → invoice → WhatsApp)
-- [ ] **Paid months (prod lock)** — only if you want no **Mark unpaid** on Vercel (see edge case above)
+- [x] **Paid months (prod lock)** — **Mark unpaid** hidden on production builds (see edge case above)
 
 ---
 
@@ -122,21 +122,21 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ### Murid & jadwal
 
-- [ ] CRUD **Student** + **Parent** (siblings → one invoice per parent)
-- [ ] **ACTIVE / INACTIVE:** deactivating stops future recurrence (rule end date), drops future sessions, keeps history
-- [ ] **ScheduleRule:** add/edit weekly slot; **per-occurrence** edit/cancel only (no “this and following”)
+- [x] CRUD **Student** + **Parent** (siblings → one invoice per parent)
+- [x] **ACTIVE / INACTIVE:** deactivating stops future recurrence (rule end date), drops future sessions, keeps history
+- [x] **ScheduleRule:** add/edit weekly slot; **per-occurrence** edit/cancel only (no “this and following”)
 
 ### Tagihan & keuangan
 
-- [ ] **Generate invoice** for calendar month from **ATTENDED** sessions only (`ABSENT` excluded) — *mock parity: Phase 1 derive-on-read*
-- [ ] One invoice per parent per month; line per child; persist `UNPAID` / `PAID` only
-- [ ] Keuangan totals derived from invoice status (not a full accounting system)
+- [x] **Generate invoice** for calendar month from non-`ABSENT` sessions (`ABSENT` excluded) — derive-on-read + mark paid snapshot
+- [x] One invoice per parent per month; line per child; persist `UNPAID` / `PAID` only
+- [x] Keuangan totals derived from invoice status (session-derived previews; not mock schedule re-derive)
 
 ### Laporan
 
-- [ ] Wait for **Montessori report template** from the tutor before locking UI fields
-- [ ] Draft editor → `contentJson` + `DRAFT` / `PUBLISHED`; send flow similar to Tagihan when template exists
-- [ ] Do not invent the final report form until real template arrives
+- [x] Wait for **Montessori report template** from the tutor before locking UI fields
+- [x] Draft editor → `contentJson` + `DRAFT` / `PUBLISHED` (stub notes until template); send flow on Invoices when template exists
+- [x] Do not invent the final report form until real template arrives
 
 **Exit criteria:** End-to-end month: teach → mark attendance → generate invoice → WhatsApp → mark paid; reports draft when template ready.
 

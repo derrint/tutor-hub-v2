@@ -8,6 +8,8 @@ import {
   type StudentCalendarColorKey,
 } from "@/lib/students/calendar-colors";
 import type { EducationLevel, StudentStatus } from "@/lib/domain/types";
+import { deactivateStudentSchedule } from "@/lib/roster/deactivate-student";
+import { syncSessionFeesForUnpaidMonths } from "@/lib/roster/sync-session-fees";
 
 export type ParentInput = {
   id?: string;
@@ -82,6 +84,12 @@ export async function upsertStudentAction(input: StudentInput) {
       ),
     );
 
+  const wasActive = existing?.status === "ACTIVE";
+  const becomingInactive =
+    wasActive && input.status === "INACTIVE";
+  const feeChanged =
+    existing != null && existing.feePerSession !== input.feePerSession;
+
   const student = await prisma.student.upsert({
     where: { id },
     create: {
@@ -104,6 +112,18 @@ export async function upsertStudentAction(input: StudentInput) {
       calendarColorKey,
     },
   });
+
+  if (becomingInactive) {
+    await deactivateStudentSchedule(student.id);
+  }
+
+  if (feeChanged) {
+    await syncSessionFeesForUnpaidMonths(
+      student.id,
+      student.parentId,
+      input.feePerSession,
+    );
+  }
 
   revalidateAdminRoutes();
   return student;

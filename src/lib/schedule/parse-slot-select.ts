@@ -4,6 +4,12 @@ export type SlotPrefill = {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  /** Existing grouped rule id when editing. */
+  ruleId?: string;
+  studentId?: string;
+  startDate?: string;
+  /** Full weekday set for multi-day groups (submit uses this when set). */
+  daysOfWeek?: number[];
 };
 
 const DEFAULT_SLOT: SlotPrefill = {

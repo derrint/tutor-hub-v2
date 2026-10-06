@@ -41,20 +41,19 @@ Internal-only operational tool for one tutor's private practice — not intended
 - Progress reports are monthly per student (Montessori-area structure pending real template). **Editing** is per student; **send** is per parent via the combined WhatsApp message on Invoices (rapot PDFs attached in WhatsApp after the app opens the prefill).
 - Currency is Indonesian Rupiah (`Rp 1.500.000` with Indonesian-style grouping); UI copy and routes are English; **WhatsApp** invoice/report prefill remains Bahasa Indonesia. Code identifiers (variables, models, fields) stay in English.
 
-## Current implementation (Phase 1 mock)
+## Current implementation (Phase 3 v1)
 
 Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Seven routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
-- **Parents / Students:** CRUD via server actions (`RosterContext` + Postgres); WhatsApp fields on parent.
-- **Schedule:** recurring weekly slots in Postgres (`ScheduleRule` + generated `Session` rows); add via header or Week/Day slot select.
-- **Access:** **Auth.js** + **Google sign-in**; only emails in `AUTH_ALLOWED_EMAILS` (two accounts). All dashboard routes require login before Vercel deploy.
-- **Schedule:** read-only calendar with recurring mock sessions, attendance (absent) on dashboard + schedule; session detail modal.
-- **Invoices:** auto-list per billing month; derive-on-read unpaid lines; mark paid (mock `localStorage`); **WhatsApp** preview + `wa.me` prefill.
+- **Parents / Students:** CRUD via server actions; **INACTIVE** stops rules (`endDate`) and deletes future sessions; fee changes sync `Session.fee` in unpaid calendar months.
+- **Schedule:** add/edit/remove weekly slots; cancel single occurrence (not paid month); calendar + attendance (optimistic absent toggle).
+- **Access:** **Auth.js** + **Google sign-in**; allowlist in `AUTH_ALLOWED_EMAILS`.
+- **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** dev-only; **WhatsApp** preview + `wa.me`.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
-- **Finance / Dashboard:** totals from resolved invoices; dashboard finance card uses calendar month.
-- **Reports:** draft/published placeholders; editor waits on Montessori template.
-- **Data:** **Neon Postgres** (attendance on `Session.status`, invoices derive-on-read + paid snapshots); seed in `prisma/seed.ts`.
+- **Finance / Dashboard:** totals from session-derived invoice previews (same as invoice cards).
+- **Reports:** `MonthlyReport` in Postgres — draft/publish with stub notes editor until Montessori template.
+- **Data:** **Neon Postgres**; seed in `prisma/seed.ts`; `mock-data.ts` for fixtures only.
 
 ## Capabilities and Constraints
 
@@ -71,10 +70,8 @@ Confirmed decisions (from product discussion):
 
 ### Planned next (see ROADMAP)
 
-- **Phase 1:** WhatsApp templates, attendance on mock, invoice preview actions.
-- **Phase 2:** Postgres, seed, replace mock data.
-- **Phase 3:** CRUD, invoice generation from attended sessions, report editor when template exists.
-- **Still deferred:** multi-tutor, WhatsApp Business API, complex recurrence edit modes, persisted "overdue" status.
+- **Phase 4:** Mobile polish, hide demo routes, deploy hardening.
+- **Still deferred:** multi-tutor, WhatsApp Business API, complex recurrence edit modes, persisted "overdue" status, full Montessori report form until template arrives.
 
 ## Brand Commitments
 

@@ -96,7 +96,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
               {t("sendWhatsApp")}
             </Button>
           )}
-          {!actionsLocked && invoice.status === "PAID" && (
+          {!actionsLocked &&
+            invoice.status === "PAID" &&
+            process.env.NODE_ENV !== "production" && (
             <Button
               size="sm"
               variant="outline"

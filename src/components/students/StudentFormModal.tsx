@@ -84,6 +84,13 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
     if (!form.parentId || !Number.isFinite(age) || !Number.isFinite(feePerSession)) {
       return;
     }
+    if (
+      student?.status === "ACTIVE" &&
+      form.status === "INACTIVE" &&
+      !window.confirm(t("deactivateConfirm", { name: form.name.trim() || student.name }))
+    ) {
+      return;
+    }
     await upsertStudent({
       id: student?.id,
       name: form.name,

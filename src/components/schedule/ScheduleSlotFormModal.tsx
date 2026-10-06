@@ -45,11 +45,16 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
     [students],
   );
 
+  const isEdit = Boolean(prefill?.ruleId);
+
   const [studentId, setStudentId] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState(1);
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:00");
   const [startDate, setStartDate] = useState(() => todayIsoDateLocal());
+  const [daysOfWeekGroup, setDaysOfWeekGroup] = useState<number[] | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -58,19 +63,27 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
       startTime: "17:00",
       endTime: "18:00",
     };
-    setStudentId(activeStudents[0]?.id ?? "");
+    setStudentId(
+      base.studentId ?? activeStudents[0]?.id ?? "",
+    );
     setDayOfWeek(base.dayOfWeek);
     setStartTime(base.startTime);
     setEndTime(base.endTime);
-    setStartDate(todayIsoDateLocal());
+    setStartDate(base.startDate ?? todayIsoDateLocal());
+    setDaysOfWeekGroup(base.daysOfWeek ?? null);
   }, [isOpen, prefill, activeStudents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId) return;
+    const days =
+      daysOfWeekGroup && daysOfWeekGroup.length > 0
+        ? daysOfWeekGroup
+        : [dayOfWeek];
     const created = await upsertRecurringSession({
+      id: prefill?.ruleId,
       studentId,
-      daysOfWeek: [dayOfWeek],
+      daysOfWeek: days,
       startTime,
       endTime,
       startDate,
@@ -85,10 +98,10 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
       className="max-w-lg p-6 sm:p-8"
     >
       <h2 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">
-        {t("addSlotTitle")}
+        {isEdit ? t("editSlotTitle") : t("addSlotTitle")}
       </h2>
       <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-        {t("addSlotHint")}
+        {isEdit ? t("editSlotHint") : t("addSlotHint")}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
@@ -105,6 +118,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               required
+              disabled={isEdit}
             >
               {activeStudents.map((student) => (
                 <option key={student.id} value={student.id}>
@@ -135,7 +149,10 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
             id="slot-weekday"
             className={selectClassName}
             value={dayOfWeek}
-            onChange={(e) => setDayOfWeek(Number.parseInt(e.target.value, 10))}
+            onChange={(e) => {
+              setDayOfWeek(Number.parseInt(e.target.value, 10));
+              setDaysOfWeekGroup(null);
+            }}
           >
             {WEEKDAY_KEYS.map((key, index) => (
               <option key={key} value={index}>

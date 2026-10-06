@@ -1,6 +1,5 @@
 "use client";
 
-import { useAttendance } from "@/context/AttendanceContext";
 import { useInvoices } from "@/context/InvoiceContext";
 import {
   computeFinanceSummary,
@@ -17,11 +16,10 @@ import { useMemo } from "react";
 export function useFinanceSummary(
   period: InvoicePeriod = getCurrentInvoicePeriod(),
 ): FinanceSummary {
-  const { absentOccurrenceIds } = useAttendance();
   const { getInvoicesForPeriod } = useInvoices();
 
   return useMemo(() => {
     const invoices = getInvoicesForPeriod(period);
-    return computeFinanceSummary(invoices, absentOccurrenceIds, period);
-  }, [getInvoicesForPeriod, absentOccurrenceIds, period]);
+    return computeFinanceSummary(invoices, period);
+  }, [getInvoicesForPeriod, period]);
 }

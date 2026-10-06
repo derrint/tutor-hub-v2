@@ -10,7 +10,9 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 
 type AttendanceContextValue = {
@@ -24,13 +26,51 @@ type AttendanceContextValue = {
 const AttendanceContext = createContext<AttendanceContextValue | null>(null);
 
 export function AttendanceProvider({ children }: { children: React.ReactNode }) {
-  const { absentOccurrenceIds } = useAdminBootstrap();
+  const { absentOccurrenceIds: serverAbsentIds } = useAdminBootstrap();
   const router = useRouter();
+  const [localAbsentOverrides, setLocalAbsentOverrides] = useState<
+    Map<string, boolean>
+  >(() => new Map());
 
-  const absentSet = useMemo(
-    () => new Set(absentOccurrenceIds),
-    [absentOccurrenceIds],
-  );
+  useEffect(() => {
+    setLocalAbsentOverrides((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Map(prev);
+      for (const [occurrenceId, absent] of prev) {
+        const onServer = serverAbsentIds.includes(occurrenceId);
+        if (onServer === absent) {
+          next.delete(occurrenceId);
+        }
+      }
+      return next.size === prev.size ? prev : next;
+    });
+  }, [serverAbsentIds]);
+
+  const absentSet = useMemo(() => {
+    const set = new Set(serverAbsentIds);
+    for (const [occurrenceId, absent] of localAbsentOverrides) {
+      if (absent) set.add(occurrenceId);
+      else set.delete(occurrenceId);
+    }
+    return set;
+  }, [serverAbsentIds, localAbsentOverrides]);
+
+  const applyOptimistic = useCallback((occurrenceId: string, absent: boolean) => {
+    setLocalAbsentOverrides((prev) => {
+      const next = new Map(prev);
+      next.set(occurrenceId, absent);
+      return next;
+    });
+  }, []);
+
+  const revertOptimistic = useCallback((occurrenceId: string) => {
+    setLocalAbsentOverrides((prev) => {
+      if (!prev.has(occurrenceId)) return prev;
+      const next = new Map(prev);
+      next.delete(occurrenceId);
+      return next;
+    });
+  }, []);
 
   const isAbsent = useCallback(
     (occurrenceId: string) => absentSet.has(occurrenceId),
@@ -39,26 +79,42 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
 
   const markAbsent = useCallback(
     async (occurrenceId: string) => {
-      await setOccurrenceAbsentAction(occurrenceId, true);
-      router.refresh();
+      applyOptimistic(occurrenceId, true);
+      try {
+        await setOccurrenceAbsentAction(occurrenceId, true);
+      } catch {
+        revertOptimistic(occurrenceId);
+        router.refresh();
+      }
     },
-    [router],
+    [applyOptimistic, revertOptimistic, router],
   );
 
   const markBillable = useCallback(
     async (occurrenceId: string) => {
-      await setOccurrenceAbsentAction(occurrenceId, false);
-      router.refresh();
+      applyOptimistic(occurrenceId, false);
+      try {
+        await setOccurrenceAbsentAction(occurrenceId, false);
+      } catch {
+        revertOptimistic(occurrenceId);
+        router.refresh();
+      }
     },
-    [router],
+    [applyOptimistic, revertOptimistic, router],
   );
 
   const toggleAbsent = useCallback(
     async (occurrenceId: string) => {
-      await toggleOccurrenceAbsentAction(occurrenceId);
-      router.refresh();
+      const nextAbsent = !isAbsent(occurrenceId);
+      applyOptimistic(occurrenceId, nextAbsent);
+      try {
+        await toggleOccurrenceAbsentAction(occurrenceId);
+      } catch {
+        revertOptimistic(occurrenceId);
+        router.refresh();
+      }
     },
-    [router],
+    [applyOptimistic, isAbsent, revertOptimistic, router],
   );
 
   const value = useMemo<AttendanceContextValue>(
