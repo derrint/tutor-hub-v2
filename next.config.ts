@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       { source: "/tagihan", destination: "/invoices", permanent: true },
       { source: "/laporan", destination: "/reports", permanent: true },
       { source: "/keuangan", destination: "/finance", permanent: true },
+      { source: "/profile", destination: "/settings", permanent: true },
     ];
   },
   webpack(config) {

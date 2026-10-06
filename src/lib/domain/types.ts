@@ -7,9 +7,11 @@ export type SessionStatus = "SCHEDULED" | "ATTENDED" | "ABSENT";
 export type InvoiceStatus = "UNPAID" | "PAID";
 
 export type TutorProfile = {
+  studioName: string;
   bankName: string;
   bankAccountNumber: string;
   accountHolderName: string;
+  whatsappNumber: string;
 };
 
 export type ParentRecord = {

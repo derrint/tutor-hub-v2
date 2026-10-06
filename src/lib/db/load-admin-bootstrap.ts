@@ -62,9 +62,11 @@ export async function loadAdminBootstrap(): Promise<AdminBootstrapData> {
   const profile = profileRow
     ? mapProfile(profileRow)
     : {
+        studioName: "TutorHub",
         bankName: "",
         bankAccountNumber: "",
         accountHolderName: "",
+        whatsappNumber: "",
       };
 
   const parents = parentsRows.map(mapParent);

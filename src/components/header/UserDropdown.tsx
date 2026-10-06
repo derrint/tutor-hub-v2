@@ -2,9 +2,9 @@
 
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { getLanguage, languages } from "@/i18n/languages";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import { ChevronDownIcon } from "@/icons";
+import { ChevronDownIcon, GlobeIcon, SettingsIcon } from "@/icons";
 import { cn } from "@/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -13,6 +13,12 @@ import { useRef, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 
 const FALLBACK_AVATAR = "/images/user/owner.png";
+
+const dropdownMenuItemClass =
+  "group flex max-h-10 w-full items-center rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300";
+
+const dropdownMenuIconClass =
+  "size-5 shrink-0 text-gray-500 dark:text-gray-400";
 
 export default function UserDropdown() {
   const t = useTranslations("userDropdown");
@@ -96,34 +102,29 @@ export default function UserDropdown() {
         </div>
 
         <ul className="flex flex-col gap-1 border-b border-gray-200 pt-4 pb-3 dark:border-gray-800">
+          <li>
+            <Link
+              href="/settings"
+              onClick={closeDropdown}
+              className={cn(dropdownMenuItemClass, "gap-3")}
+            >
+              <SettingsIcon className={dropdownMenuIconClass} />
+              <span>{t("settings")}</span>
+            </Link>
+          </li>
           <li className="relative" ref={subDropdownRef}>
             <button
               type="button"
               onClick={() => setIsSubDropdownOpen((prev) => !prev)}
               className={cn(
-                "group flex max-h-10 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-theme-sm font-medium transition-colors",
-                isSubDropdownOpen
-                  ? "bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300",
+                dropdownMenuItemClass,
+                "justify-between gap-2",
+                isSubDropdownOpen &&
+                  "bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-white",
               )}
             >
-              <span className="flex items-center gap-3 text-theme-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M12.001 2.75C17.1091 2.75 21.2501 6.89178 21.2501 11.9999C21.2501 17.108 17.1091 21.2498 12.001 21.2498M12.001 2.75C6.89289 2.75 2.75195 6.89178 2.75195 11.9999C2.75195 17.108 6.8929 21.2498 12.001 21.2498M12.001 2.75C14.2097 2.75 16.0005 6.8914 16.0005 11.9993C16.0005 17.1073 14.2098 21.2498 12.001 21.2498M12.001 2.75C9.79226 2.75 8.00195 6.89141 8.00195 11.9994C8.00195 17.1073 9.79226 21.2498 12.001 21.2498M3.24561 8.99976H20.7544M3.24561 14.9998H20.7544"
-                    stroke="#667085"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-
+              <span className="flex items-center gap-3">
+                <GlobeIcon className={dropdownMenuIconClass} />
                 <span>{t("language")}</span>
               </span>
 

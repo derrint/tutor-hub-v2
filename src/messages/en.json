@@ -148,6 +148,7 @@
     }
   },
   "userDropdown": {
+    "settings": "Settings",
     "editProfile": "Edit profile",
     "accountSettings": "Account settings",
     "support": "Support",
@@ -364,6 +365,20 @@
       "saveError": "Could not save this report. Try again.",
       "downloadPdf": "Download PDF",
       "pdfDownloadError": "Could not generate the PDF. Save again, then retry."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Bank details for WhatsApp invoices and your name on report PDFs.",
+      "formHint": "Parents see bank info in the monthly WhatsApp message. Account holder name appears on rapot PDF signatures.",
+      "fieldStudioName": "Display name",
+      "fieldAccountHolder": "Account holder name",
+      "fieldAccountHolderPlaceholder": "Anastasia Ceasaria Andini, S.Pd",
+      "fieldBankName": "Bank name",
+      "fieldBankAccount": "Account number",
+      "fieldWhatsapp": "Your WhatsApp (optional)",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "saveError": "Could not save settings. Try again."
     },
     "finance": {
       "title": "Finance",

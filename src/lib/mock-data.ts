@@ -22,9 +22,11 @@ import type { TutorProfile } from "@/lib/domain/types";
 
 /** Tutor bank details for WhatsApp invoice footers (mirrors `Profile`). */
 export const TUTOR_PROFILE: TutorProfile = {
+  studioName: "TutorHub",
   bankName: "BCA",
   bankAccountNumber: "0113164902",
-  accountHolderName: "Anastasia Ceasaria Andini",
+  accountHolderName: "Anastasia Ceasaria Andini, S.Pd",
+  whatsappNumber: "",
 };
 
 export const SEED_PARENTS = [

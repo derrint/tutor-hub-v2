@@ -31,9 +31,11 @@ export function mapStudent(student: Student): StudentRecord {
 
 export function mapProfile(profile: Profile): TutorProfile {
   return {
+    studioName: profile.studioName,
     bankName: profile.bankName ?? "",
     bankAccountNumber: profile.bankAccountNumber ?? "",
     accountHolderName: profile.accountHolderName ?? "",
+    whatsappNumber: profile.whatsappNumber ?? "",
   };
 }
 

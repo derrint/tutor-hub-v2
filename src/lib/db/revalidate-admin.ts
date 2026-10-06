@@ -8,6 +8,7 @@ const ADMIN_ROUTES = [
   "/invoices",
   "/reports",
   "/finance",
+  "/settings",
 ] as const;
 
 export function revalidateAdminRoutes() {
