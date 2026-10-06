@@ -52,9 +52,6 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:00");
   const [startDate, setStartDate] = useState(() => todayIsoDateLocal());
-  const [daysOfWeekGroup, setDaysOfWeekGroup] = useState<number[] | null>(
-    null,
-  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,24 +63,23 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
     setStudentId(
       base.studentId ?? activeStudents[0]?.id ?? "",
     );
-    setDayOfWeek(base.dayOfWeek);
+    setDayOfWeek(
+      base.dayOfWeek ??
+        base.daysOfWeek?.[0] ??
+        new Date().getDay(),
+    );
     setStartTime(base.startTime);
     setEndTime(base.endTime);
     setStartDate(base.startDate ?? todayIsoDateLocal());
-    setDaysOfWeekGroup(base.daysOfWeek ?? null);
   }, [isOpen, prefill, activeStudents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentId) return;
-    const days =
-      daysOfWeekGroup && daysOfWeekGroup.length > 0
-        ? daysOfWeekGroup
-        : [dayOfWeek];
     const created = await upsertRecurringSession({
       id: prefill?.ruleId,
       studentId,
-      daysOfWeek: days,
+      daysOfWeek: [dayOfWeek],
       startTime,
       endTime,
       startDate,
@@ -149,10 +145,9 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
             id="slot-weekday"
             className={selectClassName}
             value={dayOfWeek}
-            onChange={(e) => {
-              setDayOfWeek(Number.parseInt(e.target.value, 10));
-              setDaysOfWeekGroup(null);
-            }}
+            onChange={(e) =>
+              setDayOfWeek(Number.parseInt(e.target.value, 10))
+            }
           >
             {WEEKDAY_KEYS.map((key, index) => (
               <option key={key} value={index}>

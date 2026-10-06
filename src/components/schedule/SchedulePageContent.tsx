@@ -54,7 +54,6 @@ const SchedulePageContent: React.FC = () => {
       ruleId: session.id,
       studentId: session.studentId,
       startDate: session.startDate,
-      daysOfWeek: session.daysOfWeek,
       dayOfWeek,
       startTime: session.startTime,
       endTime: session.endTime,

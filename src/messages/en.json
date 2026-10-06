@@ -214,7 +214,7 @@
       "title": "Schedule",
       "add": "Add",
       "addSlotTitle": "Add weekly slot",
-      "addSlotHint": "Repeats every week on the chosen day. Billing uses this schedule for invoice lines.",
+      "addSlotHint": "One repeating weekly slot for the chosen day. Add another slot for other weekdays.",
       "editSlotTitle": "Edit weekly slot",
       "editSlotHint": "Updates this repeating slot from the first lesson date forward. Past paid months are unchanged.",
       "editWeeklySlot": "Edit weekly slot",

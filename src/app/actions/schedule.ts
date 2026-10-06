@@ -7,9 +7,6 @@ import {
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { prisma } from "@/lib/db/prisma";
 import {
-  ruleIdsInCalendarGroup,
-} from "@/lib/schedule/group-rules";
-import {
   generateSessionsInWindow,
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
@@ -24,53 +21,56 @@ export type RecurringSessionInput = {
   startDate: string;
 };
 
+function ruleIdForDay(existingId: string | undefined, dayOfWeek: number): string {
+  if (!existingId) {
+    return `r-${Date.now().toString(36)}-d${dayOfWeek}`;
+  }
+  const base = existingId.replace(/-d\d+$/, "");
+  return `${base}-d${dayOfWeek}`;
+}
+
 export async function upsertRecurringSessionAction(input: RecurringSessionInput) {
   const student = await prisma.student.findUnique({
     where: { id: input.studentId },
   });
   if (!student) return null;
 
-  const days = [...new Set(input.daysOfWeek)].sort((a, b) => a - b);
-  if (days.length === 0) return null;
+  const uniqueDays = [...new Set(input.daysOfWeek)].sort((a, b) => a - b);
+  if (uniqueDays.length === 0) return null;
+
+  /** UI creates one weekday per slot; only the first day is persisted. */
+  const dayOfWeek = uniqueDays[0];
 
   const startDate =
     parseIsoDateToStoredDate(input.startDate) ??
     parseIsoDateToStoredDate(todayIsoDateLocal());
   if (!startDate) return null;
 
-  const allRules = await prisma.scheduleRule.findMany({
-    include: { student: true },
+  if (input.id) {
+    await prisma.session.deleteMany({
+      where: { scheduleRuleId: input.id },
+    });
+    await prisma.scheduleRule.deleteMany({
+      where: { id: input.id },
+    });
+  }
+
+  const ruleId = ruleIdForDay(input.id, dayOfWeek);
+
+  await prisma.scheduleRule.create({
+    data: {
+      id: ruleId,
+      studentId: input.studentId,
+      dayOfWeek,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      startDate,
+    },
   });
 
-  const existingGroupIds = input.id
-    ? ruleIdsInCalendarGroup(allRules, input.id)
-    : [];
-
-  if (existingGroupIds.length > 0) {
-    await prisma.scheduleRule.deleteMany({
-      where: { id: { in: existingGroupIds } },
-    });
-  }
-
-  const groupId = input.id ?? `r-${Date.now().toString(36)}`;
-
-  for (const dayOfWeek of days) {
-    await prisma.scheduleRule.create({
-      data: {
-        id: `${groupId}-d${dayOfWeek}`,
-        studentId: input.studentId,
-        dayOfWeek,
-        startTime: input.startTime,
-        endTime: input.endTime,
-        startDate,
-      },
-    });
-  }
-
-  const newRuleIds = days.map((dayOfWeek) => `${groupId}-d${dayOfWeek}`);
   await prisma.session.deleteMany({
     where: {
-      scheduleRuleId: { in: newRuleIds },
+      scheduleRuleId: ruleId,
       date: { lt: startDate },
     },
   });
@@ -78,26 +78,19 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
   await generateSessionsInWindow(defaultSessionGenerationWindow());
   revalidateAdminRoutes();
 
-  const rules = await prisma.scheduleRule.findMany({
-    where: { studentId: input.studentId },
-    include: { student: true },
-  });
-
-  const anchorId = `${groupId}-d${days[0]}`;
-  return anchorId;
+  return ruleId;
 }
 
 export async function deleteRecurringSessionAction(calendarRuleId: string) {
-  const allRules = await prisma.scheduleRule.findMany({
-    include: { student: true },
+  const rule = await prisma.scheduleRule.findUnique({
+    where: { id: calendarRuleId },
   });
-  const ids = ruleIdsInCalendarGroup(allRules, calendarRuleId);
-  if (ids.length === 0) return false;
+  if (!rule) return false;
 
   await prisma.session.deleteMany({
-    where: { scheduleRuleId: { in: ids } },
+    where: { scheduleRuleId: calendarRuleId },
   });
-  await prisma.scheduleRule.deleteMany({ where: { id: { in: ids } } });
+  await prisma.scheduleRule.deleteMany({ where: { id: calendarRuleId } });
   revalidateAdminRoutes();
   return true;
 }
