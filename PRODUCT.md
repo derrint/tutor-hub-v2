@@ -65,7 +65,7 @@ Confirmed decisions (from product discussion):
 - **Attendance & billing**: a session marked absent is excluded from that month's invoice total; this must be visually obvious (disabled/grey) wherever sessions are shown.
 - **Student status**: `ACTIVE` / `INACTIVE`. Deactivating a student auto-stops their recurring schedule rule (sets an end date) and removes not-yet-occurred future sessions; past sessions remain untouched for billing/report history.
 - **Invoice period**: calendar month (1st–end of month), not a custom date range.
-- **Invoice status**: intentionally simple — `UNPAID` / `PAID` only. No stored "overdue" status (may be computed/derived in the UI later, but not persisted).
+- **Invoice status**: intentionally simple — `UNPAID` / `PAID` only. **Overdue** is a computed UI hint on unpaid invoices for past calendar months (not persisted).
 - **WhatsApp**: v1 uses `wa.me` with **`buildParentMonthlyWhatsAppMessage`** (Indonesian template blocks in `src/lib/whatsapp/templates.ts`). PDF rapot is **not** attached by the app — tutor attaches in WhatsApp. No WhatsApp Business API.
 - **Reports**: `DRAFT` / `PUBLISHED` per student per month (`PUBLISHED` = last successful PDF download). Send path is the **combined** parent message on Invoices, not a second WhatsApp button on Reports.
 

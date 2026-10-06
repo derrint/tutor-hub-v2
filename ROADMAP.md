@@ -147,11 +147,15 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ## Phase 4 — Polish & scope control
 
-- [ ] Mobile pass: one-handed use, calendar scroll, sidebar drawer (layout uses `xl` for docked sidebar)
-- [ ] Hide or remove unused **TailAdmin demo** routes from product builds if they confuse the tutor
-- [ ] Optional: **overdue** as computed UI hint only (never persist `OVERDUE`)
-- [x] Update `PRODUCT.md` / `README.md` to match shipped reality (ongoing tweaks as Phase 4 ships)
-- [ ] Deploy target (Vercel + managed Postgres, or self-host) — decide when Phase 2 is stable
+- [x] Mobile pass: one-handed use, calendar time-grid height, sidebar drawer aligned to `xl` (1280px), stacked invoice/report modal CTAs
+- [x] Remove unused **TailAdmin demo** app routes (`(ui-elements)`, `(others-pages)` demos); keep shared components
+- [x] **Overdue** as computed UI hint on unpaid past calendar months (never persist `OVERDUE`)
+- [x] Update `PRODUCT.md` / `README.md` to match shipped reality
+- [x] Deploy target: **Vercel + Neon** documented in README (env, migrate deploy, OAuth redirect)
+
+**Exit criteria:** Demo URLs (e.g. `/buttons`) 404; tutor flows usable at ~375px width; past-month unpaid shows **Overdue** badge; `pnpm build` passes; deploy checklist in README.
+
+**Phase 4 complete.**
 
 ---
 
@@ -184,4 +188,4 @@ Do not build unless requirements change:
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** **Phase 4** — mobile pass, hide demo routes, deploy hardening.
+**Suggested next sprint:** Maintenance / optional backlog (compact month list, report photo blob storage, further mobile polish).

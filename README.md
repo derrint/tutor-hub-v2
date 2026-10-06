@@ -8,7 +8,7 @@ Operational dashboard for a **solo private tutor**: schedule, students, monthly 
 
 ---
 
-## Current status (Phase 3 v1)
+## Current status (Phase 4 v1)
 
 The app runs on **Neon Postgres** with **server actions** for roster, schedule, invoices, and reports. **`src/lib/mock-data.ts`** is used for **seed/fixtures only**.
 
@@ -27,7 +27,7 @@ The app runs on **Neon Postgres** with **server actions** for roster, schedule, 
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
 - **Billing month:** `?month=YYYY-MM` on Invoices, Reports, Finance.
 
-TailAdmin **demo routes** may still exist on disk; they are auth-gated like the rest of the admin shell (Phase 4 may hide them).
+TailAdmin **demo app routes** were removed; reusable UI lives under `src/components/`. Only TutorHub routes + sign-in remain in the App Router.
 
 ---
 
@@ -118,12 +118,25 @@ prisma/seed.ts                # Seed + session generation
 
 ---
 
+## Deploy (Vercel + Neon)
+
+1. Create a **Vercel** project linked to this repo; framework preset **Next.js**.
+2. Set environment variables (same as [`.env.example`](.env.example)): `AUTH_SECRET`, Google OAuth, `AUTH_ALLOWED_EMAILS`, `DATABASE_URL` (Neon **pooler**), `DIRECT_URL` (Neon **direct**).
+3. Google Cloud **Authorized redirect URI:** `https://YOUR_DOMAIN/api/auth/callback/google`.
+4. On each release that includes schema changes, run **`pnpm db:migrate:deploy`** against production (Vercel build hook, local CLI, or CI — not on every static deploy unless migrations pending).
+5. **`pnpm build`** must pass locally before shipping.
+6. **Production:** **Mark unpaid** is hidden on invoice cards (`NODE_ENV=production`). Rapot PDF download uses **`GET /api/reports/pdf`** (session required; auth middleware excludes `/api` — route checks `auth()` internally).
+
+**Manual QA (phone-width ~375px):** Dashboard → Schedule (scroll time grid) → session absent → Invoices (stacked CTAs, overdue badge on past unpaid months) → Reports (Save / Download PDF) → user menu → Settings.
+
+---
+
 ## Roadmap summary
 
 1. **Phase 1** — Mock workflow + Google auth gate *(done)*  
 2. **Phase 2** — Neon, seed, Postgres-backed pages *(done)*  
 3. **Phase 3** — CRUD, billing correctness, reports + PDF, settings *(done)*  
-4. **Phase 4** — Mobile polish, demo cleanup, deploy hardening  
+4. **Phase 4** — Mobile polish, demo route removal, overdue hint, deploy docs *(done)*  
 
 Details: [`ROADMAP.md`](./ROADMAP.md).
 
