@@ -13,6 +13,7 @@ import {
   buildParentMonthlyWhatsAppMessage,
   buildWaMeUrl,
 } from "@/lib/whatsapp";
+import { isInvoiceOverdue } from "@/lib/invoices/is-invoice-overdue";
 import {
   formatInvoicePeriodLabel,
   formatInvoiceSessionDays,
@@ -68,6 +69,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     [invoice.children],
   );
 
+  const overdue = isInvoiceOverdue({
+    period: invoice.period,
+    status: invoice.status,
+  });
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
       <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4 sm:px-6">
@@ -79,14 +85,21 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             {formatInvoicePeriodLabel(invoice.period)}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge
-            variant={invoice.status === "PAID" ? "paid" : "unpaid"}
-          />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              variant={invoice.status === "PAID" ? "paid" : "unpaid"}
+            />
+            {overdue && (
+              <StatusBadge variant="overdue" label={t("overdueLabel")} />
+            )}
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           {whatsAppPayload && (
             <Button
               size="sm"
               variant="primary"
+              className="min-h-11 w-full sm:min-h-0 sm:w-auto"
               startIcon={<ChatIcon className="size-4" />}
               aria-label={t("sendWhatsAppAria", {
                 parentName: invoice.parentName,
@@ -102,6 +115,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             <Button
               size="sm"
               variant="outline"
+              className="min-h-11 w-full sm:min-h-0 sm:w-auto"
               aria-label={t("markUnpaidAria", {
                 parentName: invoice.parentName,
               })}
@@ -114,6 +128,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             <Button
               size="sm"
               variant="outline"
+              className="min-h-11 w-full sm:min-h-0 sm:w-auto"
               startIcon={<CheckLineIcon className="size-4" />}
               aria-label={t("markPaidAria", { parentName: invoice.parentName })}
               onClick={() => setInvoiceStatus(invoice.id, "PAID")}
@@ -121,6 +136,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
               {t("markPaid")}
             </Button>
           )}
+          </div>
         </div>
       </div>
 

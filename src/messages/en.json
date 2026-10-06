@@ -183,6 +183,7 @@
       "inactive": "Inactive",
       "paid": "Paid",
       "unpaid": "Unpaid",
+      "overdue": "Overdue",
       "draft": "Not written",
       "published": "Sent"
     },
@@ -318,6 +319,7 @@
       "pageSummary": "{count, plural, one {# invoice} other {# invoices}} · {unpaidCount} unpaid",
       "emptyFuture": "No invoices for this month yet. Billing actions unlock when the month starts.",
       "noBillableSessions": "No billable sessions this month (all absent or no schedule).",
+      "overdueLabel": "Overdue",
       "markPaid": "Mark paid",
       "markPaidAria": "Mark invoice paid for {parentName}",
       "markUnpaid": "Mark unpaid",

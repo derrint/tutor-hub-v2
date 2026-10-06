@@ -11,7 +11,8 @@ export type StatusVariant =
   | "paid"
   | "unpaid"
   | "draft"
-  | "published";
+  | "published"
+  | "overdue";
 
 // Everything that counts (attended, paid, active, published) is success;
 // everything still waiting on the tutor or the parent is warning; everything
@@ -26,6 +27,7 @@ const STATUS_COLOR = {
   unpaid: "warning",
   draft: "warning",
   published: "success",
+  overdue: "warning",
 } as const;
 
 const StatusBadge: React.FC<{ variant: StatusVariant; label?: string }> = ({
