@@ -10,6 +10,8 @@
     "seeAll": "See all"
   },
   "sidebar": {
+    "more": "More",
+    "bottomNavLabel": "Main navigation",
     "groups": {
       "menu": "Menu",
       "support": "Support",

@@ -7,9 +7,9 @@ import { RosterProvider } from "@/context/RosterContext";
 import { ScheduleProvider } from "@/context/ScheduleContext";
 import { useSidebar } from "@/context/SidebarContext";
 import type { AdminBootstrapData } from "@/lib/db/load-admin-bootstrap";
+import AppBottomNav from "@/layout/AppBottomNav";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
-import Backdrop from "@/layout/Backdrop";
 import React from "react";
 
 export default function AdminShell({
@@ -19,13 +19,10 @@ export default function AdminShell({
   initialData: AdminBootstrapData;
   children: React.ReactNode;
 }) {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { isExpanded, isHovered } = useSidebar();
 
-  const mainContentMargin = isMobileOpen
-    ? "ml-0"
-    : isExpanded || isHovered
-      ? "xl:ml-[290px]"
-      : "xl:ml-[90px]";
+  const mainContentMargin =
+    isExpanded || isHovered ? "xl:ms-[290px]" : "xl:ms-[90px]";
 
   return (
     <AdminBootstrapProvider value={initialData}>
@@ -35,15 +32,15 @@ export default function AdminShell({
             <InvoiceProvider>
               <div className="min-h-screen xl:flex">
                 <AppSidebar />
-                <Backdrop />
                 <div
                   className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
                 >
                   <AppHeader />
-                  <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+                  <div className="mx-auto max-w-(--breakpoint-2xl) p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 xl:pb-6">
                     {children}
                   </div>
                 </div>
+                <AppBottomNav />
               </div>
             </InvoiceProvider>
           </AttendanceProvider>
