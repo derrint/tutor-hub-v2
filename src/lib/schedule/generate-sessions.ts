@@ -4,7 +4,7 @@ import {
   weekdayForCalendarDate,
 } from "@/lib/datetime/calendar-date";
 import { prisma } from "@/lib/db/prisma";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 /** Months before/after today to materialize recurring sessions. */
 export const SESSION_GENERATION_MONTHS_BACK = 3;
@@ -49,11 +49,7 @@ function eachCalendarDayInRange(from: Date, to: Date): Date[] {
   while (true) {
     const current = calendarDateToStoredDate(y, m, d);
     days.push(current);
-    if (
-      y === end.year &&
-      m === end.month &&
-      d === end.day
-    ) {
+    if (y === end.year && m === end.month && d === end.day) {
       break;
     }
     const next = new Date(Date.UTC(y, m - 1, d + 1, 12));
@@ -63,6 +59,16 @@ function eachCalendarDayInRange(from: Date, to: Date): Date[] {
   }
 
   return days;
+}
+
+function addCalendarDays(date: Date, deltaDays: number): Date {
+  const { year, month, day } = storedDateToCalendarParts(date);
+  const next = new Date(Date.UTC(year, month - 1, day + deltaDays, 12));
+  return calendarDateToStoredDate(
+    next.getUTCFullYear(),
+    next.getUTCMonth() + 1,
+    next.getUTCDate(),
+  );
 }
 
 function ruleAppliesOnDate(
@@ -83,6 +89,14 @@ function ruleAppliesOnDate(
   return true;
 }
 
+function sessionSlotKey(
+  studentId: string,
+  date: Date,
+  startTime: string,
+): string {
+  return `${studentId}|${date.toISOString()}|${startTime}`;
+}
+
 export async function generateSessionsInWindow(
   window: SessionGenerationWindow,
   client: PrismaClient = prisma,
@@ -90,8 +104,33 @@ export async function generateSessionsInWindow(
   const rules = await client.scheduleRule.findMany({
     include: { student: true },
   });
+  if (rules.length === 0) return 0;
 
-  let created = 0;
+  const existing = await client.session.findMany({
+    where: {
+      date: { gte: window.from, lte: window.to },
+    },
+    select: {
+      id: true,
+      studentId: true,
+      date: true,
+      startTime: true,
+      endTime: true,
+      scheduleRuleId: true,
+    },
+  });
+
+  const existingByKey = new Map(
+    existing.map((row) => [
+      sessionSlotKey(row.studentId, row.date, row.startTime),
+      row,
+    ]),
+  );
+
+  const toCreate: Prisma.SessionCreateManyInput[] = [];
+  const toUpdate: { id: string; scheduleRuleId: string; endTime: string }[] =
+    [];
+
   const days = eachCalendarDayInRange(window.from, window.to);
 
   for (const date of days) {
@@ -99,38 +138,106 @@ export async function generateSessionsInWindow(
       if (rule.student.status !== "ACTIVE") continue;
       if (!ruleAppliesOnDate(rule, date)) continue;
 
-      const result = await client.session.upsert({
-        where: {
-          studentId_date_startTime: {
-            studentId: rule.studentId,
-            date,
-            startTime: rule.startTime,
-          },
-        },
-        create: {
-          studentId: rule.studentId,
-          scheduleRuleId: rule.id,
-          date,
-          startTime: rule.startTime,
-          endTime: rule.endTime,
-          fee: rule.student.feePerSession,
-          status: "SCHEDULED",
-        },
-        update: {
-          scheduleRuleId: rule.id,
-          endTime: rule.endTime,
-        },
-      });
+      const key = sessionSlotKey(rule.studentId, date, rule.startTime);
+      const found = existingByKey.get(key);
 
-      if (result.createdAt.getTime() === result.updatedAt.getTime()) {
-        created += 1;
+      if (found) {
+        if (
+          found.scheduleRuleId !== rule.id ||
+          found.endTime !== rule.endTime
+        ) {
+          toUpdate.push({
+            id: found.id,
+            scheduleRuleId: rule.id,
+            endTime: rule.endTime,
+          });
+        }
+        continue;
       }
+
+      toCreate.push({
+        studentId: rule.studentId,
+        scheduleRuleId: rule.id,
+        date,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        fee: rule.student.feePerSession,
+        status: "SCHEDULED",
+      });
     }
   }
 
-  return created;
+  if (toCreate.length > 0) {
+    await client.session.createMany({
+      data: toCreate,
+      skipDuplicates: true,
+    });
+  }
+
+  if (toUpdate.length > 0) {
+    await client.$transaction(
+      toUpdate.map((row) =>
+        client.session.update({
+          where: { id: row.id },
+          data: {
+            scheduleRuleId: row.scheduleRuleId,
+            endTime: row.endTime,
+          },
+        }),
+      ),
+    );
+  }
+
+  return toCreate.length;
 }
 
+/**
+ * Extends materialized sessions only when the rolling window is not yet covered.
+ * Safe to call on every admin layout load (cheap no-op when up to date).
+ */
+export async function ensureSessionsGeneratedIfNeeded(
+  client: PrismaClient = prisma,
+): Promise<void> {
+  const window = defaultSessionGenerationWindow();
+
+  const ruleCount = await client.scheduleRule.count();
+  if (ruleCount === 0) return;
+
+  const agg = await client.session.aggregate({
+    where: { date: { gte: window.from, lte: window.to } },
+    _max: { date: true },
+    _min: { date: true },
+    _count: true,
+  });
+
+  if (agg._count === 0) {
+    await generateSessionsInWindow(window, client);
+    return;
+  }
+
+  const maxDate = agg._max.date;
+  const minDate = agg._min.date;
+  if (!maxDate || !minDate) return;
+
+  const needsForward = maxDate < window.to;
+  const needsBackfill = minDate > window.from;
+
+  if (needsForward) {
+    await generateSessionsInWindow(
+      { from: addCalendarDays(maxDate, 1), to: window.to },
+      client,
+    );
+  }
+
+  if (needsBackfill) {
+    await generateSessionsInWindow(
+      { from: window.from, to: addCalendarDays(minDate, -1) },
+      client,
+    );
+  }
+}
+
+/** @deprecated Prefer `ensureSessionsGeneratedIfNeeded` for layout loads. */
 export async function ensureSessionsGenerated(
   client: PrismaClient = prisma,
 ): Promise<void> {

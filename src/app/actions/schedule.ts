@@ -10,7 +10,6 @@ import {
   ruleIdsInCalendarGroup,
 } from "@/lib/schedule/group-rules";
 import {
-  ensureSessionsGenerated,
   generateSessionsInWindow,
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
@@ -104,5 +103,8 @@ export async function deleteRecurringSessionAction(calendarRuleId: string) {
 }
 
 export async function ensureSessionsAction() {
-  await ensureSessionsGenerated();
+  const { ensureSessionsGeneratedIfNeeded } = await import(
+    "@/lib/schedule/generate-sessions"
+  );
+  await ensureSessionsGeneratedIfNeeded();
 }

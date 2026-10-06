@@ -18,7 +18,7 @@ import {
   loadSessionsForGenerationWindow,
 } from "@/lib/invoices/queries";
 import { groupScheduleRulesForCalendar } from "@/lib/schedule/group-rules";
-import { ensureSessionsGenerated } from "@/lib/schedule/generate-sessions";
+import { ensureSessionsGeneratedIfNeeded } from "@/lib/schedule/generate-sessions";
 import {
   serializeSessions,
   type SerializedSessionWithStudent,
@@ -36,7 +36,7 @@ export type AdminBootstrapData = {
 };
 
 export async function loadAdminBootstrap(): Promise<AdminBootstrapData> {
-  await ensureSessionsGenerated();
+  await ensureSessionsGeneratedIfNeeded();
 
   const [profileRow, parentsRows, studentsRows, rulesRows, sessions, paidRows] =
     await Promise.all([

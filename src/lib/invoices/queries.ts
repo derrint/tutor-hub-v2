@@ -1,6 +1,7 @@
 import { buildStudentOccurrenceIdForPeriodDay } from "@/lib/attendance/occurrence-id";
 import { storedDateToCalendarParts } from "@/lib/datetime/calendar-date";
 import { prisma } from "@/lib/db/prisma";
+import { defaultSessionGenerationWindow } from "@/lib/schedule/generate-sessions";
 import { mapParent, mapStudent } from "@/lib/db/mappers";
 import type { InvoicePreview } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
@@ -15,7 +16,11 @@ import {
 export async function loadSessionsForGenerationWindow(): Promise<
   SessionWithStudent[]
 > {
+  const window = defaultSessionGenerationWindow();
   const sessions = await prisma.session.findMany({
+    where: {
+      date: { gte: window.from, lte: window.to },
+    },
     include: { student: true },
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
