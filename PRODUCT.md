@@ -47,7 +47,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 - Seven routes: Dashboard, Schedule, Students, **Parents**, Invoices, Reports, Finance — English labels, **TutorHub** brand, admin sidebar (drawer below `xl`, docked sidebar from `xl` up).
 - **Parents / Students:** CRUD via server actions; **INACTIVE** stops rules (`endDate`) and deletes future sessions; fee changes sync `Session.fee` in unpaid calendar months.
-- **Schedule:** add/edit/remove weekly slots; cancel single occurrence (not paid month); calendar + attendance (optimistic absent toggle).
+- **Schedule:** add/edit/remove weekly slots; mark absent per date on calendar; optimistic absent toggle.
 - **Access:** **Auth.js** + **Google sign-in**; allowlist in `AUTH_ALLOWED_EMAILS`.
 - **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** dev-only; **WhatsApp** preview + `wa.me`.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.

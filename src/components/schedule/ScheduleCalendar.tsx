@@ -14,13 +14,12 @@ import StatusBadge from "@/components/common/StatusBadge";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
 import { useSchedule } from "@/context/ScheduleContext";
+import { PencilIcon, TrashBinIcon } from "@/icons";
 import { resolveStudentCalendarColorKey } from "@/lib/students/calendar-colors";
-import { cancelSessionOccurrenceAction } from "@/app/actions/schedule";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { RecurringSession } from "@/lib/domain/types";
 import { formatWeekdayLabels } from "@/lib/schedule/format-weekdays";
 import { formatDayAndMonth } from "@/utils";
-import { useRouter } from "@/i18n/navigation";
 import type { DateSelectInfo, EventClickInfo } from "@fullcalendar/react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -38,13 +37,18 @@ type SelectedOccurrence = {
   date: Date | null;
 };
 
+const editWeeklySlotButtonClassName =
+  "w-full border-brand-200 text-brand-600 ring-brand-200 hover:bg-brand-50 dark:border-brand-500/30 dark:text-brand-400 dark:ring-brand-500/30 dark:hover:bg-brand-500/10";
+
+const removeWeeklySlotButtonClassName =
+  "w-full border-error-200 text-error-600 ring-error-200 hover:bg-error-50 dark:border-error-500/30 dark:text-error-400 dark:ring-error-500/30 dark:hover:bg-error-500/10";
+
 const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onTimeSlotSelect,
   onEditWeeklySlot,
 }) => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
-  const router = useRouter();
   const { recurringSessions, deleteRecurringSession } = useSchedule();
   const { students } = useRoster();
   const { isAbsent } = useAttendance();
@@ -54,10 +58,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
       new Map(
         students.map((student) => [
           student.id,
-          resolveStudentCalendarColorKey(
-            student.calendarColorKey,
-            student.id,
-          ),
+          resolveStudentCalendarColorKey(student.calendarColorKey, student.id),
         ]),
       ),
     [students],
@@ -78,8 +79,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         endTime: session.endTime,
         startRecur: session.startDate,
         extendedProps: {
-          calendar:
-            studentColorById.get(session.studentId) ?? "primary",
+          calendar: studentColorById.get(session.studentId) ?? "primary",
           startTime: session.startTime,
           endTime: session.endTime,
           studentId: session.studentId,
@@ -149,29 +149,6 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     setSelected(null);
   };
 
-  const handleCancelOccurrence = () => {
-    if (!selectedOccurrenceId || !selected?.date) return;
-    const confirmed = window.confirm(
-      t("cancelOccurrenceConfirm", {
-        studentName: selected.session.studentName,
-        day: formatDayAndMonth(selected.date),
-      }),
-    );
-    if (!confirmed) return;
-
-    void cancelSessionOccurrenceAction(selectedOccurrenceId).then((result) => {
-      if (result.ok) {
-        closeModal();
-        setSelected(null);
-        router.refresh();
-        return;
-      }
-      if (result.reason === "paid") {
-        window.alert(t("cancelOccurrencePaidBlocked"));
-      }
-    });
-  };
-
   return (
     <>
       <Calendar
@@ -219,50 +196,38 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                   {selected.session.startTime} – {selected.session.endTime}
                 </dd>
               </div>
+              {selectedOccurrenceId && selected.date && (
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-theme-sm text-gray-500 dark:text-gray-400">
+                    {t("attendanceLabel")}
+                  </dt>
+                  <dd>
+                    <StatusBadge
+                      variant={selectedIsAbsent ? "absent" : "scheduled"}
+                    />
+                  </dd>
+                </div>
+              )}
             </dl>
 
-            <p className="mt-6 text-theme-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-theme-xs text-gray-500 dark:text-gray-400">
               {t("detailNote")}
             </p>
 
-            {selectedOccurrenceId && selected.date && (
-              <div className="mt-6 border-t border-gray-100 pt-4 dark:border-gray-800">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleCancelOccurrence}
-                >
-                  {t("cancelOccurrence")}
-                </Button>
-                <p className="mt-2 text-theme-xs text-gray-500 dark:text-gray-400">
-                  {t("cancelOccurrenceHint")}
-                </p>
-              </div>
-            )}
-
-            {selectedOccurrenceId && (
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-theme-sm text-gray-500 dark:text-gray-400">
-                    {t("attendanceLabel")}
-                  </span>
-                  <StatusBadge
-                    variant={selectedIsAbsent ? "absent" : "scheduled"}
-                  />
-                </div>
+            <div className="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-5 dark:border-gray-800">
+              {selectedOccurrenceId && selected.date && (
                 <SessionAttendanceToggle
                   occurrenceId={selectedOccurrenceId}
+                  className="w-full"
+                  showIcon
                 />
-              </div>
-            )}
-
-            <div className="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+              )}
               {onEditWeeklySlot && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-full"
+                  className={editWeeklySlotButtonClassName}
+                  startIcon={<PencilIcon className="size-4 shrink-0" />}
                   onClick={handleEditWeeklySlot}
                 >
                   {t("editWeeklySlot")}
@@ -271,7 +236,8 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full border-error-200 text-error-600 hover:bg-error-50 dark:border-error-500/30 dark:text-error-400 dark:hover:bg-error-500/10"
+                className={removeWeeklySlotButtonClassName}
+                startIcon={<TrashBinIcon className="size-4 shrink-0" />}
                 onClick={handleRemoveWeeklySlot}
                 aria-label={t("removeWeeklySlotAria", {
                   studentName: selected.session.studentName,
@@ -279,9 +245,6 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
               >
                 {t("removeWeeklySlot")}
               </Button>
-              <p className="mt-2 text-theme-xs text-gray-500 dark:text-gray-400">
-                {t("removeWeeklySlotHint")}
-              </p>
             </div>
           </div>
         )}

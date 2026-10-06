@@ -1,8 +1,6 @@
 "use server";
 
-import { parseOccurrenceId } from "@/lib/attendance/parse-occurrence-id";
 import {
-  calendarDateToStoredDate,
   parseIsoDateToStoredDate,
   todayIsoDateLocal,
 } from "@/lib/datetime/calendar-date";
@@ -109,39 +107,4 @@ export async function ensureSessionsAction() {
     "@/lib/schedule/generate-sessions"
   );
   await ensureSessionsGeneratedIfNeeded();
-}
-
-export type CancelOccurrenceResult =
-  | { ok: true }
-  | { ok: false; reason: "invalid" | "paid" | "none" };
-
-/** Removes materialized sessions for one student on one calendar date. */
-export async function cancelSessionOccurrenceAction(
-  occurrenceId: string,
-): Promise<CancelOccurrenceResult> {
-  const parsed = parseOccurrenceId(occurrenceId);
-  if (!parsed) return { ok: false, reason: "invalid" };
-
-  const date = calendarDateToStoredDate(
-    parsed.year,
-    parsed.month,
-    parsed.day,
-  );
-
-  const sessions = await prisma.session.findMany({
-    where: { studentId: parsed.studentId, date },
-    select: { id: true, invoiceItemId: true },
-  });
-
-  if (sessions.length === 0) return { ok: false, reason: "none" };
-  if (sessions.some((s) => s.invoiceItemId != null)) {
-    return { ok: false, reason: "paid" };
-  }
-
-  await prisma.session.deleteMany({
-    where: { id: { in: sessions.map((s) => s.id) } },
-  });
-
-  revalidateAdminRoutes();
-  return { ok: true };
 }

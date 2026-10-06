@@ -124,7 +124,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 - [x] CRUD **Student** + **Parent** (siblings → one invoice per parent)
 - [x] **ACTIVE / INACTIVE:** deactivating stops future recurrence (rule end date), drops future sessions, keeps history
-- [x] **ScheduleRule:** add/edit weekly slot; **per-occurrence** edit/cancel only (no “this and following”)
+- [x] **ScheduleRule:** add/edit weekly slot; per-date **mark absent** for billing (no “this and following”)
 
 ### Tagihan & keuangan
 
