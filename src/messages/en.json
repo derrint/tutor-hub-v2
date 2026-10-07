@@ -238,7 +238,9 @@
         "friday": "Friday",
         "saturday": "Saturday"
       },
-      "weeklyHint": "Sessions repeat every week — each child has their own color. Tap a session for details, or drag on an empty time slot in Week/Day view to add.",
+      "weeklyHint": "Sessions repeat every week — each child has their own color. Tap a session for details, or tap or drag an empty slot in Week/Day view to add. Turn on Weekends to see Sat–Sun; use Month or Day view for weekend sessions when weekends are hidden.",
+      "showWeekends": "Weekends",
+      "showWeekendsAria": "Show Saturday and Sunday on the week view",
       "todayTitle": "Today’s agenda",
       "todayAgendaLabel": "Today’s session schedule",
       "noSessionsToday": "No sessions scheduled today.",

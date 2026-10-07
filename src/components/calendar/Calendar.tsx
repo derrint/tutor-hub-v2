@@ -25,6 +25,7 @@ import themePlugin from "@fullcalendar/react/themes/classic";
 import timeGridPlugin from "@fullcalendar/react/timegrid";
 import { useLocale } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import CalendarEventItem from "./CalendarEventItem";
 import CalendarEventModal from "./CalendarEventModal";
 import CalendarViewSelect from "./CalendarViewSelect";
@@ -98,6 +99,13 @@ export interface CalendarProps {
   containerClassName?: string;
   /** Fixed height for time-grid views; default `auto`. */
   timeGridHeight?: string;
+  /** FullCalendar `weekends` — when false, Sat/Sun columns are hidden. */
+  weekends?: boolean;
+  /** Schedule toolbar control to show/hide weekend columns. */
+  showWeekendsToggle?: boolean;
+  onWeekendsChange?: (showWeekends: boolean) => void;
+  weekendsToggleLabel?: string;
+  weekendsToggleAriaLabel?: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -114,6 +122,11 @@ const Calendar: React.FC<CalendarProps> = ({
   eventContentRevision = "",
   containerClassName = "",
   timeGridHeight,
+  weekends,
+  showWeekendsToggle = false,
+  onWeekendsChange,
+  weekendsToggleLabel = "Weekends",
+  weekendsToggleAriaLabel,
 }) => {
   const appLocale = useLocale();
   const isRtlLayout = isRtl(appLocale as Locale);
@@ -321,6 +334,7 @@ const Calendar: React.FC<CalendarProps> = ({
           slotHeaderFormat={CALENDAR_SLOT_HEADER_24H}
           eventTimeFormat={CALENDAR_EVENT_TIME_24H}
           firstDay={1}
+          weekends={weekends ?? true}
           direction={isRtlLayout ? "rtl" : "ltr"}
           // Toolbar Header configuration
           headerToolbar={{
@@ -338,7 +352,7 @@ const Calendar: React.FC<CalendarProps> = ({
               return "ta-toolbar-section ta-toolbar-center order-1 flex items-center justify-start sm:order-2 sm:justify-center";
             }
             if (info.name === "end") {
-              return "ta-toolbar-section ta-toolbar-end order-1 flex items-center justify-end sm:order-3 sm:justify-end";
+              return "ta-toolbar-section ta-toolbar-end order-1 flex items-center justify-end gap-2 sm:order-3 sm:justify-end sm:gap-2.5";
             }
             return "ta-toolbar-section";
           }}
@@ -629,14 +643,27 @@ const Calendar: React.FC<CalendarProps> = ({
           )}
         />
 
-        {showViewSelect && (
-          <CalendarViewSelect
-            currentView={currentView}
-            onViewChange={handleViewChange}
-            portalNode={portalNode}
-            options={viewOptions}
-          />
-        )}
+        {portalNode &&
+          showViewSelect &&
+          createPortal(
+            <CalendarViewSelect
+              currentView={currentView}
+              onViewChange={handleViewChange}
+              options={viewOptions}
+              weekends={
+                showWeekendsToggle && onWeekendsChange
+                  ? {
+                      showWeekends: weekends ?? false,
+                      onShowWeekendsChange: onWeekendsChange,
+                      label: weekendsToggleLabel,
+                      ariaLabel:
+                        weekendsToggleAriaLabel ?? weekendsToggleLabel,
+                    }
+                  : undefined
+              }
+            />,
+            portalNode,
+          )}
       </div>
 
       {!readOnly && (

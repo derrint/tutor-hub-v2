@@ -21,6 +21,7 @@ import type { RecurringSession } from "@/lib/domain/types";
 import { formatWeekdayLabels } from "@/lib/schedule/format-weekdays";
 import { formatDayAndMonth } from "@/utils";
 import type { DateSelectInfo, EventClickInfo } from "@fullcalendar/react";
+import { useScheduleShowWeekends } from "@/hooks/useScheduleShowWeekends";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
@@ -101,6 +102,8 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const selectedIsAbsent =
     selectedOccurrenceId != null && isAbsent(selectedOccurrenceId);
 
+  const { showWeekends, setShowWeekends } = useScheduleShowWeekends();
+
   const viewOptions = useMemo(
     () =>
       CALENDAR_VIEW_OPTIONS.map((option) => ({
@@ -160,6 +163,11 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         viewOptions={viewOptions}
         containerClassName="schedule-timegrid-scroll"
         timeGridHeight="min(70vh, 720px)"
+        weekends={showWeekends}
+        showWeekendsToggle
+        onWeekendsChange={setShowWeekends}
+        weekendsToggleLabel={t("showWeekends")}
+        weekendsToggleAriaLabel={t("showWeekendsAria")}
         onEventClick={handleEventClick}
         onTimeSlotSelect={onTimeSlotSelect}
       />
