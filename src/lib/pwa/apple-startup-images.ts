@@ -1,6 +1,21 @@
 /** iOS standalone launch images — keep in sync with `scripts/generate-pwa-splash.mjs`. */
 export const APPLE_STARTUP_IMAGES = [
   {
+    url: "/pwa/splash/iphone-16-pro-1206x2622.png",
+    media:
+      "(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    url: "/pwa/splash/iphone-16-pro-max-1320x2868.png",
+    media:
+      "(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    url: "/pwa/splash/iphone-16-1179x2556.png",
+    media:
+      "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
     url: "/pwa/splash/iphone-se-640x1136.png",
     media:
       "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
@@ -34,5 +49,9 @@ export const APPLE_STARTUP_IMAGES = [
     url: "/pwa/splash/ipad-pro-11-1668x2388.png",
     media:
       "(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+  },
+  /** Fallback when no `media` query matches (e.g. new iOS viewport quirks). */
+  {
+    url: "/pwa/splash/iphone-16-pro-1206x2622.png",
   },
 ] as const;

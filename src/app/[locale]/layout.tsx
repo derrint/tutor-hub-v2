@@ -4,8 +4,10 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { isRtl } from "@/i18n/languages";
 import { type Locale, routing } from "@/i18n/routing";
 import { APPLE_STARTUP_IMAGES } from "@/lib/pwa/apple-startup-images";
+import { THEME_BEFORE_INTERACTIVE_SCRIPT } from "@/lib/pwa/theme-before-interactive";
 import "flatpickr/dist/flatpickr.css";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { Outfit } from "next/font/google";
@@ -23,11 +25,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "TutorHub",
-    statusBarStyle: "default",
-    startupImage: APPLE_STARTUP_IMAGES.map(({ url, media }) => ({
-      url,
-      media,
-    })),
+    statusBarStyle: "black-translucent",
+    startupImage: APPLE_STARTUP_IMAGES.map((entry) =>
+      "media" in entry && entry.media
+        ? { url: entry.url, media: entry.media }
+        : { url: entry.url },
+    ),
   },
   icons: {
     apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180" }],
@@ -64,8 +67,22 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html
+      lang={locale}
+      dir={isRtl(locale as Locale) ? "rtl" : "ltr"}
+      className="h-full bg-white dark:bg-gray-900"
+      suppressHydrationWarning
+    >
+      <body
+        className={`${outfit.className} min-h-full bg-white dark:bg-gray-900`}
+      >
+        <Script
+          id="theme-before-interactive"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: THEME_BEFORE_INTERACTIVE_SCRIPT,
+          }}
+        />
         <NextIntlClientProvider>
           <AuthSessionProvider>
             <ThemeProvider>

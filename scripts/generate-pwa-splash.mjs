@@ -24,6 +24,27 @@ const MARK = `
 /** Pixel size + Apple media query (portrait). */
 const SPLASH_SPECS = [
   {
+    file: "iphone-16-pro-1206x2622.png",
+    w: 1206,
+    h: 2622,
+    media:
+      "(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    file: "iphone-16-pro-max-1320x2868.png",
+    w: 1320,
+    h: 2868,
+    media:
+      "(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    file: "iphone-16-1179x2556.png",
+    w: 1179,
+    h: 2556,
+    media:
+      "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
     file: "iphone-se-640x1136.png",
     w: 640,
     h: 1136,
