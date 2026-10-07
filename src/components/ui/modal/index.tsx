@@ -1,75 +1,131 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { cn } from "@/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
   children: React.ReactNode;
-  showCloseButton?: boolean; // New prop to control close button visibility
-  isFullscreen?: boolean; // Default to false for backwards compatibility
+  showCloseButton?: boolean;
+  isFullscreen?: boolean;
 }
+
+const MODAL_TRANSITION_MS = 300;
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   children,
   className,
-  showCloseButton = true, // Default to true for backwards compatibility
+  showCloseButton = true,
   isFullscreen = false,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(isOpen);
+  const [visible, setVisible] = useState(false);
+
+  const finishExit = useCallback(() => {
+    setMounted(false);
+    setVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      let frame2 = 0;
+      const frame1 = requestAnimationFrame(() => {
+        frame2 = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(frame1);
+        cancelAnimationFrame(frame2);
+      };
+    }
+    setVisible(false);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (visible || isOpen || !mounted) return;
+    const timer = window.setTimeout(finishExit, MODAL_TRANSITION_MS);
+    return () => window.clearTimeout(timer);
+  }, [visible, isOpen, mounted, finishExit]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && isOpen && visible) {
         onClose();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, onClose]);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, visible, onClose]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+    if (!mounted) {
+      document.body.style.overflow = "";
+      return;
     }
-
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [mounted]);
 
-  if (!isOpen) return null;
+  const handlePanelTransitionEnd = (
+    event: React.TransitionEvent<HTMLDivElement>,
+  ) => {
+    if (event.target !== modalRef.current) return;
+    if (visible || isOpen) return;
+    finishExit();
+  };
+
+  if (!mounted) return null;
 
   const contentClasses = isFullscreen
-    ? "w-full h-full"
-    : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
+    ? "h-full w-full"
+    : "relative w-full rounded-3xl bg-white dark:bg-gray-900";
 
   return (
-    <div className="modal fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto">
+    <div
+      className={cn(
+        "modal fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-4 sm:p-6",
+        !visible && "pointer-events-none",
+      )}
+      aria-hidden={!visible}
+    >
       {!isFullscreen && (
-        <div
-          className="fixed inset-0 h-full w-full bg-gray-900/20 backdrop-blur-xs dark:bg-gray-950/40"
+        <button
+          type="button"
+          className={cn(
+            "fixed inset-0 h-full w-full bg-gray-900/20 backdrop-blur-xs transition-opacity duration-300 ease-out motion-reduce:transition-none dark:bg-gray-950/40",
+            visible ? "opacity-100" : "opacity-0",
+          )}
+          aria-label="Close"
           onClick={onClose}
-        ></div>
+          tabIndex={visible ? 0 : -1}
+        />
       )}
       <div
         ref={modalRef}
-        className={`${contentClasses} ${className}`}
+        onTransitionEnd={handlePanelTransitionEnd}
+        className={cn(
+          contentClasses,
+          className,
+          "relative z-10 transition-all duration-300 ease-out motion-reduce:transition-none",
+          visible
+            ? "translate-y-0 scale-100 opacity-100"
+            : "translate-y-2 scale-95 opacity-0",
+        )}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         {showCloseButton && (
           <button
+            type="button"
             onClick={onClose}
             className="absolute inset-e-3 top-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 sm:inset-e-6 sm:top-6 sm:h-11 sm:w-11 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
