@@ -20,7 +20,7 @@ export default async function Dashboard() {
     <div className="space-y-4 md:space-y-6">
       <GreetingBanner />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-2 gap-4 md:gap-6">
         <ClassesTodayMetric />
         <ActiveStudentsMetric />
       </div>
