@@ -12,13 +12,15 @@ import { useTranslations } from "next-intl";
 import { useEffect, useId } from "react";
 
 type AppMoreNavSheetProps = {
-  open: boolean;
+  visible: boolean;
   onClose: () => void;
+  onExited: () => void;
 };
 
 export default function AppMoreNavSheet({
-  open,
+  visible,
   onClose,
+  onExited,
 }: AppMoreNavSheetProps) {
   const t = useTranslations("sidebar");
   const tCommon = useTranslations("common");
@@ -27,43 +29,48 @@ export default function AppMoreNavSheet({
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && open) onClose();
+      if (event.key === "Escape" && visible) onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, onClose]);
+  }, [visible, onClose]);
 
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  if (!open) return null;
+  const handlePanelTransitionEnd = (
+    event: React.TransitionEvent<HTMLDivElement>,
+  ) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.propertyName !== "transform" || visible) return;
+    onExited();
+  };
 
   return (
     <div
       className={cn(
         "fixed inset-x-0 top-0 z-40 xl:hidden",
         bottomNavInsetClass,
+        !visible && "pointer-events-none",
       )}
+      aria-hidden={!visible}
     >
       <button
         type="button"
-        className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm dark:bg-gray-900/40"
+        className={cn(
+          "absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity duration-300 ease-out motion-reduce:transition-none dark:bg-gray-900/40",
+          visible ? "opacity-100" : "opacity-0",
+        )}
         aria-label={tCommon("close")}
         onClick={onClose}
+        tabIndex={visible ? 0 : -1}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="absolute inset-x-0 bottom-0 rounded-t-2xl border border-gray-200 bg-white px-4 pb-4 pt-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
+        onTransitionEnd={handlePanelTransitionEnd}
+        className={cn(
+          "absolute inset-x-0 bottom-0 rounded-t-2xl border border-gray-200 bg-white px-4 pb-4 pt-3 shadow-theme-lg transition-transform duration-300 ease-out motion-reduce:transition-none dark:border-gray-800 dark:bg-gray-900",
+          visible ? "translate-y-0" : "translate-y-full",
+        )}
       >
         <p
           id={titleId}
@@ -80,6 +87,7 @@ export default function AppMoreNavSheet({
                 <Link
                   href={item.path}
                   onClick={onClose}
+                  tabIndex={visible ? 0 : -1}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-3 text-theme-sm font-medium transition-colors",
                     active

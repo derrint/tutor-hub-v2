@@ -11,16 +11,70 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { MoreDotIcon } from "@/icons";
 import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+
+const MORE_SHEET_TRANSITION_MS = 320;
 
 export default function AppBottomNav() {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreSheetMounted, setMoreSheetMounted] = useState(false);
+  const [moreSheetVisible, setMoreSheetVisible] = useState(false);
   const morePanelId = useId();
   const moreActive = isMoreNavPath(pathname);
 
-  const closeMore = () => setMoreOpen(false);
+  const moreOpen = moreSheetMounted && moreSheetVisible;
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearExitTimer = useCallback(() => {
+    if (exitTimerRef.current !== null) {
+      clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+  }, []);
+
+  const finishMoreExit = useCallback(() => {
+    clearExitTimer();
+    setMoreSheetMounted(false);
+    setMoreSheetVisible(false);
+  }, [clearExitTimer]);
+
+  const closeMore = useCallback(() => {
+    setMoreSheetVisible(false);
+    clearExitTimer();
+    exitTimerRef.current = setTimeout(() => {
+      exitTimerRef.current = null;
+      finishMoreExit();
+    }, MORE_SHEET_TRANSITION_MS);
+  }, [clearExitTimer, finishMoreExit]);
+
+  const handleMoreExited = useCallback(() => {
+    finishMoreExit();
+  }, [finishMoreExit]);
+
+  const toggleMore = useCallback(() => {
+    if (moreSheetVisible) {
+      closeMore();
+      return;
+    }
+    clearExitTimer();
+    setMoreSheetMounted(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setMoreSheetVisible(true));
+    });
+  }, [clearExitTimer, closeMore, moreSheetVisible]);
+
+  const dismissMore = useCallback(() => {
+    closeMore();
+  }, [closeMore]);
+
+  useEffect(() => {
+    if (!moreSheetMounted) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [moreSheetMounted]);
 
   return (
     <>
@@ -36,7 +90,7 @@ export default function AppBottomNav() {
               <li key={item.key}>
                 <Link
                   href={item.path}
-                  onClick={() => setMoreOpen(false)}
+                  onClick={dismissMore}
                   className={cn(
                     "relative flex h-full flex-col items-center justify-center gap-0.5 px-1 text-theme-xs font-medium transition-colors",
                     active
@@ -51,7 +105,7 @@ export default function AppBottomNav() {
                     />
                   )}
                   <Icon className={bottomNavIconClass} />
-                  <span className="truncate max-w-full">
+                  <span className="max-w-full truncate text-xs">
                     {t(`items.${item.key}`)}
                   </span>
                 </Link>
@@ -63,28 +117,40 @@ export default function AppBottomNav() {
               type="button"
               aria-expanded={moreOpen}
               aria-controls={morePanelId}
-              onClick={() => setMoreOpen((prev) => !prev)}
+              onClick={toggleMore}
               className={cn(
-                "relative flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 text-theme-xs font-medium transition-colors",
-                moreActive || moreOpen
+                "relative flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 text-theme-xs font-medium transition-colors active:scale-95 motion-reduce:active:scale-100",
+                moreActive || moreSheetMounted
                   ? "text-brand-500 dark:text-brand-400"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
               )}
             >
-              {(moreActive || moreOpen) && (
+              {(moreActive || moreSheetMounted) && (
                 <span
-                  className="absolute inset-x-2 top-0 h-0.5 rounded-b-full bg-brand-500 dark:bg-brand-400"
+                  className="absolute inset-x-2 top-0 h-0.5 rounded-b-full bg-brand-500 transition-opacity duration-200 dark:bg-brand-400"
                   aria-hidden
                 />
               )}
-              <MoreDotIcon className={bottomNavIconClass} />
-              <span>{t("more")}</span>
+              <MoreDotIcon
+                className={cn(
+                  bottomNavIconClass,
+                  "transition-transform duration-300 ease-out motion-reduce:transition-none",
+                  moreSheetVisible && "scale-110",
+                )}
+              />
+              <span className="text-xs">{t("more")}</span>
             </button>
           </li>
         </ul>
       </nav>
       <div id={morePanelId}>
-        <AppMoreNavSheet open={moreOpen} onClose={closeMore} />
+        {moreSheetMounted && (
+          <AppMoreNavSheet
+            visible={moreSheetVisible}
+            onClose={closeMore}
+            onExited={handleMoreExited}
+          />
+        )}
       </div>
     </>
   );
