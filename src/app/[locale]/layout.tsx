@@ -3,6 +3,7 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { isRtl } from "@/i18n/languages";
 import { type Locale, routing } from "@/i18n/routing";
+import { APPLE_STARTUP_IMAGES } from "@/lib/pwa/apple-startup-images";
 import "flatpickr/dist/flatpickr.css";
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
@@ -23,6 +24,10 @@ export const metadata: Metadata = {
     capable: true,
     title: "TutorHub",
     statusBarStyle: "default",
+    startupImage: APPLE_STARTUP_IMAGES.map(({ url, media }) => ({
+      url,
+      media,
+    })),
   },
   icons: {
     apple: [{ url: "/pwa/apple-touch-icon.png", sizes: "180x180" }],

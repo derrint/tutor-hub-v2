@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "pwa:splash": "node scripts/generate-pwa-splash.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

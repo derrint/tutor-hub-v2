@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TutorHub">
+  <rect width="512" height="512" fill="#ffffff"/>
+  <g transform="translate(64 64) scale(16)">
+    <path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z" stroke="#465FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="3" y="14" width="7" height="7" rx="1" stroke="#465FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="17.5" cy="17.5" r="3.5" stroke="#465FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
