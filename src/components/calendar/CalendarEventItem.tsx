@@ -102,7 +102,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
         dir="ltr"
         className={cn(
           shellClass,
-          "flex h-full w-full flex-col justify-start overflow-hidden rounded-md p-1 sm:rounded-lg sm:p-1.5",
+          "pointer-events-none flex h-full w-full flex-col justify-start overflow-hidden rounded-md p-1 sm:rounded-lg sm:p-1.5",
           colors.bg,
         )}
       >
@@ -138,7 +138,7 @@ const CalendarEventItem: React.FC<CalendarEventItemProps> = ({ eventInfo }) => {
       dir="ltr"
       className={cn(
         shellClass,
-        "flex items-center rounded-md py-1 ps-1.5 pe-2 sm:rounded-lg sm:py-1.5 sm:ps-2.5 sm:pe-3",
+        "pointer-events-none flex items-center rounded-md py-1 ps-1.5 pe-2 sm:rounded-lg sm:py-1.5 sm:ps-2.5 sm:pe-3",
         colors.bg,
       )}
     >

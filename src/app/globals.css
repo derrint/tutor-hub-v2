@@ -973,6 +973,11 @@ pre[class*="language-"].line-numbers {
   overscroll-behavior: contain;
 }
 
+.schedule-timegrid-scroll .fc-timegrid-event-harness,
+.schedule-timegrid-scroll .fc-timegrid-event {
+  touch-action: manipulation;
+}
+
 .custom-calendar .fc-classic-yth {
   @apply gap-0!;
 }

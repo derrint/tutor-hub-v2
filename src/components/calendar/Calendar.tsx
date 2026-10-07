@@ -5,6 +5,7 @@ import { useModal } from "@/hooks/useModal";
 import { isRtl } from "@/i18n/languages";
 import type { Locale } from "@/i18n/routing";
 import type {
+  DateClickInfo,
   DateSelectInfo,
   DayCellInfo,
   DayHeaderInfo,
@@ -166,6 +167,27 @@ const Calendar: React.FC<CalendarProps> = ({
     setSelectedStartDate(combineDate);
     setSelectedEndDate(combineDate);
     openModal();
+  };
+
+  const handleDateClick = (clickInfo: DateClickInfo) => {
+    if (!onTimeSlotSelect) return;
+    const viewType = clickInfo.view.type;
+    if (viewType !== "timeGridWeek" && viewType !== "timeGridDay") return;
+
+    const start = clickInfo.date;
+    const end = clickInfo.allDay
+      ? start
+      : new Date(start.getTime() + 60 * 60 * 1000);
+
+    onTimeSlotSelect({
+      start,
+      end,
+      allDay: clickInfo.allDay,
+      startStr: clickInfo.dateStr,
+      endStr: clickInfo.allDay ? clickInfo.dateStr : end.toISOString(),
+      jsEvent: clickInfo.jsEvent as MouseEvent,
+      view: clickInfo.view,
+    });
   };
 
   const handleDateSelect = (selectInfo: DateSelectInfo) => {
@@ -597,6 +619,7 @@ const Calendar: React.FC<CalendarProps> = ({
           selectable={!readOnly || Boolean(onTimeSlotSelect)}
           events={events}
           select={handleDateSelect}
+          dateClick={onTimeSlotSelect ? handleDateClick : undefined}
           eventClick={handleEventClick}
           eventContent={(eventInfo: EventDisplayInfo) => (
             <CalendarEventItem
