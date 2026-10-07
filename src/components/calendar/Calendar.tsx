@@ -106,6 +106,8 @@ export interface CalendarProps {
   onWeekendsChange?: (showWeekends: boolean) => void;
   weekendsToggleLabel?: string;
   weekendsToggleAriaLabel?: string;
+  /** Fires once when the calendar view has mounted (e.g. hide mount skeleton). */
+  onCalendarReady?: () => void;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -127,6 +129,7 @@ const Calendar: React.FC<CalendarProps> = ({
   onWeekendsChange,
   weekendsToggleLabel = "Weekends",
   weekendsToggleAriaLabel,
+  onCalendarReady,
 }) => {
   const appLocale = useLocale();
   const isRtlLayout = isRtl(appLocale as Locale);
@@ -162,6 +165,7 @@ const Calendar: React.FC<CalendarProps> = ({
 
   const calendarRef = useRef<CalendarRef>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
+  const calendarReadyFired = useRef(false);
   const { isOpen, openModal, closeModal } = useModal();
 
   const handleViewChange = (viewKey: string) => {
@@ -621,6 +625,10 @@ const Calendar: React.FC<CalendarProps> = ({
           popoverCloseContent={() => <CloseIcon className="size-4" />}
           datesSet={(arg) => {
             setCurrentView(arg.view.type);
+            if (!calendarReadyFired.current) {
+              calendarReadyFired.current = true;
+              onCalendarReady?.();
+            }
             requestAnimationFrame(() => {
               const chunk = calendarContainerRef.current?.querySelector(
                 ".ta-toolbar-section:last-child",

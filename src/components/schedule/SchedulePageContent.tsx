@@ -1,6 +1,7 @@
 "use client";
 
 import PageHeader from "@/components/common/PageHeader";
+import ScheduleCalendarMountSkeleton from "@/components/loading/skeletons/ScheduleCalendarMountSkeleton";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 import ScheduleSlotFormModal from "@/components/schedule/ScheduleSlotFormModal";
 import Button from "@/components/ui/button/Button";
@@ -21,6 +22,7 @@ const SchedulePageContent: React.FC = () => {
   const t = useTranslations("tutorHub.schedule");
   const { isOpen, openModal, closeModal } = useModal();
   const [slotPrefill, setSlotPrefill] = useState<SlotPrefill | null>(null);
+  const [calendarReady, setCalendarReady] = useState(false);
 
   const openAddSlot = useCallback(
     (prefill: SlotPrefill | null) => {
@@ -80,10 +82,18 @@ const SchedulePageContent: React.FC = () => {
         {t("weeklyHint")}
       </p>
 
-      <ScheduleCalendar
-        onTimeSlotSelect={handleTimeSlotSelect}
-        onEditWeeklySlot={handleEditWeeklySlot}
-      />
+      <div className="relative">
+        {!calendarReady && (
+          <div className="absolute inset-0 z-10" aria-busy="true">
+            <ScheduleCalendarMountSkeleton />
+          </div>
+        )}
+        <ScheduleCalendar
+          onTimeSlotSelect={handleTimeSlotSelect}
+          onEditWeeklySlot={handleEditWeeklySlot}
+          onCalendarReady={() => setCalendarReady(true)}
+        />
+      </div>
 
       <ScheduleSlotFormModal
         isOpen={isOpen}

@@ -31,6 +31,7 @@ type ScheduleCalendarProps = {
     session: RecurringSession,
     occurrenceDate: Date | null,
   ) => void;
+  onCalendarReady?: () => void;
 };
 
 type SelectedOccurrence = {
@@ -47,6 +48,7 @@ const removeWeeklySlotButtonClassName =
 const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onTimeSlotSelect,
   onEditWeeklySlot,
+  onCalendarReady,
 }) => {
   const t = useTranslations("tutorHub.schedule");
   const tViews = useTranslations("tutorHub.schedule.views");
@@ -170,6 +172,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         weekendsToggleAriaLabel={t("showWeekendsAria")}
         onEventClick={handleEventClick}
         onTimeSlotSelect={onTimeSlotSelect}
+        onCalendarReady={onCalendarReady}
       />
 
       <Modal
