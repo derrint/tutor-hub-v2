@@ -8,8 +8,14 @@ import { useAttendance } from "@/context/AttendanceContext";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { TodaySession } from "@/lib/mock-data";
 import { cn } from "@/utils";
+import {
+  calendarPartsForSessionListDay,
+  getSessionClockPhase,
+  sessionInstantUtcMs,
+  type SessionClockPhase,
+} from "@/utils/session-clock";
 import { useTranslations } from "next-intl";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface SessionListProps {
   sessions: TodaySession[];
@@ -18,6 +24,13 @@ interface SessionListProps {
   emptyMessage: string;
   ariaLabel: string;
 }
+
+type SessionRowMeta = {
+  occurrenceId: string;
+  absent: boolean;
+  phase: SessionClockPhase;
+  startMs: number;
+};
 
 /**
  * Today's concrete sessions. Sessions count toward billing unless explicitly
@@ -31,22 +44,73 @@ const SessionList: React.FC<SessionListProps> = ({
 }) => {
   const t = useTranslations("tutorHub.dashboard");
   const { isAbsent } = useAttendance();
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const refresh = () => setNowMs(Date.now());
+    const intervalId = window.setInterval(refresh, 60_000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
 
   const date = useMemo(
     () => sessionDate ?? new Date(),
     [sessionDate],
   );
 
-  const occurrenceBySessionId = useMemo(
-    () =>
-      new Map(
-        sessions.map((session) => [
-          session.id,
-          buildStudentOccurrenceIdFromDate(session.studentId, date),
-        ]),
-      ),
-    [sessions, date],
+  const calendarParts = useMemo(
+    () => calendarPartsForSessionListDay(sessionDate, nowMs),
+    [sessionDate, nowMs],
   );
+
+  const rowMetaBySessionId = useMemo(() => {
+    const map = new Map<string, SessionRowMeta>();
+
+    for (const session of sessions) {
+      const occurrenceId = buildStudentOccurrenceIdFromDate(
+        session.studentId,
+        date,
+      );
+      const startMs =
+        sessionInstantUtcMs(calendarParts, session.startTime) ?? 0;
+      const endMs = sessionInstantUtcMs(calendarParts, session.endTime) ?? 0;
+      const phase =
+        startMs > 0 && endMs > 0
+          ? getSessionClockPhase(nowMs, startMs, endMs)
+          : "upcoming";
+
+      map.set(session.id, {
+        occurrenceId,
+        absent: isAbsent(occurrenceId),
+        phase,
+        startMs,
+      });
+    }
+
+    return map;
+  }, [sessions, date, calendarParts, nowMs, isAbsent]);
+
+  const nextSessionId = useMemo(() => {
+    let bestId: string | undefined;
+    let bestStart = Number.POSITIVE_INFINITY;
+
+    for (const session of sessions) {
+      const meta = rowMetaBySessionId.get(session.id);
+      if (!meta || meta.absent || meta.phase !== "upcoming") continue;
+      if (meta.startMs < bestStart) {
+        bestStart = meta.startMs;
+        bestId = session.id;
+      }
+    }
+
+    return bestId;
+  }, [sessions, rowMetaBySessionId]);
 
   if (sessions.length === 0) {
     return (
@@ -56,17 +120,14 @@ const SessionList: React.FC<SessionListProps> = ({
     );
   }
 
-  const nextSessionId = sessions.find((session) => {
-    const occurrenceId = occurrenceBySessionId.get(session.id);
-    return occurrenceId && !isAbsent(occurrenceId);
-  })?.id;
-
   return (
     <ul className="flex flex-col gap-2" aria-label={ariaLabel}>
       {sessions.map((session) => {
-        const occurrenceId = occurrenceBySessionId.get(session.id)!;
-        const absent = isAbsent(occurrenceId);
+        const meta = rowMetaBySessionId.get(session.id)!;
+        const { occurrenceId, absent, phase } = meta;
         const isNext = !absent && session.id === nextSessionId;
+        const isOngoing = !absent && phase === "ongoing";
+        const isDone = !absent && phase === "done";
 
         return (
           <li
@@ -75,7 +136,9 @@ const SessionList: React.FC<SessionListProps> = ({
               "flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 p-3 sm:flex-nowrap sm:gap-4 dark:border-gray-800",
               isNext &&
                 "border-brand-200 bg-brand-50/50 dark:border-brand-500/30 dark:bg-brand-500/5",
-              absent && "opacity-60",
+              isOngoing &&
+                "border-success-200 bg-success-50/40 dark:border-success-500/30 dark:bg-success-500/5",
+              (absent || isDone) && "opacity-70",
             )}
           >
             <div className="w-14 shrink-0 text-end">
@@ -97,6 +160,10 @@ const SessionList: React.FC<SessionListProps> = ({
             <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
               {absent ? (
                 <StatusBadge variant="absent" />
+              ) : phase === "done" ? (
+                <StatusBadge variant="done" />
+              ) : phase === "ongoing" ? (
+                <StatusBadge variant="ongoing" />
               ) : isNext ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-theme-xs font-medium text-brand-500 dark:bg-brand-500/15 dark:text-brand-400">
                   <TimeIcon className="size-3.5" />
@@ -105,7 +172,11 @@ const SessionList: React.FC<SessionListProps> = ({
               ) : (
                 <StatusBadge variant="scheduled" />
               )}
-              <SessionAttendanceToggle occurrenceId={occurrenceId} compact />
+              <SessionAttendanceToggle
+                occurrenceId={occurrenceId}
+                compact
+                disabled={isDone}
+              />
             </div>
           </li>
         );

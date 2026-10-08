@@ -179,6 +179,8 @@
     },
     "status": {
       "scheduled": "Scheduled",
+      "ongoing": "Ongoing",
+      "done": "Done",
       "attended": "Attended",
       "absent": "Absent",
       "active": "Active",

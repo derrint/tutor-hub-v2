@@ -4,6 +4,8 @@ import React from "react";
 
 export type StatusVariant =
   | "scheduled"
+  | "ongoing"
+  | "done"
   | "attended"
   | "absent"
   | "active"
@@ -19,6 +21,8 @@ export type StatusVariant =
 // switched off (absent, inactive) is a solid grey so it never reads as "done".
 const STATUS_COLOR = {
   scheduled: "light",
+  ongoing: "success",
+  done: "dark",
   attended: "success",
   absent: "dark",
   active: "success",
