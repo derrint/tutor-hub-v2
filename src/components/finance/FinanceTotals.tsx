@@ -10,6 +10,8 @@ interface FinanceTotalsProps {
   totalBilled: number;
   collected: number;
   unpaid: number;
+  earnedSoFar: number;
+  scheduledRemainder: number;
   collectedPercent: number;
   unpaidCount: number;
   invoicesMonthParam: string;
@@ -23,6 +25,8 @@ const FinanceTotals: React.FC<FinanceTotalsProps> = ({
   totalBilled,
   collected,
   unpaid,
+  earnedSoFar,
+  scheduledRemainder,
   collectedPercent,
   unpaidCount,
   invoicesMonthParam,
@@ -30,13 +34,32 @@ const FinanceTotals: React.FC<FinanceTotalsProps> = ({
   const t = useTranslations("tutorHub.finance");
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
       <div className={CARD}>
         <p className={`${LABEL} text-gray-500 dark:text-gray-400`}>
           {t("totalBilled")}
         </p>
         <p className={`${AMOUNT} text-gray-800 dark:text-white/90`}>
           {formatRupiah(totalBilled)}
+        </p>
+        {scheduledRemainder > 0 && (
+          <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">
+            {t("scheduledRemainderNote", {
+              amount: formatRupiah(scheduledRemainder),
+            })}
+          </p>
+        )}
+      </div>
+
+      <div className={CARD}>
+        <p className={`${LABEL} text-brand-600 dark:text-brand-400`}>
+          {t("earnedSoFar")}
+        </p>
+        <p className={`${AMOUNT} text-brand-600 dark:text-brand-400`}>
+          {formatRupiah(earnedSoFar)}
+        </p>
+        <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">
+          {t("earnedSoFarNote")}
         </p>
       </div>
 

@@ -17,6 +17,8 @@ const FinanceOverview: React.FC = () => {
     totalBilled,
     collected,
     unpaid,
+    earnedSoFar,
+    scheduledRemainder,
     unpaidInvoiceCount,
     invoiceCount,
     isBillingReady,
@@ -81,6 +83,8 @@ const FinanceOverview: React.FC = () => {
           totalBilled={totalBilled}
           collected={collected}
           unpaid={unpaid}
+          earnedSoFar={earnedSoFar}
+          scheduledRemainder={scheduledRemainder}
           collectedPercent={collectedPercent}
           unpaidCount={unpaidInvoiceCount}
           invoicesMonthParam={monthParam}

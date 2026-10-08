@@ -13,8 +13,15 @@ export default function MonthlyCollectionCard() {
   const t = useTranslations("tutorHub.dashboard");
   /** Dashboard always reflects the calendar month, not the billing URL month. */
   const calendarMonth = useMemo(() => getCurrentInvoicePeriod(), []);
-  const { totalBilled, collected, unpaid, invoiceCount, isBillingReady } =
-    useFinanceSummary(calendarMonth);
+  const {
+    totalBilled,
+    collected,
+    unpaid,
+    earnedSoFar,
+    scheduledRemainder,
+    invoiceCount,
+    isBillingReady,
+  } = useFinanceSummary(calendarMonth);
 
   const hasInvoices = invoiceCount > 0;
 
@@ -27,7 +34,8 @@ export default function MonthlyCollectionCard() {
         <div className="space-y-3 py-1">
           <Skeleton className="h-8 w-24" />
           <Skeleton className="h-1.5 w-full rounded-full" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 xsm:grid-cols-3">
+            <Skeleton className="h-16 rounded-lg" />
             <Skeleton className="h-16 rounded-lg" />
             <Skeleton className="h-16 rounded-lg" />
           </div>
@@ -54,6 +62,12 @@ export default function MonthlyCollectionCard() {
           <p className="mt-0.5 text-theme-xs text-gray-500 dark:text-gray-400">
             {t("ofTotal", { amount: formatRupiah(totalBilled) })}
           </p>
+          <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">
+            {t("earnedSoFarSummary", {
+              earned: formatRupiah(earnedSoFar),
+              scheduled: formatRupiah(scheduledRemainder),
+            })}
+          </p>
 
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
             <div
@@ -62,7 +76,15 @@ export default function MonthlyCollectionCard() {
             />
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 xsm:grid-cols-3">
+            <div className="rounded-lg bg-brand-50 px-3 py-2 dark:bg-brand-500/15">
+              <p className="text-theme-xs text-brand-600 dark:text-brand-400">
+                {t("earnedSoFar")}
+              </p>
+              <p className="text-theme-sm font-semibold tabular-nums text-brand-600 dark:text-brand-400">
+                {formatRupiah(earnedSoFar)}
+              </p>
+            </div>
             <div className="rounded-lg bg-success-50 px-3 py-2 dark:bg-success-500/15">
               <p className="text-theme-xs text-success-600 dark:text-success-500">
                 {t("collected")}

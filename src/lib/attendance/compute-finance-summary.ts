@@ -7,6 +7,10 @@ export type FinanceSummary = {
   totalBilled: number;
   collected: number;
   unpaid: number;
+  /** Billable fees for sessions that have ended through `nowMs`. */
+  earnedSoFar: number;
+  /** `totalBilled - earnedSoFar`, floored at zero. */
+  scheduledRemainder: number;
   unpaidInvoiceCount: number;
   invoiceCount: number;
 };
@@ -18,6 +22,7 @@ export type FinanceSummary = {
 export function computeFinanceSummary(
   invoices: InvoicePreview[],
   period: InvoicePeriod = getCurrentInvoicePeriod(),
+  earnedSoFar: number = 0,
 ): FinanceSummary {
   const inPeriod = invoices.filter(
     (invoice) =>
@@ -43,6 +48,8 @@ export function computeFinanceSummary(
     totalBilled,
     collected,
     unpaid: totalBilled - collected,
+    earnedSoFar,
+    scheduledRemainder: Math.max(0, totalBilled - earnedSoFar),
     unpaidInvoiceCount,
     invoiceCount: inPeriod.length,
   };

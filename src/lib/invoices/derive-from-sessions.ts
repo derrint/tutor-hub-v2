@@ -21,7 +21,7 @@ export type SessionWithStudent = Session & { student: Student };
 
 export type BillableSession = SessionWithStudent | SerializedSessionWithStudent;
 
-function sessionsInPeriod(
+export function sessionsInPeriod(
   sessions: BillableSession[],
   period: InvoicePeriod,
 ): BillableSession[] {
@@ -37,7 +37,7 @@ function sessionsInPeriod(
   });
 }
 
-function isBillableSession(
+export function isBillableSession(
   session: BillableSession,
   period: InvoicePeriod,
   absentOccurrenceIds: ReadonlySet<string>,

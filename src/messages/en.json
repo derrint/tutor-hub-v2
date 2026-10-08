@@ -214,7 +214,10 @@
       "ofTotal": "of {amount} total",
       "noInvoices": "No invoices this month yet.",
       "collected": "Collected",
-      "unpaid": "Unpaid"
+      "unpaid": "Unpaid",
+      "earnedSoFar": "Earned so far",
+      "scheduledRemainder": "Still scheduled",
+      "earnedSoFarSummary": "{earned} earned · {scheduled} still scheduled"
     },
     "schedule": {
       "title": "Schedule",
@@ -398,6 +401,10 @@
       "totalBilled": "Total billed",
       "collected": "Collected",
       "unpaid": "Unpaid",
+      "earnedSoFar": "Earned so far",
+      "earnedSoFarNote": "Billable sessions that have ended",
+      "scheduledRemainder": "Still scheduled",
+      "scheduledRemainderNote": "{amount} in sessions not yet finished",
       "collectedOfTotal": "{percent}% of this month’s billed total",
       "viewUnpaid": "View {count} unpaid invoices →",
       "compositionTitle": "Payment breakdown",
