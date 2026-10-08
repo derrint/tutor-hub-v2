@@ -1,108 +1,24 @@
 import {
-  calendarDateToStoredDate,
-  storedDateToCalendarParts,
-} from "@/lib/datetime/calendar-date";
-import { mapParent, mapProfile, mapStudent, mapTodaySession } from "@/lib/db/mappers";
-import { prisma } from "@/lib/db/prisma";
-import type {
-  InvoicePreview,
-  ParentRecord,
-  RecurringSession,
-  StudentRecord,
-  TodaySession,
-  TutorProfile,
-} from "@/lib/domain/types";
-import { invoicePreviewFromPaidRecord } from "@/lib/invoices/derive-from-sessions";
+  loadAdminBootstrapBilling,
+  type AdminBootstrapBillingData,
+} from "./load-admin-bootstrap-billing";
 import {
-  buildAbsentOccurrenceIdSet,
-  loadSessionsForGenerationWindow,
-} from "@/lib/invoices/queries";
-import { groupScheduleRulesForCalendar } from "@/lib/schedule/group-rules";
-import { ensureSessionsGeneratedIfNeeded } from "@/lib/schedule/generate-sessions";
-import {
-  serializeSessions,
-  type SerializedSessionWithStudent,
-} from "@/lib/invoices/session-serialization";
+  loadAdminBootstrapCore,
+  type AdminBootstrapCoreData,
+} from "./load-admin-bootstrap-core";
 
-export type AdminBootstrapData = {
-  profile: TutorProfile;
-  parents: ParentRecord[];
-  students: StudentRecord[];
-  recurringSessions: RecurringSession[];
-  sessions: SerializedSessionWithStudent[];
-  absentOccurrenceIds: string[];
-  todaySessions: TodaySession[];
-  paidInvoices: InvoicePreview[];
-};
+export type { AdminBootstrapCoreData, AdminBootstrapBillingData };
+
+/** Full bootstrap (core + billing) — prefer split loaders for admin layout. */
+export type AdminBootstrapData = AdminBootstrapCoreData &
+  AdminBootstrapBillingData;
 
 export async function loadAdminBootstrap(): Promise<AdminBootstrapData> {
-  await ensureSessionsGeneratedIfNeeded();
-
-  const [profileRow, parentsRows, studentsRows, rulesRows, sessions, paidRows] =
-    await Promise.all([
-      prisma.profile.findFirst(),
-      prisma.parent.findMany({ orderBy: { name: "asc" } }),
-      prisma.student.findMany({ orderBy: { name: "asc" } }),
-      prisma.scheduleRule.findMany({
-        include: { student: true },
-        orderBy: [{ studentId: "asc" }, { dayOfWeek: "asc" }],
-      }),
-      loadSessionsForGenerationWindow(),
-      prisma.invoice.findMany({
-        where: { status: "PAID" },
-        include: {
-          parent: true,
-          items: {
-            include: { student: true, sessions: true },
-          },
-        },
-      }),
-    ]);
-
-  const profile = profileRow
-    ? mapProfile(profileRow)
-    : {
-        studioName: "TutorHub",
-        bankName: "",
-        bankAccountNumber: "",
-        accountHolderName: "",
-        whatsappNumber: "",
-      };
-
-  const parents = parentsRows.map(mapParent);
-  const students = studentsRows.map(mapStudent);
-  const recurringSessions = groupScheduleRulesForCalendar(rulesRows);
-  const absentOccurrenceIds = [...buildAbsentOccurrenceIdSet(sessions)];
-
-  const now = new Date();
-  const todayParts = storedDateToCalendarParts(
-    calendarDateToStoredDate(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      now.getDate(),
-    ),
-  );
-  const todayStart = calendarDateToStoredDate(
-    todayParts.year,
-    todayParts.month,
-    todayParts.day,
-  );
-
-  const todaySessions = sessions
-    .filter((s) => s.date.getTime() === todayStart.getTime())
-    .sort((a, b) => a.startTime.localeCompare(b.startTime))
-    .map(mapTodaySession);
-
-  const paidInvoices = paidRows.map(invoicePreviewFromPaidRecord);
-
-  return {
-    profile,
-    parents,
-    students,
-    recurringSessions,
-    sessions: serializeSessions(sessions),
-    absentOccurrenceIds,
-    todaySessions,
-    paidInvoices,
-  };
+  const [core, billing] = await Promise.all([
+    loadAdminBootstrapCore(),
+    loadAdminBootstrapBilling(),
+  ]);
+  return { ...core, ...billing };
 }
+
+export { loadAdminBootstrapCore, loadAdminBootstrapBilling };

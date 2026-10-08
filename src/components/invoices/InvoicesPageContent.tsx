@@ -3,6 +3,7 @@
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import InvoiceCard from "@/components/invoices/InvoiceCard";
 import PageHeader from "@/components/common/PageHeader";
+import BillingPageSkeleton from "@/components/loading/skeletons/BillingPageSkeleton";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
 import { useInvoices } from "@/context/InvoiceContext";
 import { isFutureBillingPeriod } from "@/lib/billing-period";
@@ -12,13 +13,26 @@ import React, { useMemo } from "react";
 const InvoicesPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.invoices");
   const { period } = useBillingPeriod();
-  const { getInvoicesForPeriod } = useInvoices();
+  const { getInvoicesForPeriod, isBillingReady } = useInvoices();
   const isFuture = isFutureBillingPeriod(period);
 
   const periodInvoices = useMemo(
-    () => getInvoicesForPeriod(period),
-    [getInvoicesForPeriod, period],
+    () => (isBillingReady ? getInvoicesForPeriod(period) : []),
+    [getInvoicesForPeriod, isBillingReady, period],
   );
+
+  if (!isBillingReady) {
+    return (
+      <div>
+        <PageHeader
+          title={t("title")}
+          description={t("pageSummaryEmpty")}
+          action={<BillingMonthNavigator />}
+        />
+        <BillingPageSkeleton includeHeader={false} />
+      </div>
+    );
+  }
 
   const unpaidCount = useMemo(
     () => periodInvoices.filter((invoice) => invoice.status === "UNPAID").length,

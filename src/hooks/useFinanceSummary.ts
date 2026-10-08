@@ -13,13 +13,20 @@ import { useMemo } from "react";
  * @param period — Billing month to aggregate. Dashboard passes calendar month;
  * Finance page passes URL billing month via `useBillingPeriod`.
  */
+export type FinanceSummaryResult = FinanceSummary & {
+  isBillingReady: boolean;
+};
+
 export function useFinanceSummary(
   period: InvoicePeriod = getCurrentInvoicePeriod(),
-): FinanceSummary {
-  const { getInvoicesForPeriod } = useInvoices();
+): FinanceSummaryResult {
+  const { getInvoicesForPeriod, isBillingReady } = useInvoices();
 
   return useMemo(() => {
-    const invoices = getInvoicesForPeriod(period);
-    return computeFinanceSummary(invoices, period);
-  }, [getInvoicesForPeriod, period]);
+    const invoices = isBillingReady ? getInvoicesForPeriod(period) : [];
+    return {
+      ...computeFinanceSummary(invoices, period),
+      isBillingReady,
+    };
+  }, [getInvoicesForPeriod, isBillingReady, period]);
 }

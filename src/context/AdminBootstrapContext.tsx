@@ -1,15 +1,17 @@
 "use client";
 
-import type { AdminBootstrapData } from "@/lib/db/load-admin-bootstrap";
+import type { AdminBootstrapCoreData } from "@/lib/db/load-admin-bootstrap-core";
 import React, { createContext, useContext, useMemo } from "react";
 
-const AdminBootstrapContext = createContext<AdminBootstrapData | null>(null);
+const AdminBootstrapContext = createContext<AdminBootstrapCoreData | null>(
+  null,
+);
 
 export function AdminBootstrapProvider({
   value,
   children,
 }: {
-  value: AdminBootstrapData;
+  value: AdminBootstrapCoreData;
   children: React.ReactNode;
 }) {
   const memo = useMemo(() => value, [value]);

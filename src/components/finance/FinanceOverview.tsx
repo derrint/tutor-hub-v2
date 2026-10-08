@@ -2,6 +2,7 @@
 
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
 import PageHeader from "@/components/common/PageHeader";
+import BillingPageSkeleton from "@/components/loading/skeletons/BillingPageSkeleton";
 import FinanceTotals from "@/components/finance/FinanceTotals";
 import PaymentComposition from "@/components/finance/PaymentComposition";
 import { billingMonthHref, useBillingPeriod } from "@/hooks/useBillingPeriod";
@@ -18,7 +19,21 @@ const FinanceOverview: React.FC = () => {
     unpaid,
     unpaidInvoiceCount,
     invoiceCount,
+    isBillingReady,
   } = useFinanceSummary(period);
+
+  if (!isBillingReady) {
+    return (
+      <div>
+        <PageHeader
+          title={t("title")}
+          description={t("descriptionEmpty")}
+          action={<BillingMonthNavigator />}
+        />
+        <BillingPageSkeleton includeHeader={false} />
+      </div>
+    );
+  }
 
   const hasInvoices = invoiceCount > 0;
   const collectedPercent =

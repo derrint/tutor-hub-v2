@@ -1,7 +1,7 @@
 "use client";
 
 import { setInvoiceStatusAction } from "@/app/actions/invoices";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useBillingBootstrap } from "@/context/BillingBootstrapContext";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
 import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
@@ -9,6 +9,7 @@ import {
   deriveInvoiceForParent,
   listParentIdsWithSessionsInPeriod,
 } from "@/lib/invoices/derive-from-sessions";
+import { hydrateSessions } from "@/lib/invoices/session-serialization";
 import type { InvoicePreview, InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
 import { buildInvoiceId } from "@/lib/invoices/generate-invoice-from-schedule";
@@ -20,7 +21,8 @@ import React, {
   useMemo,
 } from "react";
 
-type InvoiceContextValue = {
+export type InvoiceContextValue = {
+  isBillingReady: boolean;
   getInvoicesForPeriod: (period: InvoicePeriod) => InvoicePreview[];
   setInvoiceStatus: (
     invoiceId: string,
@@ -28,10 +30,14 @@ type InvoiceContextValue = {
   ) => Promise<void>;
 };
 
-const InvoiceContext = createContext<InvoiceContextValue | null>(null);
+export const InvoiceContext = createContext<InvoiceContextValue | null>(null);
 
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
-  const { sessions, paidInvoices } = useAdminBootstrap();
+  const { sessions: serializedSessions, paidInvoices } = useBillingBootstrap();
+  const sessions = useMemo(
+    () => hydrateSessions(serializedSessions),
+    [serializedSessions],
+  );
   const { absentOccurrenceIds } = useAttendance();
   const { students, parents } = useRoster();
   const router = useRouter();
@@ -86,7 +92,10 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const setInvoiceStatus = useCallback(
     async (invoiceId: string, status: InvoiceStatus) => {
       const parsed = parseInvoiceId(invoiceId);
-      const period = parsed?.period ?? { month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+      const period = parsed?.period ?? {
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+      };
       const parentId = parsed?.parentId ?? "";
 
       if (!parentId) {
@@ -101,6 +110,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
+      isBillingReady: true,
       getInvoicesForPeriod,
       setInvoiceStatus,
     }),

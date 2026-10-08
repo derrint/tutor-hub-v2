@@ -24,7 +24,7 @@ The app runs on **Neon Postgres** with **server actions** for roster, schedule, 
 | `/settings` | **Settings** — bank details, account holder (WhatsApp + PDF signature) |
 
 - **Sign-in:** Google OAuth via Auth.js — only emails in `AUTH_ALLOWED_EMAILS`.
-- **PWA:** Web manifest + home-screen icons + iOS splash (`public/pwa/`, `src/app/manifest.ts`; regenerate splashes with `pnpm pwa:splash`) — installable on phone; no offline service worker. Cold start uses `BrandedLaunchScreen` while bootstrap loads; in-app route `loading.tsx` skeletons live under `src/app/[locale]/(admin)/`.
+- **PWA:** Web manifest + home-screen icons + iOS splash (`public/pwa/`, `src/app/manifest.ts`; regenerate splashes with `pnpm pwa:splash`) — installable on phone; no offline service worker. Cold start uses `BrandedLaunchScreen` only for fast **core** bootstrap (roster + today); billing data (sessions window + paid invoices) loads in a second `Suspense` so the shell appears sooner. In-app route `loading.tsx` skeletons live under `src/app/[locale]/(admin)/`.
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
 - **Billing month:** `?month=YYYY-MM` on Invoices, Reports, Finance.
 

@@ -2,6 +2,7 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import SeeAllLink from "@/components/dashboard/SeeAllLink";
+import Skeleton from "@/components/ui/skeleton/Skeleton";
 import { getCurrentInvoicePeriod } from "@/lib/billing-period";
 import { useFinanceSummary } from "@/hooks/useFinanceSummary";
 import { useMemo } from "react";
@@ -12,10 +13,28 @@ export default function MonthlyCollectionCard() {
   const t = useTranslations("tutorHub.dashboard");
   /** Dashboard always reflects the calendar month, not the billing URL month. */
   const calendarMonth = useMemo(() => getCurrentInvoicePeriod(), []);
-  const { totalBilled, collected, unpaid, invoiceCount } =
+  const { totalBilled, collected, unpaid, invoiceCount, isBillingReady } =
     useFinanceSummary(calendarMonth);
 
   const hasInvoices = invoiceCount > 0;
+
+  if (!isBillingReady) {
+    return (
+      <ComponentCard
+        title={t("financeTitle")}
+        action={<SeeAllLink href="/finance" label={t("seeAll")} />}
+      >
+        <div className="space-y-3 py-1">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-1.5 w-full rounded-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-16 rounded-lg" />
+            <Skeleton className="h-16 rounded-lg" />
+          </div>
+        </div>
+      </ComponentCard>
+    );
+  }
   const collectedPercent =
     totalBilled > 0 ? Math.round((collected / totalBilled) * 100) : 0;
 
