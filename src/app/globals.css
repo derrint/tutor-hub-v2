@@ -978,6 +978,25 @@ pre[class*="language-"].line-numbers {
   touch-action: manipulation;
 }
 
+/* Current-time line (week / day) — uses brand, not FC classic default red */
+.custom-calendar {
+  --fc-classic-now: var(--color-brand-500);
+}
+
+.custom-calendar .ta-now-indicator-line {
+  border-color: var(--color-brand-500);
+  border-width: 2px 0 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.custom-calendar .ta-now-indicator-dot {
+  background-color: var(--color-brand-500);
+  border-color: var(--color-brand-500);
+  z-index: 4;
+  pointer-events: none;
+}
+
 .custom-calendar .fc-classic-yth {
   @apply gap-0!;
 }

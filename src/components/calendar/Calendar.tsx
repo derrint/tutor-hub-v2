@@ -108,6 +108,10 @@ export interface CalendarProps {
   weekendsToggleAriaLabel?: string;
   /** Fires once when the calendar view has mounted (e.g. hide mount skeleton). */
   onCalendarReady?: () => void;
+  /** Red “current time” line on week/day time grids (Schedule). */
+  showNowIndicator?: boolean;
+  /** IANA zone for the now line and slot times (e.g. `Asia/Jakarta`). */
+  calendarTimeZone?: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -130,6 +134,8 @@ const Calendar: React.FC<CalendarProps> = ({
   weekendsToggleLabel = "Weekends",
   weekendsToggleAriaLabel,
   onCalendarReady,
+  showNowIndicator = false,
+  calendarTimeZone,
 }) => {
   const appLocale = useLocale();
   const isRtlLayout = isRtl(appLocale as Locale);
@@ -148,6 +154,7 @@ const Calendar: React.FC<CalendarProps> = ({
     ...(calendarLocale ? { locale: calendarLocale } : {}),
     ...(slotMinTime ? { slotMinTime } : {}),
     ...(slotMaxTime ? { slotMaxTime } : {}),
+    ...(calendarTimeZone ? { timeZone: calendarTimeZone } : {}),
   };
 
   const [editableEvents, setEditableEvents] =
@@ -162,6 +169,9 @@ const Calendar: React.FC<CalendarProps> = ({
   const [currentView, setCurrentView] = useState(initialView);
   const [portalNode, setPortalNode] = useState<Element | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  const isTimeGridView =
+    currentView === "timeGridWeek" || currentView === "timeGridDay";
 
   const calendarRef = useRef<CalendarRef>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
@@ -612,7 +622,9 @@ const Calendar: React.FC<CalendarProps> = ({
           slotHeaderDividerClass="border-e! border-s-0! border-y-0! border-gray-200! dark:border-gray-800!"
           allDayDividerClass="border-b! border-t-0! border-x-0! border-gray-200! p-0! bg-transparent! dark:border-gray-800!"
           eventClass="focus:shadow-none"
-          nowIndicator={false}
+          nowIndicator={showNowIndicator && isTimeGridView}
+          nowIndicatorLineClass="ta-now-indicator-line"
+          nowIndicatorDotClass="ta-now-indicator-dot"
           columnEventClass="bg-transparent! border-0! p-1! shadow-none! hover:shadow-none! focus:outline-none"
           columnEventInnerClass="p-0! border-0! bg-transparent! h-full"
           tableHeaderSticky={true}

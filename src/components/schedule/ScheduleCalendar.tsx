@@ -19,7 +19,7 @@ import { resolveStudentCalendarColorKey } from "@/lib/students/calendar-colors";
 import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
 import type { RecurringSession } from "@/lib/domain/types";
 import { formatWeekdayLabels } from "@/lib/schedule/format-weekdays";
-import { formatDayAndMonth } from "@/utils";
+import { formatDayAndMonth, TUTOR_TIME_ZONE } from "@/utils";
 import type { DateSelectInfo, EventClickInfo } from "@fullcalendar/react";
 import { useScheduleShowWeekends } from "@/hooks/useScheduleShowWeekends";
 import { useTranslations } from "next-intl";
@@ -173,6 +173,8 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         onEventClick={handleEventClick}
         onTimeSlotSelect={onTimeSlotSelect}
         onCalendarReady={onCalendarReady}
+        showNowIndicator
+        calendarTimeZone={TUTOR_TIME_ZONE}
       />
 
       <Modal
