@@ -39,6 +39,9 @@ export const bottomNavInsetClass =
 export const bottomNavContentPaddingClass =
   "pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-6";
 
+/** Sticky admin header — keeps controls below status bar / Dynamic Island (iOS PWA). */
+export const headerSafeAreaTopClass = "pt-[env(safe-area-inset-top)]";
+
 export const adminNavItems: AdminNavItem[] = [
   { key: "dashboard", path: "/", Icon: GridIcon },
   { key: "schedule", path: "/schedule", Icon: CalenderIcon },

@@ -1,5 +1,8 @@
 import Skeleton from "@/components/ui/skeleton/Skeleton";
-import { bottomNavContentPaddingClass } from "@/layout/admin-nav-items";
+import {
+  bottomNavContentPaddingClass,
+  headerSafeAreaTopClass,
+} from "@/layout/admin-nav-items";
 
 type AdminShellSkeletonProps = {
   children: React.ReactNode;
@@ -28,7 +31,9 @@ export default function AdminShellSkeleton({
       </aside>
 
       <div className="flex-1 xl:ms-[90px]">
-        <header className="sticky top-0 z-99999 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <header
+          className={`sticky top-0 z-99999 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${headerSafeAreaTopClass}`}
+        >
           <div className="flex w-full items-center justify-between gap-3 px-3 py-3 sm:px-4 xl:px-6 xl:py-4">
             <div className="flex items-center gap-2">
               <Skeleton className="size-8 rounded-lg xl:hidden" />
