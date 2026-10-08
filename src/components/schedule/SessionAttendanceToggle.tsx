@@ -11,8 +11,6 @@ type SessionAttendanceToggleProps = {
   compact?: boolean;
   className?: string;
   showIcon?: boolean;
-  /** Past sessions — attendance is still shown but toggling is disabled. */
-  disabled?: boolean;
 };
 
 const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
@@ -20,7 +18,6 @@ const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
   compact = false,
   className,
   showIcon = false,
-  disabled = false,
 }) => {
   const t = useTranslations("tutorHub.attendance");
   const { isAbsent, toggleAbsent } = useAttendance();
@@ -30,7 +27,6 @@ const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
     <Button
       size="sm"
       variant={absent ? "outlineSuccess" : "outlineWarning"}
-      disabled={disabled}
       className={cn(compact && "shrink-0", className)}
       startIcon={
         showIcon ? (

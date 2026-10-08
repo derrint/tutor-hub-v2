@@ -172,11 +172,9 @@ const SessionList: React.FC<SessionListProps> = ({
               ) : (
                 <StatusBadge variant="scheduled" />
               )}
-              <SessionAttendanceToggle
-                occurrenceId={occurrenceId}
-                compact
-                disabled={isDone}
-              />
+              {!isDone && (
+                <SessionAttendanceToggle occurrenceId={occurrenceId} compact />
+              )}
             </div>
           </li>
         );
