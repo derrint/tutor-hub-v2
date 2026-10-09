@@ -1,7 +1,4 @@
-import {
-  calendarDateToStoredDate,
-  storedDateToCalendarParts,
-} from "@/lib/datetime/calendar-date";
+import { tutorTodayStoredDate } from "@/lib/datetime/tutor-calendar";
 import { mapParent, mapProfile, mapStudent, mapTodaySession } from "@/lib/db/mappers";
 import { loadAbsentOccurrenceIds } from "@/lib/db/load-absent-occurrence-ids";
 import { prisma } from "@/lib/db/prisma";
@@ -24,19 +21,7 @@ export type AdminBootstrapCoreData = {
 };
 
 export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> {
-  const now = new Date();
-  const todayParts = storedDateToCalendarParts(
-    calendarDateToStoredDate(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      now.getDate(),
-    ),
-  );
-  const todayStart = calendarDateToStoredDate(
-    todayParts.year,
-    todayParts.month,
-    todayParts.day,
-  );
+  const todayStart = tutorTodayStoredDate();
 
   const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
     await Promise.all([

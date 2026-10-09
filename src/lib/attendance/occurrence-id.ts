@@ -1,3 +1,4 @@
+import { calendarPartsForOccurrence } from "@/lib/datetime/tutor-calendar";
 import type { InvoicePeriod } from "@/utils/format";
 
 /** Stable key for one billable session (student + calendar date). */
@@ -16,12 +17,8 @@ export function buildStudentOccurrenceIdFromDate(
   studentId: string,
   date: Date,
 ): string {
-  return buildStudentOccurrenceId(
-    studentId,
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-  );
+  const { year, month, day } = calendarPartsForOccurrence(date);
+  return buildStudentOccurrenceId(studentId, year, month, day);
 }
 
 export function buildStudentOccurrenceIdForPeriodDay(

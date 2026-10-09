@@ -1,3 +1,5 @@
+import { TUTOR_TIME_ZONE } from "@/utils/time-of-day";
+
 /** Calendar Y-M-D stored as UTC noon so month/day stay stable across time zones. */
 export function calendarDateToStoredDate(
   year: number,
@@ -37,12 +39,14 @@ export function endOfMonthCalendar(year: number, month: number): Date {
   return calendarDateToStoredDate(year, month, daysInMonth);
 }
 
-/** `YYYY-MM-DD` for `<input type="date">` using the user's local calendar. */
+/** `YYYY-MM-DD` for `<input type="date">` — tutor today in WIB. */
 export function todayIsoDateLocal(reference: Date = new Date()): string {
-  const y = reference.getFullYear();
-  const m = String(reference.getMonth() + 1).padStart(2, "0");
-  const d = String(reference.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TUTOR_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(reference);
 }
 
 /** Parse `YYYY-MM-DD` from the slot form into a stored calendar date. */

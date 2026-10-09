@@ -1,3 +1,4 @@
+import { getTutorCalendarParts } from "@/lib/datetime/tutor-calendar";
 import type { InvoicePeriod } from "@/utils/format";
 
 /** URL query value, e.g. `2026-09`. */
@@ -24,14 +25,12 @@ export function parseBillingMonthParam(
   return { year, month };
 }
 
-/** Calendar month containing `date` (defaults to today). */
+/** Calendar month containing `date` in WIB (defaults to tutor today). */
 export function getCurrentInvoicePeriod(
   date: Date = new Date(),
 ): InvoicePeriod {
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-  };
+  const { year, month } = getTutorCalendarParts(date);
+  return { year, month };
 }
 
 export function shiftInvoicePeriod(
@@ -50,8 +49,7 @@ export function comparePeriodToCalendarMonth(
   period: InvoicePeriod,
   reference: Date = new Date(),
 ): -1 | 0 | 1 {
-  const refYear = reference.getFullYear();
-  const refMonth = reference.getMonth() + 1;
+  const { year: refYear, month: refMonth } = getTutorCalendarParts(reference);
 
   if (period.year !== refYear) {
     return period.year < refYear ? -1 : 1;

@@ -10,6 +10,7 @@ import AppBottomNav from "@/layout/AppBottomNav";
 import { bottomNavContentPaddingClass } from "@/layout/admin-nav-items";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
+import TutorDayRolloverRefresh from "@/components/admin/TutorDayRolloverRefresh";
 import React from "react";
 
 export default function AdminShell({
@@ -29,6 +30,7 @@ export default function AdminShell({
       <RosterProvider>
         <ScheduleProvider>
           <AttendanceProvider>
+            <TutorDayRolloverRefresh />
             <div className="min-h-screen xl:flex">
               <AppSidebar />
               <div

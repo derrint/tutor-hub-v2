@@ -1,25 +1,11 @@
 import { storedDateToCalendarParts } from "@/lib/datetime/calendar-date";
-import { TUTOR_TIME_ZONE } from "@/utils/time-of-day";
+import { getTutorCalendarParts } from "@/lib/datetime/tutor-calendar";
 
 export type SessionClockPhase = "upcoming" | "ongoing" | "done";
 
-const HHMM = /^(\d{1,2}):(\d{2})$/;
+export { getTutorCalendarParts };
 
-/** Calendar Y-M-D in the tutor schedule zone (WIB). */
-export function getTutorCalendarParts(reference: Date = new Date()): {
-  year: number;
-  month: number;
-  day: number;
-} {
-  const iso = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TUTOR_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(reference);
-  const [year, month, day] = iso.split("-").map((part) => Number.parseInt(part, 10));
-  return { year, month, day };
-}
+const HHMM = /^(\d{1,2}):(\d{2})$/;
 
 /** UTC ms for `HH:mm` on a calendar day in WIB (fixed UTC+7). */
 export function sessionInstantUtcMs(

@@ -5,7 +5,7 @@ import StatusBadge from "@/components/common/StatusBadge";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
 import { TimeIcon } from "@/icons";
 import { useAttendance } from "@/context/AttendanceContext";
-import { buildStudentOccurrenceIdFromDate } from "@/lib/attendance";
+import { buildStudentOccurrenceId } from "@/lib/attendance";
 import type { TodaySession } from "@/lib/mock-data";
 import { cn } from "@/utils";
 import {
@@ -59,11 +59,6 @@ const SessionList: React.FC<SessionListProps> = ({
     };
   }, []);
 
-  const date = useMemo(
-    () => sessionDate ?? new Date(),
-    [sessionDate],
-  );
-
   const calendarParts = useMemo(
     () => calendarPartsForSessionListDay(sessionDate, nowMs),
     [sessionDate, nowMs],
@@ -73,9 +68,11 @@ const SessionList: React.FC<SessionListProps> = ({
     const map = new Map<string, SessionRowMeta>();
 
     for (const session of sessions) {
-      const occurrenceId = buildStudentOccurrenceIdFromDate(
+      const occurrenceId = buildStudentOccurrenceId(
         session.studentId,
-        date,
+        calendarParts.year,
+        calendarParts.month,
+        calendarParts.day,
       );
       const startMs =
         sessionInstantUtcMs(calendarParts, session.startTime) ?? 0;
@@ -94,7 +91,7 @@ const SessionList: React.FC<SessionListProps> = ({
     }
 
     return map;
-  }, [sessions, date, calendarParts, nowMs, isAbsent]);
+  }, [sessions, calendarParts, nowMs, isAbsent]);
 
   const nextSessionId = useMemo(() => {
     let bestId: string | undefined;

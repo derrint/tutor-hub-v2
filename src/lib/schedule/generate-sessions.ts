@@ -3,6 +3,7 @@ import {
   storedDateToCalendarParts,
   weekdayForCalendarDate,
 } from "@/lib/datetime/calendar-date";
+import { getTutorCalendarParts } from "@/lib/datetime/tutor-calendar";
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma, PrismaClient } from "@prisma/client";
 
@@ -18,8 +19,9 @@ export type SessionGenerationWindow = {
 export function defaultSessionGenerationWindow(
   reference: Date = new Date(),
 ): SessionGenerationWindow {
-  const refYear = reference.getFullYear();
-  const refMonth = reference.getMonth();
+  const tutorToday = getTutorCalendarParts(reference);
+  const refYear = tutorToday.year;
+  const refMonth = tutorToday.month - 1;
 
   const fromAnchor = new Date(
     Date.UTC(refYear, refMonth - SESSION_GENERATION_MONTHS_BACK, 1, 12),
