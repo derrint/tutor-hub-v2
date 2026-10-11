@@ -21,7 +21,9 @@ An earlier Google Stitch exploration was abandoned in favor of building directly
 
 ## Users
 
-Single primary user: a solo private tutor who teaches Montessori-based material to young children individually. Students span two education levels — TK (kindergarten) and SD (elementary school). The tutor personally manages schedule, billing, and progress reporting for each student's parent. There is no other staff; this is explicitly a single-tutor operation (no multi-tutor / multi-user support planned).
+**v1 (shipped):** Single primary user — a solo private tutor teaching Montessori-based material to young children (TK and SD). The tutor manages schedule, billing, and progress reporting for each student's parent.
+
+**Phase 5 (planned — [`ROADMAP.md`](./ROADMAP.md)):** Multiple **`Tutor`** practices (one row per studio), each with a **Google**-linked **`User`**; an **admin** can switch **`activeTutorId`** to view another tutor’s data. Not public SaaS sign-up.
 
 ## Product Purpose
 
@@ -29,7 +31,7 @@ TutorHub replaces ad-hoc manual tracking (e.g. typing up WhatsApp messages by ha
 
 ## Positioning
 
-Operational tool for one tutor's private practice — not intended as multi-tenant SaaS for other tutors. Scope is deliberately narrow: replicate a familiar WhatsApp invoice + rapot workflow in software rather than rebuilding a generic school-management product.
+Operational tool for private tutor practice(s) — **v1** is one tutor; **Phase 5** adds multiple isolated tutors + admin oversight on one deployment. Still not a public multi-tenant SaaS product. Scope stays narrow: WhatsApp invoice + rapot workflow, not generic school ERP.
 
 ## Operating Context
 
@@ -60,7 +62,8 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 
 Confirmed decisions (from product discussion):
 
-- **Single-tutor operation** with **two allowed Google logins** (tutor + partner) — no public sign-up, no roles product.
+- **v1:** Single-tenant operation with **allowlisted Google logins** (`AUTH_ALLOWED_EMAILS`) — no public sign-up.
+- **Phase 5 (planned):** Data scoped by **`tutorId`** on model **`Tutor`**; **TUTOR** vs **ADMIN** roles; admin selects active tutor — see roadmap.
 - **Recurring schedule**: weekly-repeating sessions are supported; edits/cancellations apply per individual occurrence only (no "this and following" / "all events" editing mode — deliberately simplified vs. Google Calendar).
 - **Attendance & billing**: a session marked absent is excluded from that month's invoice total; this must be visually obvious (disabled/grey) wherever sessions are shown.
 - **Student status**: `ACTIVE` / `INACTIVE`. Deactivating a student auto-stops their recurring schedule rule (sets an end date) and removes not-yet-occurred future sessions; past sessions remain untouched for billing/report history.

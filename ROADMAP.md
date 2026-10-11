@@ -66,10 +66,6 @@ Goal: one **billing month** mental model — tutor thinks in calendar months, no
 - [x] **Paid months (prod lock)** — hide **Mark unpaid** when `NODE_ENV=production` (deploy)
 - [x] **Attendance keys** — date-scoped; finance/invoices filter by selected `period`
 
-**Optional later (not blocking Phase 2):**
-
-- [ ] **Compact month list** — e.g. last 12 rows: month label, total billed, unpaid count → tap opens that month in the picker (nice on desktop; secondary entry on phone)
-
 ### Access control (deploy gate)
 
 - [x] **Auth.js** (NextAuth v5) — Google OAuth, email allowlist (`AUTH_ALLOWED_EMAILS`, two accounts)
@@ -159,11 +155,99 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ---
 
-## Explicitly deferred (v1)
+## Phase 5 — Multi-tutor platform (v2)
+
+**Status:** Not started — design + migration plan below. v1 (Phases 0–4) stays the **solo-tutor** shipped baseline.
+
+**Goal:** Multiple tutors, each with isolated schedule · roster · invoices · finance · reports · settings. Every tutor signs in with **Google** (Auth.js). One **admin** account can **select which tutor’s data** to view and operate on (server-enforced context, not UI-only).
+
+**Naming (Phase 5):** Prisma model **`Tutor`** = one tutor’s practice (studio). FK **`tutorId`** on all business rows. Do not use `Tenant` / `TutorWorkspace` in schema or code.
+
+**Non-goals for Phase 5** (still deferred — see bottom of doc):
+
+- Public self-service sign-up / open registration
+- Selling TutorHub as multi-tenant SaaS (billing, onboarding flows, marketing site)
+- WhatsApp Business API
+- Per-tutor custom domains
+
+### Product rules
+
+- **`Tutor`** (record) = one tutor’s practice (studio). All business data is scoped with **`tutorId`**.
+- **`User` with role `TUTOR`** — Google account linked to exactly one **`Tutor`**; sees only that practice’s data.
+- **`User` with role `ADMIN`** — after sign-in, picks **active tutor** from a list; all pages and actions run in that **`Tutor`** until switched.
+- **Impersonation** is **context switch** (`activeTutorId` in session), with optional audit log — not shared passwords.
+- Existing v1 behavior (WIB “today”, billing month, absent → exclude from invoice, paid snapshots) **unchanged per `Tutor`**.
+
+### 5.1 — Data model & migration
+
+- [ ] Introduce **`Tutor`** — e.g. `id`, `displayName` / studio label, `slug?`, timestamps.
+- [ ] Introduce **`User`** — `email` (unique, from Google), `role` (`TUTOR` | `ADMIN`), optional `tutorId` (required for `TUTOR` role, null for `ADMIN`).
+- [ ] Auth.js **`Account` / session** — link OAuth to `User` row (Prisma adapter or custom callback).
+- [ ] Add **`tutorId`** to tutor-owned models: `Profile`, `Parent`, `Student`, `ScheduleRule`, `Session`, `Invoice`, `MonthlyReport`, `InvoiceItem`, etc.
+- [ ] Replace global uniques with **composite uniques per `tutorId`** where needed.
+- [ ] **Migration script:** attach all existing rows to a default **`Tutor`**; map current allowlist tutor(s) to `User` + **`Tutor`**.
+- [ ] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
+
+**Exit criteria:** Schema migrates on Neon; seed creates ≥2 **`Tutor`** rows in dev; no query runs without a `tutorId` filter in new code paths.
+
+### 5.2 — Server tutor context & query scoping
+
+- [ ] **`getActiveTutorId()`** — from session: tutor user’s own `tutorId`, or admin’s selected `activeTutorId`.
+- [ ] Central guard: every **`lib/db/*` loader**, server action, and API route resolves active tutor and adds `where: { tutorId }`.
+- [ ] **`loadAdminBootstrapCore` / billing** — scoped bootstrap; admin shell loads tutor list + active tutor.
+- [ ] **Attendance / absent** keys unchanged in shape; data already isolated by tutor’s sessions.
+- [ ] Integration tests or scripted checks: **tutor A cannot read tutor B** (IDs, actions, PDF routes).
+
+**Exit criteria:** Solo tutor deploy works as today with one **`Tutor`**; second tutor’s data never appears in the first tutor’s UI.
+
+### 5.3 — Auth & onboarding
+
+- [ ] Replace (or layer) **`AUTH_ALLOWED_EMAILS`** with DB **`User`** records + roles.
+- [ ] **Tutor role:** first Google sign-in for invited/seeded email → bind to pre-created `User` + **`Tutor`** (or admin-created **`Tutor`**).
+- [ ] **Admin role:** seeded admin email(s); sign-in → no active tutor until picker sets `activeTutorId`.
+- [ ] Session update when admin **switches tutor** (server action + session patch / cookie).
+- [ ] Sign-out clears active tutor context.
+
+**Exit criteria:** Two Google accounts → two isolated **`Tutor`** practices; admin account → picker → sees chosen tutor’s dashboard.
+
+### 5.4 — Admin UI
+
+- [ ] **Tutor switcher** in header (admin only) — list **`Tutor`** records, search/filter if many.
+- [ ] Visual badge: “Viewing: {studio name}” so admin never confuses context.
+- [ ] Optional: **`/admin/tutors`** — create **`Tutor`** + invite email (manual admin ops; no public signup).
+
+**Exit criteria:** Admin can switch tutor without reload bugs; finance/schedule/invoices match selected **`Tutor`**.
+
+### 5.5 — Docs, env, deploy
+
+- [ ] Update **`PRODUCT.md`** — users, positioning, access model.
+- [ ] Update **`README.md`** — seed admin + tutors, env vars (if any).
+- [ ] **`.env.example`** — document admin bootstrap emails vs tutor users.
+- [ ] Vercel: same app; single deployment for all tutors.
+
+**Phase 5 exit criteria (overall):** Multiple tutors use one deployment; each sees only their practice; admin can switch context securely; v1 solo tutor data migrated; `pnpm build` passes; no cross-tutor data leak in spot-check audit.
+
+### Technical notes (for implementers)
+
+| Topic | Direction |
+|-------|-----------|
+| Auth | Keep **Auth.js + Google**; add `User` / role in DB |
+| Allowlist | Transitional: env allowlist → auto-provision `User` on first login, then remove env |
+| Profile | One **`Profile` per `Tutor`** (not single-row) |
+| Bootstrap | Pass `tutorId` into all loaders; admin loads tutor catalog once |
+| WIB / billing | No change to `tutor-calendar` / `?month=` — scope queries by `tutorId` |
+| Quick ref (future) | `src/lib/tutor-context/` (active tutor + guards), extend `src/auth.ts` |
+
+**Suggested implementation order:** 5.1 → 5.2 → 5.3 → 5.4 → 5.5 (do not build admin UI before server scoping).
+
+---
+
+## Explicitly deferred (v1 + beyond Phase 5 scope)
 
 Do not build unless requirements change:
 
-- Multi-tutor / roles / sign-up beyond the two Google allowlist accounts
+- **Public sign-up** and self-service tutor creation (Phase 5 uses admin-seeded / invited users only)
+- **Multi-tenant SaaS** (subscriptions, tenant billing, marketing)
 - WhatsApp Business API
 - Recurring edit modes like Google Calendar (“all events”, “this and following”)
 - Stored invoice **overdue** status
@@ -186,6 +270,14 @@ Do not build unless requirements change:
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
+| Active tutor context (Phase 5) | *planned* `src/lib/tutor-context/`, Prisma `Tutor` + `User` |
 | Agent / repo conventions | `AGENTS.md` |
 
-**Suggested next sprint:** Maintenance / optional backlog (compact month list, report photo blob storage, further mobile polish).
+**Suggested next sprint:** Start **Phase 5.1** (schema + migration) **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).
+
+**Optional v1 backlog** (not Phase 5):
+
+- [ ] **Compact month list** — last 12 billing months with totals → opens month in picker
+- [ ] **Report photo blob storage** — durable uploads vs inline/base64 in `contentJson`
+- [ ] **Display timezone** — greeting / `formatFullDate` explicitly WIB
+- [ ] **Calendar slot prefill** — `parse-slot-select` uses WIB when reading FC dates
