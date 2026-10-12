@@ -4,7 +4,15 @@ import type {
   TodaySession,
   TutorProfile,
 } from "@/lib/domain/types";
-import type { Parent, Session, Student, Tutor } from "@prisma/client";
+import type { Parent, Session, Student } from "@prisma/client";
+
+/** Billing columns on `Tutor` — structural type avoids stale `@prisma/client` model exports in the IDE. */
+type TutorBillingRow = {
+  bankName: string | null;
+  bankAccountNumber: string | null;
+  accountHolderName: string | null;
+  whatsappNumber: string | null;
+};
 
 export function mapParent(parent: Parent): ParentRecord {
   return {
@@ -29,13 +37,7 @@ export function mapStudent(student: Student): StudentRecord {
   };
 }
 
-export function mapTutorProfile(tutor: Pick<
-  Tutor,
-  | "bankName"
-  | "bankAccountNumber"
-  | "accountHolderName"
-  | "whatsappNumber"
->): TutorProfile {
+export function mapTutorProfile(tutor: TutorBillingRow): TutorProfile {
   return {
     bankName: tutor.bankName ?? "",
     bankAccountNumber: tutor.bankAccountNumber ?? "",
@@ -43,9 +45,6 @@ export function mapTutorProfile(tutor: Pick<
     whatsappNumber: tutor.whatsappNumber ?? "",
   };
 }
-
-/** @deprecated Use `mapTutorProfile`. */
-export const mapProfile = mapTutorProfile;
 
 export function mapTodaySession(
   session: Session & { student: Student },

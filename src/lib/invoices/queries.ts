@@ -5,7 +5,7 @@ import { defaultSessionGenerationWindow } from "@/lib/schedule/generate-sessions
 import { mapParent, mapStudent } from "@/lib/db/mappers";
 import type { InvoicePreview } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
-import { buildInvoiceId } from "./generate-invoice-from-schedule";
+import { buildInvoiceId } from "./invoice-id";
 import {
   deriveInvoiceForParent,
   invoicePreviewFromPaidRecord,

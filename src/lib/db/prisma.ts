@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 /** Bump when the Prisma schema changes so dev HMR does not keep a stale client. */
-const PRISMA_SCHEMA_FINGERPRINT = "monthly-report-content-json-v1";
+const PRISMA_SCHEMA_FINGERPRINT = "phase5-tutor-model-v1";
 
 type PrismaGlobal = {
   prisma?: PrismaClient;

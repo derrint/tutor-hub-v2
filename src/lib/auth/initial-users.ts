@@ -14,10 +14,3 @@ export const INITIAL_USER_IDS = {
   tutor2: "user_tutor_2",
   admin: "user_admin",
 } as const;
-
-export const INITIAL_ALLOWED_EMAILS = [
-  INITIAL_TUTOR_1_EMAIL,
-  INITIAL_TUTOR_1_NOBARSAMBAS_EMAIL,
-  INITIAL_TUTOR_2_EMAIL,
-  INITIAL_ADMIN_EMAIL,
-] as const;

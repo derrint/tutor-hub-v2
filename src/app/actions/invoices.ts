@@ -9,7 +9,7 @@ import {
 } from "@/lib/invoices/queries";
 import type { InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
-import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
+import { parseInvoiceId } from "@/lib/invoices/invoice-id";
 import {
   assertParentInTutor,
   TutorScopeError,

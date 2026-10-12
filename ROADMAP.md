@@ -252,8 +252,8 @@ Constants: `src/lib/auth/initial-users.ts`. Sign-in requires matching **`User`**
 
 ### 5.6 — Cleanup (optional)
 
-- [ ] Remove deprecated **`AUTH_ALLOWED_EMAILS`** / `src/lib/auth/allowed-emails.ts` and `INITIAL_ALLOWED_EMAILS` if unused.
-- [ ] Remove any leftover **`resolve-tutor-id`** shims or dead Phase 5 scaffolding.
+- [x] Remove deprecated **`AUTH_ALLOWED_EMAILS`** / `src/lib/auth/allowed-emails.ts` and `INITIAL_ALLOWED_EMAILS` if unused.
+- [x] Remove **`resolve-tutor-id`** shim, unused **`load-admin-initial.ts`**, mock invoice stores (`roster-store`, `schedule-store`, `invoice-mock-store`, `resolve-invoice-display`); invoice ids in `src/lib/invoices/invoice-id.ts`; derive-on-read via `derive-from-sessions.ts` + `InvoiceContext`.
 
 **Phase 5 exit criteria (overall):** Multiple tutors use one deployment; each sees only their practice; admin can switch context securely and provision **`User`** / **`Tutor`** rows; v1 solo tutor data migrated; `pnpm db:migrate:deploy` + `pnpm verify:tutor-isolation` on Neon; `pnpm build` passes; no cross-tutor data leak in spot-check audit.
 
@@ -262,7 +262,7 @@ Constants: `src/lib/auth/initial-users.ts`. Sign-in requires matching **`User`**
 | Topic | Direction |
 |-------|-----------|
 | Auth | **Auth.js + Google**; **`User`** gate in DB; session `role` **`TEACHER`** \| **`ADMIN`** |
-| Allowlist | **Removed** for sign-in — use **`User.email`**; delete deprecated env allowlist in 5.6 |
+| Allowlist | **Removed** for sign-in — use **`User.email`** (env allowlist deleted in 5.6) |
 | Tutor billing fields | Bank / WhatsApp on **`Tutor`** (`displayName` for picker labels) |
 | Initial load | Pass `tutorId` into all loaders; admin loads tutor catalog once |
 | WIB / billing | No change to `tutor-calendar` / `?month=` — scope queries by `tutorId` |
@@ -292,13 +292,13 @@ Do not build unless requirements change:
 |------|------|
 | Product spec | `PRODUCT.md` |
 | Schema | `prisma/schema.prisma` |
-| Mock (until Phase 2) | `src/lib/mock-data.ts` |
+| Seed / dev fixtures | `src/lib/mock-data.ts` (seed + shared types; runtime data from Postgres) |
 | Roster (parents/students) | `src/context/RosterContext.tsx`, `src/app/actions/roster.ts` |
 | Schedule (recurring slots) | `src/context/ScheduleContext.tsx`, `src/app/actions/schedule.ts`, `src/lib/schedule/generate-sessions.ts` |
-| DB access | `src/lib/db/prisma.ts`, `src/lib/db/load-admin-initial.ts` |
+| DB access | `src/lib/db/prisma.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
-| Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
+| Invoices (derive-on-read) | `src/lib/invoices/derive-from-sessions.ts`, `invoice-id.ts`, `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google + DB users) | `src/auth.ts`, `src/lib/auth/sign-in-gate.ts`, `src/proxy.ts` |
 | Admin initial load | `load-admin-initial-core.ts`, `load-admin-initial-billing.ts`, `AdminInitialContext`, `BillingInitialContext` |
@@ -306,7 +306,7 @@ Do not build unless requirements change:
 | Platform admin UI (Phase 5.4) | `/admin/tutors`, `/admin/users`, `src/components/admin/`, `load-platform-admin.ts` |
 | Agent / repo conventions | `AGENTS.md` (`TEACHER` vs **`Tutor`** practice) |
 
-**Suggested next sprint:** **Phase 5.6** cleanup **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).
+**Suggested next sprint:** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).
 
 **Optional v1 backlog** (not Phase 5):
 
