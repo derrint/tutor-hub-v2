@@ -7,6 +7,7 @@ import {
 import { calendarDateToStoredDate } from "../src/lib/datetime/calendar-date";
 import {
   BOOTSTRAP_ADMIN_EMAIL,
+  BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL,
   BOOTSTRAP_TUTOR_1_EMAIL,
   BOOTSTRAP_TUTOR_1_ID,
   BOOTSTRAP_TUTOR_2_EMAIL,
@@ -55,6 +56,12 @@ async function main() {
       {
         id: BOOTSTRAP_USER_IDS.tutor1,
         email: BOOTSTRAP_TUTOR_1_EMAIL,
+        role: "TUTOR",
+        tutorId: BOOTSTRAP_TUTOR_1_ID,
+      },
+      {
+        id: BOOTSTRAP_USER_IDS.tutor1Nobarsambas,
+        email: BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL,
         role: "TUTOR",
         tutorId: BOOTSTRAP_TUTOR_1_ID,
       },
