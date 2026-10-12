@@ -1,5 +1,6 @@
 "use client";
 
+import { clearActiveTutorCookieAction } from "@/app/actions/tutor-context";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { getLanguage, languages } from "@/i18n/languages";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -8,7 +9,6 @@ import { ChevronDownIcon, GlobeIcon, SettingsIcon } from "@/icons";
 import { cn } from "@/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { clearActiveTutorCookieAction } from "@/app/actions/tutor-context";
 import { signOut, useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
@@ -21,6 +21,9 @@ const dropdownMenuItemClass =
 const dropdownMenuIconClass =
   "size-5 shrink-0 text-gray-500 dark:text-gray-400";
 
+const subPanelClass =
+  "absolute top-11 w-62.5 rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg md:top-0 ltr:-left-2 ltr:md:right-[calc(100%+14px)] ltr:md:left-auto rtl:-right-2 rtl:md:right-auto rtl:md:left-[calc(100%+14px)] dark:border-gray-800 dark:bg-gray-dark";
+
 export default function UserDropdown() {
   const t = useTranslations("userDropdown");
   const tAuth = useTranslations("tutorHub.auth");
@@ -32,31 +35,31 @@ export default function UserDropdown() {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSubDropdownOpen, setIsSubDropdownOpen] = useState(false);
-  const subDropdownRef = useRef<HTMLLIElement>(null);
+  const [isLanguageSubOpen, setIsLanguageSubOpen] = useState(false);
+  const languageSubRef = useRef<HTMLLIElement>(null);
 
   const currentLang = getLanguage(locale);
   const CurrentFlagIcon = currentLang.FlagIcon;
 
-  useClickOutside(subDropdownRef, () => {
-    setIsSubDropdownOpen(false);
+  useClickOutside(languageSubRef, () => {
+    setIsLanguageSubOpen(false);
   });
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
     if (isOpen) {
-      setIsSubDropdownOpen(false);
+      setIsLanguageSubOpen(false);
     }
   };
 
   const closeDropdown = () => {
     setIsOpen(false);
-    setIsSubDropdownOpen(false);
+    setIsLanguageSubOpen(false);
   };
 
   const handleSelectLanguage = (id: Locale) => {
     router.replace(pathname, { locale: id });
-    setIsSubDropdownOpen(false);
+    setIsLanguageSubOpen(false);
   };
 
   return (
@@ -113,14 +116,15 @@ export default function UserDropdown() {
               <span>{t("settings")}</span>
             </Link>
           </li>
-          <li className="relative" ref={subDropdownRef}>
+
+          <li className="relative" ref={languageSubRef}>
             <button
               type="button"
-              onClick={() => setIsSubDropdownOpen((prev) => !prev)}
+              onClick={() => setIsLanguageSubOpen((prev) => !prev)}
               className={cn(
                 dropdownMenuItemClass,
                 "justify-between gap-2",
-                isSubDropdownOpen &&
+                isLanguageSubOpen &&
                   "bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-white",
               )}
             >
@@ -135,8 +139,8 @@ export default function UserDropdown() {
               </span>
             </button>
 
-            {isSubDropdownOpen && (
-              <div className="absolute top-11 w-62.5 rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg md:top-0 ltr:-left-2 ltr:md:right-[calc(100%+14px)] ltr:md:left-auto rtl:-right-2 rtl:md:right-auto rtl:md:left-[calc(100%+14px)] dark:border-gray-800 dark:bg-gray-dark">
+            {isLanguageSubOpen && (
+              <div className={subPanelClass}>
                 <ul className="flex flex-col gap-1">
                   {languages.map((language) => {
                     const isSelected = locale === language.id;

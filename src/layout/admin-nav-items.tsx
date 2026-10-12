@@ -83,5 +83,7 @@ export function isNavItemActive(pathname: string, path: string): boolean {
 }
 
 export function isMoreNavPath(pathname: string): boolean {
-  return bottomNavMoreItems.some((item) => isNavItemActive(pathname, item.path));
+  return bottomNavMoreItems.some((item) =>
+    isNavItemActive(pathname, item.path),
+  );
 }
