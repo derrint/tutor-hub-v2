@@ -44,21 +44,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.userId = user.id;
       token.role = user.role;
       token.tutorId = user.tutorId;
-      if (token.role === "TUTOR") {
-        token.role = "TEACHER";
-      }
       return token;
     },
     session({ session, token }) {
-      const role =
-        token.role === "TUTOR" ? "TEACHER" : token.role;
       if (
         session.user &&
         typeof token.userId === "string" &&
-        (role === "TEACHER" || role === "ADMIN")
+        (token.role === "TEACHER" || token.role === "ADMIN")
       ) {
         session.user.id = token.userId;
-        session.user.role = role;
+        session.user.role = token.role;
         session.user.tutorId =
           typeof token.tutorId === "string" ? token.tutorId : null;
       }

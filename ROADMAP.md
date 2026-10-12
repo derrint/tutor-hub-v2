@@ -185,7 +185,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 - [x] Auth.js session — JWT callback loads **`User`** by Google email (`src/auth.ts`; no Prisma Auth adapter).
 - [x] Add **`tutorId`** to tutor-owned models: `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`). Billing fields on **`Tutor`** (no `Profile` model).
 - [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`).
-- [x] **`UserRole` rename** — `TUTOR` → **`TEACHER`** (`20261012190000_user_role_tutor_to_teacher`; legacy JWT `TUTOR` normalized in session).
+- [x] **`UserRole` rename** — `TUTOR` → **`TEACHER`** (`20261012190000_user_role_tutor_to_teacher`).
 - [x] **Migration script** (`20261012100000_phase5_multi_tutor`): attach **all existing rows** to **`tutor_1`** (UPDATE only — no deletes); insert initial **`User`** rows.
 - [x] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
 
