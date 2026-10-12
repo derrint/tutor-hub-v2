@@ -9,6 +9,7 @@ import {
   type MonthlyReportContentV1,
 } from "@/lib/reports/content-schema";
 import type { InvoicePeriod } from "@/utils/format";
+import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
 
 export type MonthlyReportRow = {
   id: string;
@@ -33,8 +34,9 @@ function computePdfNeedsRefresh(input: {
 export async function listMonthlyReportsForPeriod(
   period: InvoicePeriod,
 ): Promise<MonthlyReportRow[]> {
+  const tutorId = await resolveTutorIdForRequest();
   const rows = await prisma.monthlyReport.findMany({
-    where: { month: period.month, year: period.year },
+    where: { tutorId, month: period.month, year: period.year },
     select: {
       id: true,
       studentId: true,
@@ -62,17 +64,20 @@ export async function upsertMonthlyReportDraftAction(input: {
   period: InvoicePeriod;
   content: MonthlyReportContentV1;
 }): Promise<MonthlyReportRow> {
+  const tutorId = await resolveTutorIdForRequest();
   const contentJson = serializeMonthlyReportContent(input.content);
 
   const row = await prisma.monthlyReport.upsert({
     where: {
-      studentId_month_year: {
+      tutorId_studentId_month_year: {
+        tutorId,
         studentId: input.studentId,
         month: input.period.month,
         year: input.period.year,
       },
     },
     create: {
+      tutorId,
       studentId: input.studentId,
       month: input.period.month,
       year: input.period.year,
@@ -111,19 +116,22 @@ export async function publishMonthlyReportAction(input: {
   period: InvoicePeriod;
   content?: MonthlyReportContentV1;
 }): Promise<void> {
+  const tutorId = await resolveTutorIdForRequest();
   const contentJson = input.content
     ? serializeMonthlyReportContent(input.content)
     : serializeMonthlyReportContent(emptyMonthlyReportContent());
 
   await prisma.monthlyReport.upsert({
     where: {
-      studentId_month_year: {
+      tutorId_studentId_month_year: {
+        tutorId,
         studentId: input.studentId,
         month: input.period.month,
         year: input.period.year,
       },
     },
     create: {
+      tutorId,
       studentId: input.studentId,
       month: input.period.month,
       year: input.period.year,

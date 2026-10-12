@@ -3,6 +3,7 @@
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { mapProfile } from "@/lib/db/mappers";
 import { prisma } from "@/lib/db/prisma";
+import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
 import type { TutorProfile } from "@/lib/domain/types";
 
 export type TutorProfileInput = {
@@ -24,14 +25,18 @@ export async function upsertTutorProfileAction(
     whatsappNumber: input.whatsappNumber.trim() || null,
   };
 
-  const existing = await prisma.profile.findFirst({ select: { id: true } });
+  const tutorId = await resolveTutorIdForRequest();
+  const existing = await prisma.profile.findUnique({
+    where: { tutorId },
+    select: { id: true },
+  });
 
   const row = existing
     ? await prisma.profile.update({
         where: { id: existing.id },
         data,
       })
-    : await prisma.profile.create({ data });
+    : await prisma.profile.create({ data: { ...data, tutorId } });
 
   revalidateAdminRoutes();
   return mapProfile(row);

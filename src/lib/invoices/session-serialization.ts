@@ -5,6 +5,7 @@ import type { Student } from "@prisma/client";
 
 export type SerializedSessionWithStudent = {
   id: string;
+  tutorId: string;
   studentId: string;
   date: string;
   startTime: string;
@@ -19,6 +20,7 @@ export function serializeSessions(
 ): SerializedSessionWithStudent[] {
   return sessions.map((session) => ({
     id: session.id,
+    tutorId: session.tutorId,
     studentId: session.studentId,
     date: session.date.toISOString(),
     startTime: session.startTime,
@@ -40,6 +42,7 @@ export function hydrateSessions(
 ): SessionWithStudent[] {
   return sessions.map((session) => ({
     id: session.id,
+    tutorId: session.tutorId,
     studentId: session.studentId,
     date: new Date(session.date),
     startTime: session.startTime,
@@ -53,6 +56,7 @@ export function hydrateSessions(
     updatedAt: new Date(session.date),
     student: {
       id: session.student.id,
+      tutorId: session.tutorId,
       name: session.student.name,
       level: session.student.level,
       parentId: session.student.parentId,

@@ -10,6 +10,7 @@ import {
   generateSessionsInWindow,
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
+import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
 
 export type RecurringSessionInput = {
   id?: string;
@@ -75,7 +76,12 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
     },
   });
 
-  await generateSessionsInWindow(defaultSessionGenerationWindow());
+  const tutorId = await resolveTutorIdForRequest();
+  await generateSessionsInWindow(
+    defaultSessionGenerationWindow(),
+    prisma,
+    tutorId,
+  );
   revalidateAdminRoutes();
 
   return ruleId;
@@ -99,5 +105,6 @@ export async function ensureSessionsAction() {
   const { ensureSessionsGeneratedIfNeeded } = await import(
     "@/lib/schedule/generate-sessions"
   );
-  await ensureSessionsGeneratedIfNeeded();
+  const tutorId = await resolveTutorIdForRequest();
+  await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 }

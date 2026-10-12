@@ -19,6 +19,13 @@ export async function syncSessionFeesForUnpaidMonths(
 ): Promise<void> {
   if (!parentId) return;
 
+  const studentRow = await client.student.findUnique({
+    where: { id: studentId },
+    select: { tutorId: true },
+  });
+  if (!studentRow) return;
+  const tutorId = studentRow.tutorId;
+
   const window = defaultSessionGenerationWindow();
   const sessions = await client.session.findMany({
     where: {
@@ -44,7 +51,7 @@ export async function syncSessionFeesForUnpaidMonths(
 
     const paid = await client.invoice.findUnique({
       where: {
-        parentId_month_year: { parentId, month, year },
+        tutorId_parentId_month_year: { tutorId, parentId, month, year },
       },
       select: { status: true },
     });

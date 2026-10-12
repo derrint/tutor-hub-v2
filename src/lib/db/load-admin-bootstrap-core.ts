@@ -10,6 +10,7 @@ import type {
   TutorProfile,
 } from "@/lib/domain/types";
 import { groupScheduleRulesForCalendar } from "@/lib/schedule/group-rules";
+import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
 /** Fast admin bootstrap — shell, dashboard, schedule rules (no full session window / paid invoices). */
 export type AdminBootstrapCoreData = {
   profile: TutorProfile;
@@ -21,23 +22,31 @@ export type AdminBootstrapCoreData = {
 };
 
 export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> {
+  const tutorId = await resolveTutorIdForRequest();
   const todayStart = tutorTodayStoredDate();
 
   const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
     await Promise.all([
-      prisma.profile.findFirst(),
-      prisma.parent.findMany({ orderBy: { name: "asc" } }),
-      prisma.student.findMany({ orderBy: { name: "asc" } }),
+      prisma.profile.findFirst({ where: { tutorId } }),
+      prisma.parent.findMany({
+        where: { tutorId },
+        orderBy: { name: "asc" },
+      }),
+      prisma.student.findMany({
+        where: { tutorId },
+        orderBy: { name: "asc" },
+      }),
       prisma.scheduleRule.findMany({
+        where: { student: { tutorId } },
         include: { student: true },
         orderBy: [{ studentId: "asc" }, { dayOfWeek: "asc" }],
       }),
       prisma.session.findMany({
-        where: { date: todayStart },
+        where: { tutorId, date: todayStart },
         include: { student: true },
         orderBy: [{ startTime: "asc" }],
       }),
-      loadAbsentOccurrenceIds(),
+      loadAbsentOccurrenceIds(tutorId),
     ]);
 
   const profile = profileRow

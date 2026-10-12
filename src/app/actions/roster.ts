@@ -10,6 +10,7 @@ import {
 import type { EducationLevel, StudentStatus } from "@/lib/domain/types";
 import { deactivateStudentSchedule } from "@/lib/roster/deactivate-student";
 import { syncSessionFeesForUnpaidMonths } from "@/lib/roster/sync-session-fees";
+import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
 
 export type ParentInput = {
   id?: string;
@@ -35,11 +36,13 @@ function newId(prefix: string): string {
 }
 
 export async function upsertParentAction(input: ParentInput) {
+  const tutorId = await resolveTutorIdForRequest();
   const id = input.id ?? newId("p");
   const parent = await prisma.parent.upsert({
     where: { id },
     create: {
       id,
+      tutorId,
       name: input.name.trim(),
       salutation: input.salutation.trim(),
       honorific: normalizeHonorificStored(input.honorific),
@@ -66,12 +69,14 @@ export async function deleteParentAction(parentId: string) {
 }
 
 export async function upsertStudentAction(input: StudentInput) {
+  const tutorId = await resolveTutorIdForRequest();
   const id = input.id ?? newId("m");
   const existing = input.id
     ? await prisma.student.findUnique({ where: { id: input.id } })
     : null;
 
   const allStudents = await prisma.student.findMany({
+    where: { tutorId },
     select: { calendarColorKey: true },
   });
 
@@ -94,6 +99,7 @@ export async function upsertStudentAction(input: StudentInput) {
     where: { id },
     create: {
       id,
+      tutorId,
       name: input.name.trim(),
       age: input.age,
       level: input.level,

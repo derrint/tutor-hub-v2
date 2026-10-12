@@ -180,15 +180,31 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ### 5.1 — Data model & migration
 
-- [ ] Introduce **`Tutor`** — e.g. `id`, `displayName` / studio label, `slug?`, timestamps.
-- [ ] Introduce **`User`** — `email` (unique, from Google), `role` (`TUTOR` | `ADMIN`), optional `tutorId` (required for `TUTOR` role, null for `ADMIN`).
-- [ ] Auth.js **`Account` / session** — link OAuth to `User` row (Prisma adapter or custom callback).
-- [ ] Add **`tutorId`** to tutor-owned models: `Profile`, `Parent`, `Student`, `ScheduleRule`, `Session`, `Invoice`, `MonthlyReport`, `InvoiceItem`, etc.
-- [ ] Replace global uniques with **composite uniques per `tutorId`** where needed.
-- [ ] **Migration script:** attach all existing rows to a default **`Tutor`**; map current allowlist tutor(s) to `User` + **`Tutor`**.
-- [ ] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
+- [x] Introduce **`Tutor`** — e.g. `id`, `displayName` / studio label, `slug?`, timestamps.
+- [x] Introduce **`User`** — `email` (unique, from Google), `role` (`TUTOR` | `ADMIN`), optional `tutorId` (required for `TUTOR` role, null for `ADMIN`).
+- [ ] Auth.js **`Account` / session** — link OAuth to `User` row (Prisma adapter or custom callback) — **deferred to 5.3**.
+- [x] Add **`tutorId`** to tutor-owned models: `Profile`, `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`).
+- [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`, `Profile`).
+- [x] **Migration script** (`20261012100000_phase5_multi_tutor`): attach **all existing rows** to **`tutor_1`** (UPDATE only — no deletes); insert bootstrap **`User`** rows.
+- [x] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
 
-**Exit criteria:** Schema migrates on Neon; seed creates ≥2 **`Tutor`** rows in dev; no query runs without a `tutorId` filter in new code paths.
+**Dev Neon bootstrap (migration + env)**
+
+| Email | Role | Tutor |
+|-------|------|--------|
+| `anasandin87@gmail.com` | TUTOR | `tutor_1` (inherits all pre-migration data) |
+| `rint.cold@gmail.com` | TUTOR | `tutor_2` (empty practice + empty profile shell) |
+| `lorensioderrint@gmail.com` | ADMIN | — (interim: app scopes to `tutor_1` until 5.4 picker) |
+
+Constants: `src/lib/auth/bootstrap-users.ts`. Add all three emails to **`AUTH_ALLOWED_EMAILS`** until 5.3.
+
+**Operational notes**
+
+- **Do not run `pnpm db:seed`** on a Neon branch that holds real data — seed wipes tables.
+- **Do run** `pnpm db:migrate:deploy` (or `db:migrate`) once against the dev branch after pulling Phase 5.1.
+- **`resolveTutorIdForRequest()`** wires main loaders/actions; full audit remains **5.2**.
+
+**Exit criteria:** Schema migrates on Neon; seed creates ≥2 **`Tutor`** rows in dev; primary code paths filter by `tutorId`.
 
 ### 5.2 — Server tutor context & query scoping
 
@@ -270,7 +286,7 @@ Do not build unless requirements change:
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
-| Active tutor context (Phase 5) | *planned* `src/lib/tutor-context/`, Prisma `Tutor` + `User` |
+| Active tutor context (Phase 5) | `src/lib/tutor-context/resolve-tutor-id.ts`, `src/lib/auth/bootstrap-users.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
 **Suggested next sprint:** Start **Phase 5.1** (schema + migration) **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).

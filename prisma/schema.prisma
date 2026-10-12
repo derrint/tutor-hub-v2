@@ -1,12 +1,8 @@
-// TutorHub — Prisma schema
-// This data model reflects the decisions we agreed on:
-// - Single-tutor (no multi-user/multi-tutor support yet)
-// - Recurring schedule with occurrences generated ahead of time (rolling window)
-// - Absent -> fee is excluded from that month's invoice
-// - Inactive student -> auto-stops the recurring rule (sets endDate + deletes future occurrences)
-// - Invoice per Parent per calendar month, broken down per child (list of session dates)
-// - Simple invoice status: unpaid / paid (no "overdue" as a stored status)
-// - Monthly report per student, draft / published status (similar pattern to invoices)
+// TutorHub — Prisma schema (Phase 5: multi-tutor)
+// - Each `Tutor` is one practice; business rows are scoped with `tutorId`.
+// - `User` links Google email to role TUTOR (one Tutor) or ADMIN (no Tutor).
+// - Recurring schedule with materialized Session rows; absent excludes from invoice.
+// - Invoice per Parent per calendar month per Tutor; UNPAID / PAID only.
 
 generator client {
   provider = "prisma-client-js"
@@ -16,6 +12,11 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  TUTOR
+  ADMIN
 }
 
 enum EducationLevel {
@@ -29,9 +30,9 @@ enum StudentStatus {
 }
 
 enum SessionStatus {
-  SCHEDULED // upcoming, fee counts toward billing
-  ATTENDED  // fee counts toward billing (default once the session has passed; can be used to mark explicitly)
-  ABSENT    // did not attend, fee is EXCLUDED from that month's invoice
+  SCHEDULED
+  ATTENDED
+  ABSENT
 }
 
 enum ReportStatus {
@@ -44,15 +45,45 @@ enum InvoiceStatus {
   PAID
 }
 
-// Tutor / studio profile — used for bank account info in invoice & WhatsApp templates.
-// Single-row table (single-tutor), but still modeled properly for future flexibility.
+/// One tutor practice (studio). All roster / billing data belongs to a Tutor.
+model Tutor {
+  id          String   @id @default(cuid())
+  displayName String
+  slug        String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         User[]
+  profile       Profile?
+  parents       Parent[]
+  students      Student[]
+  sessions      Session[]
+  monthlyReports MonthlyReport[]
+  invoices      Invoice[]
+}
+
+/// Sign-in identity (Google email). OAuth Account rows come in Phase 5.3.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      UserRole
+  tutorId   String?
+  tutor     Tutor?   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tutorId])
+}
+
 model Profile {
   id                String  @id @default(cuid())
+  tutorId           String  @unique
+  tutor             Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   studioName        String  @default("TutorHub")
-  accountHolderName String? // bank account holder name
+  accountHolderName String?
   bankName          String?
   bankAccountNumber String?
-  whatsappNumber    String? // tutor's WhatsApp number (optional, used in message footer)
+  whatsappNumber    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,9 +91,11 @@ model Profile {
 
 model Parent {
   id         String  @id @default(cuid())
-  name       String // short label in lists (e.g. "Parent One")
-  salutation String // WhatsApp greeting (e.g. "Mama Adi dan Beni")
-  honorific  String // body copy, no trailing dot (e.g. "Ma")
+  tutorId    String
+  tutor      Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  name       String
+  salutation String
+  honorific  String
   whatsapp   String?
 
   students Student[]
@@ -70,17 +103,20 @@ model Parent {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tutorId])
 }
 
 model Student {
-  id            String         @id @default(cuid())
-  name          String
-  age           Int?
-  level         EducationLevel
-  feePerSession Int            // in Rupiah, can be overridden per student
-  status        StudentStatus  @default(ACTIVE)
-  /// Calendar chip + avatar hue (`primary`, `success`, `info`, …) — see `src/lib/students/calendar-colors.ts`.
-  calendarColorKey String @default("primary")
+  id               String         @id @default(cuid())
+  tutorId          String
+  tutor            Tutor          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  name             String
+  age              Int?
+  level            EducationLevel
+  feePerSession    Int
+  status           StudentStatus  @default(ACTIVE)
+  calendarColorKey String         @default("primary")
 
   parent   Parent? @relation(fields: [parentId], references: [id])
   parentId String?
@@ -92,22 +128,20 @@ model Student {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tutorId])
 }
 
-// Rule for a weekly recurring schedule ("repeat every week").
-// For a one-off session, just create a Session directly without a ScheduleRule.
 model ScheduleRule {
   id        String  @id @default(cuid())
   student   Student @relation(fields: [studentId], references: [id])
   studentId String
 
-  dayOfWeek Int    // 0 = Sunday ... 6 = Saturday
-  startTime String // "HH:mm"
-  endTime   String // "HH:mm"
+  dayOfWeek Int
+  startTime String
+  endTime   String
 
   startDate DateTime
-  // endDate is set automatically when the student is deactivated, or manually
-  // when the tutor stops the recurrence from a specific date.
   endDate   DateTime?
 
   sessions Session[]
@@ -116,27 +150,25 @@ model ScheduleRule {
   updatedAt DateTime @updatedAt
 }
 
-// A single actual meeting (either generated from a ScheduleRule, or one-off).
 model Session {
   id        String  @id @default(cuid())
+  tutorId   String
+  tutor     Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   student   Student @relation(fields: [studentId], references: [id])
   studentId String
 
   scheduleRule   ScheduleRule? @relation(fields: [scheduleRuleId], references: [id])
   scheduleRuleId String?
 
-  date      DateTime // session date (date only, stored as midnight DateTime)
-  startTime String    // "HH:mm"
-  endTime   String    // "HH:mm"
+  date      DateTime
+  startTime String
+  endTime   String
 
   status SessionStatus @default(SCHEDULED)
-  notes  String?       // short note, e.g. absence reason (free text, unstructured in v1)
+  notes  String?
 
-  // fee is snapshotted from Student.feePerSession when the session is created,
-  // so a later change to the student's fee doesn't alter past invoice history.
   fee Int
 
-  // used to prevent the same session from being counted twice in an invoice.
   invoiceItem   InvoiceItem? @relation(fields: [invoiceItemId], references: [id])
   invoiceItemId String?
 
@@ -145,18 +177,20 @@ model Session {
 
   @@unique([studentId, date, startTime])
   @@index([studentId, date])
+  @@index([tutorId, date])
   @@index([invoiceItemId])
 }
 
 model MonthlyReport {
   id        String  @id @default(cuid())
+  tutorId   String
+  tutor     Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   student   Student @relation(fields: [studentId], references: [id])
   studentId String
 
-  month Int // 1-12
+  month Int
   year  Int
 
-  // Structured body: see `src/lib/reports/content-schema.ts` (v1).
   contentJson Json?
 
   status      ReportStatus @default(DRAFT)
@@ -165,15 +199,17 @@ model MonthlyReport {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([studentId, month, year])
+  @@unique([tutorId, studentId, month, year])
 }
 
 model Invoice {
   id       String @id @default(cuid())
+  tutorId  String
+  tutor    Tutor  @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   parent   Parent @relation(fields: [parentId], references: [id])
   parentId String
 
-  month Int // 1-12, calendar month period
+  month Int
   year  Int
 
   status InvoiceStatus @default(UNPAID)
@@ -184,12 +220,10 @@ model Invoice {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([parentId, month, year])
+  @@unique([tutorId, parentId, month, year])
+  @@index([tutorId, year, month])
 }
 
-// A single per-child breakdown row within an invoice.
-// One-to-many with Session via Session.invoiceItemId (list of that child's
-// session dates for this month).
 model InvoiceItem {
   id        String  @id @default(cuid())
   invoice   Invoice @relation(fields: [invoiceId], references: [id])
