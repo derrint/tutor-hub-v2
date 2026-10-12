@@ -157,11 +157,11 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 ## Phase 5 — Multi-tutor platform (v2)
 
-**Status:** Not started — design + migration plan below. v1 (Phases 0–4) stays the **solo-tutor** shipped baseline.
+**Status:** **5.1–5.5 shipped.** Optional: **5.6** deprecated-code cleanup and v1 backlog items.
 
 **Goal:** Multiple tutors, each with isolated schedule · roster · invoices · finance · reports · settings. Every tutor signs in with **Google** (Auth.js). One **admin** account can **select which tutor’s data** to view and operate on (server-enforced context, not UI-only).
 
-**Naming (Phase 5):** Prisma model **`Tutor`** = one tutor’s practice (studio). FK **`tutorId`** on all business rows. Do not use `Tenant` / `TutorWorkspace` in schema or code.
+**Naming (Phase 5):** Prisma model **`Tutor`** = one practice (studio). FK **`tutorId`** on all business rows. Sign-in role **`User.role`** = **`TEACHER`** | **`ADMIN`** (the person who logs in — not the `Tutor` model). See `AGENTS.md`.
 
 **Non-goals for Phase 5** (still deferred — see bottom of doc):
 
@@ -182,9 +182,10 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 - [x] Introduce **`Tutor`** — e.g. `id`, `displayName` / studio label, `slug?`, timestamps.
 - [x] Introduce **`User`** — `email` (unique, from Google), `role` (`TEACHER` | `ADMIN`), optional `tutorId` (required for `TEACHER` role, null for `ADMIN`).
-- [ ] Auth.js **`Account` / session** — link OAuth to `User` row (Prisma adapter or custom callback) — **deferred to 5.3**.
-- [x] Add **`tutorId`** to tutor-owned models: `Profile`, `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`).
-- [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`, `Profile`).
+- [x] Auth.js session — JWT callback loads **`User`** by Google email (`src/auth.ts`; no Prisma Auth adapter).
+- [x] Add **`tutorId`** to tutor-owned models: `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`). Billing fields on **`Tutor`** (no `Profile` model).
+- [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`).
+- [x] **`UserRole` rename** — `TUTOR` → **`TEACHER`** (`20261012190000_user_role_tutor_to_teacher`; legacy JWT `TUTOR` normalized in session).
 - [x] **Migration script** (`20261012100000_phase5_multi_tutor`): attach **all existing rows** to **`tutor_1`** (UPDATE only — no deletes); insert bootstrap **`User`** rows.
 - [x] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
 
@@ -193,16 +194,17 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 | Email | Role | Tutor |
 |-------|------|--------|
 | `anasandin87@gmail.com` | TEACHER | `tutor_1` (inherits all pre-migration data) |
-| `rint.cold@gmail.com` | TEACHER | `tutor_2` (empty practice + empty profile shell) |
-| `lorensioderrint@gmail.com` | ADMIN | — (interim: app scopes to `tutor_1` until 5.4 picker) |
+| `nobarsambas@gmail.com` | TEACHER | `tutor_1` (shared practice; migration `20261012173000_add_user_nobarsambas_tutor_1`) |
+| `rint.cold@gmail.com` | TEACHER | `tutor_2` (empty practice) |
+| `lorensioderrint@gmail.com` | ADMIN | — (picks active tutor via `/select-tutor` + header switcher) |
 
-Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3).
+Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3). Add production users via **`/admin/users`**, migration SQL, or bootstrap — not `pnpm db:seed` on real Neon data.
 
 **Operational notes**
 
 - **Do not run `pnpm db:seed`** on a Neon branch that holds real data — seed wipes tables.
 - **Do run** `pnpm db:migrate:deploy` (or `db:migrate`) once against the dev branch after pulling Phase 5.1.
-- **`resolveTutorIdForRequest()`** wires main loaders/actions; full audit remains **5.2**.
+- After pull: **`pnpm db:migrate:deploy`**. Empty migration folders (no `migration.sql`) break deploy (**P3015**) — delete or restore the file.
 
 **Exit criteria:** Schema migrates on Neon; seed creates ≥2 **`Tutor`** rows in dev; primary code paths filter by `tutorId`.
 
@@ -220,7 +222,7 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 ### 5.3 — Auth & onboarding
 
 - [x] Replace **`AUTH_ALLOWED_EMAILS`** with DB **`User`** gate (`isEmailInvitedForSignIn` in Auth.js `signIn`).
-- [x] **Tutor role:** Google sign-in for email with pre-created **`User`** + **`Tutor`** (JWT/session carries `role`, `tutorId`).
+- [x] **`TEACHER` role:** Google sign-in for email with pre-created **`User`** + linked **`Tutor`** (JWT/session carries `role`, `tutorId`).
 - [x] **Admin role:** sign-in clears active-tutor cookie → **`/select-tutor`** until a practice is chosen.
 - [x] Admin **switches tutor** via cookie (`setActiveTutorIdAction`); session carries identity, not active tutor.
 - [x] Sign-out clears active tutor cookie (`clearActiveTutorCookieAction`).
@@ -231,31 +233,43 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 
 - [x] **Tutor switcher** in header (admin only) — dropdown beside sidebar toggle on desktop; compact control beside app menu on mobile; lists **`Tutor.displayName`** (search when ≥5 tutors).
 - [x] Replaces earlier inline `AdminTutorSwitcher` + viewing badge.
-- [ ] Optional: **`/admin/tutors`** — create **`Tutor`** + invite email (manual admin ops; no public signup).
+- [x] **`/admin/tutors`** — list / create / edit **`Tutor`** (display name, slug, billing fields); admin-only; no delete (v1).
+- [x] **`/admin/users`** — list / create / edit **`User`** (email, `TEACHER` | `ADMIN`, `tutorId` for teachers); admin-only.
+- [x] **Platform admin nav** — sidebar “Admin” section + mobile **More** (`/admin/tutors`, `/admin/users`); routes work **without** active tutor cookie (`isPlatformAdminPath` in admin layout).
+- [x] **Empty states** — Students, Parents, Reports (guided CTAs; students → parents when roster empty).
+- [x] **Schedule calendar** — FullCalendar `datesSet` deferred updates + mount guard (React 19; avoids stray console errors off `/schedule`).
 
-**Exit criteria:** Admin can switch tutor without reload bugs; finance/schedule/invoices match selected **`Tutor`**.
+**Exit criteria:** Admin can switch tutor without reload bugs; finance/schedule/invoices match selected **`Tutor`**; admin can provision tutors and sign-in users from the UI.
 
 ### 5.5 — Docs, env, deploy
 
-- [ ] Update **`PRODUCT.md`** — users, positioning, access model.
-- [ ] Update **`README.md`** — seed admin + tutors, env vars (if any).
-- [ ] **`.env.example`** — document admin bootstrap emails vs tutor users.
-- [ ] Vercel: same app; single deployment for all tutors.
+- [x] Update **`PRODUCT.md`** — Phase 5 **shipped** positioning (multi-practice, `TEACHER` vs `Tutor`, admin provisioning).
+- [x] Update **`README.md`** — routes, roles, adding users/tutors via admin UI, migrate deploy, no env allowlist.
+- [x] **`.env.example`** — sign-in via **`User`** rows in Postgres (pointers to bootstrap / migrate).
+- [x] Vercel: same app; single deployment for all tutors.
 
-**Phase 5 exit criteria (overall):** Multiple tutors use one deployment; each sees only their practice; admin can switch context securely; v1 solo tutor data migrated; `pnpm build` passes; no cross-tutor data leak in spot-check audit.
+**Exit criteria:** New contributor can read README + PRODUCT and understand access model, deploy steps, and how to add a teacher without running seed on production.
+
+### 5.6 — Cleanup (optional)
+
+- [ ] Remove deprecated **`AUTH_ALLOWED_EMAILS`** / `src/lib/auth/allowed-emails.ts` and `BOOTSTRAP_ALLOWED_EMAILS` if unused.
+- [ ] Remove any leftover **`resolve-tutor-id`** shims or dead Phase 5 scaffolding.
+
+**Phase 5 exit criteria (overall):** Multiple tutors use one deployment; each sees only their practice; admin can switch context securely and provision **`User`** / **`Tutor`** rows; v1 solo tutor data migrated; `pnpm db:migrate:deploy` + `pnpm verify:tutor-isolation` on Neon; `pnpm build` passes; no cross-tutor data leak in spot-check audit.
 
 ### Technical notes (for implementers)
 
 | Topic | Direction |
 |-------|-----------|
-| Auth | Keep **Auth.js + Google**; add `User` / role in DB |
-| Allowlist | Transitional: env allowlist → auto-provision `User` on first login, then remove env |
+| Auth | **Auth.js + Google**; **`User`** gate in DB; session `role` **`TEACHER`** \| **`ADMIN`** |
+| Allowlist | **Removed** for sign-in — use **`User.email`**; delete deprecated env allowlist in 5.6 |
 | Tutor billing fields | Bank / WhatsApp on **`Tutor`** (`displayName` for picker labels) |
 | Bootstrap | Pass `tutorId` into all loaders; admin loads tutor catalog once |
 | WIB / billing | No change to `tutor-calendar` / `?month=` — scope queries by `tutorId` |
-| Quick ref (future) | `src/lib/tutor-context/` (active tutor + guards), extend `src/auth.ts` |
+| Platform admin | `src/app/actions/admin-tutors.ts`, `admin-users.ts`, `src/lib/platform-admin/paths.ts` |
+| Active tutor | `src/lib/tutor-context/`, `src/app/actions/tutor-context.ts`, `src/auth.ts` |
 
-**Suggested implementation order:** 5.1 → 5.2 → 5.3 → 5.4 → 5.5 (do not build admin UI before server scoping).
+**Suggested implementation order:** 5.1 → 5.2 → 5.3 → 5.4 → 5.5 → 5.6 (server scoping before admin UI — done).
 
 ---
 
@@ -288,9 +302,10 @@ Do not build unless requirements change:
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google + DB users) | `src/auth.ts`, `src/lib/auth/sign-in-gate.ts`, `src/proxy.ts` |
 | Active tutor context (Phase 5) | `src/lib/tutor-context/get-active-tutor-id.ts`, `assert-tutor-scope.ts`, `src/app/actions/tutor-context.ts` |
-| Agent / repo conventions | `AGENTS.md` |
+| Platform admin UI (Phase 5.4) | `/admin/tutors`, `/admin/users`, `src/components/admin/`, `load-platform-admin.ts` |
+| Agent / repo conventions | `AGENTS.md` (`TEACHER` vs **`Tutor`** practice) |
 
-**Suggested next sprint:** Start **Phase 5.1** (schema + migration) **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).
+**Suggested next sprint:** **Phase 5.6** cleanup **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).
 
 **Optional v1 backlog** (not Phase 5):
 
