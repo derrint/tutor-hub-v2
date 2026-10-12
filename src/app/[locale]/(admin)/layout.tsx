@@ -3,7 +3,7 @@ import BillingPendingInvoiceProvider from "@/components/admin/BillingPendingInvo
 import BrandedLaunchScreen from "@/components/pwa/BrandedLaunchScreen";
 import AdminShell from "@/layout/AdminShell";
 import { redirect } from "@/i18n/navigation";
-import { loadAdminBootstrapCore } from "@/lib/db/load-admin-bootstrap-core";
+import { loadAdminInitialCore } from "@/lib/db/load-admin-initial-core";
 import { isPlatformAdminPath } from "@/lib/platform-admin/paths";
 import { getRequestPathname } from "@/lib/request/get-request-pathname";
 import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
@@ -28,7 +28,7 @@ async function AdminCoreShell({ children }: { children: React.ReactNode }) {
     redirect({ href: "/select-tutor", locale });
   }
 
-  const core = await loadAdminBootstrapCore();
+  const core = await loadAdminInitialCore();
 
   return (
     <AdminShell initialCore={core}>

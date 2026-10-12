@@ -1,7 +1,7 @@
 "use client";
 
 import { setInvoiceStatusAction } from "@/app/actions/invoices";
-import { useBillingBootstrap } from "@/context/BillingBootstrapContext";
+import { useBillingInitial } from "@/context/BillingInitialContext";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
 import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
@@ -33,7 +33,7 @@ export type InvoiceContextValue = {
 export const InvoiceContext = createContext<InvoiceContextValue | null>(null);
 
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
-  const { sessions: serializedSessions, paidInvoices } = useBillingBootstrap();
+  const { sessions: serializedSessions, paidInvoices } = useBillingInitial();
   const sessions = useMemo(
     () => hydrateSessions(serializedSessions),
     [serializedSessions],

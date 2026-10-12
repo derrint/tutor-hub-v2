@@ -1,7 +1,7 @@
 "use client";
 
 import TutorHubMark from "@/components/branding/TutorHubMark";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import {
   adminNavItems,
   isNavItemActive,
@@ -18,7 +18,7 @@ const AppSidebar: React.FC = () => {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tBrand = useTranslations("tutorHub");
-  const { tutorContext } = useAdminBootstrap();
+  const { tutorContext } = useAdminInitial();
   const showPlatformAdmin = tutorContext.role === "ADMIN";
 
   const isWide = isExpanded || isHovered;

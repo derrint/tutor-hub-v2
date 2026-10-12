@@ -186,10 +186,10 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 - [x] Add **`tutorId`** to tutor-owned models: `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`). Billing fields on **`Tutor`** (no `Profile` model).
 - [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`).
 - [x] **`UserRole` rename** — `TUTOR` → **`TEACHER`** (`20261012190000_user_role_tutor_to_teacher`; legacy JWT `TUTOR` normalized in session).
-- [x] **Migration script** (`20261012100000_phase5_multi_tutor`): attach **all existing rows** to **`tutor_1`** (UPDATE only — no deletes); insert bootstrap **`User`** rows.
+- [x] **Migration script** (`20261012100000_phase5_multi_tutor`): attach **all existing rows** to **`tutor_1`** (UPDATE only — no deletes); insert initial **`User`** rows.
 - [x] Update `prisma/schema.prisma` header comment (no longer single-tutor-only).
 
-**Dev Neon bootstrap (migration + env)**
+**Dev Neon initial users (migration + env)**
 
 | Email | Role | Tutor |
 |-------|------|--------|
@@ -198,7 +198,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 | `rint.cold@gmail.com` | TEACHER | `tutor_2` (empty practice) |
 | `lorensioderrint@gmail.com` | ADMIN | — (picks active tutor via `/select-tutor` + header switcher) |
 
-Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3). Add production users via **`/admin/users`**, migration SQL, or bootstrap — not `pnpm db:seed` on real Neon data.
+Constants: `src/lib/auth/initial-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3). Add production users via **`/admin/users`**, migration SQL, or initial migration — not `pnpm db:seed` on real Neon data.
 
 **Operational notes**
 
@@ -213,7 +213,7 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 - [x] **`getActiveTutorId()`** — TEACHER → own `tutorId`; ADMIN → HttpOnly cookie `tutor-hub-active-tutor-id` (validated), else `tutor_1`.
 - [x] **`setActiveTutorIdAction`** / **`clearActiveTutorCookieAction`** — admin cookie + sign-out clears context (picker UI in 5.4).
 - [x] **`assert*InTutor` guards** — roster, schedule, attendance, invoices, reports; PDF route scopes by active tutor.
-- [x] **`loadAdminBootstrapCore` / billing** — scoped bootstrap + **`tutorContext`** (active id, role, admin tutor catalog).
+- [x] **`loadAdminInitialCore` / billing** — scoped initial load + **`tutorContext`** (active id, role, admin tutor catalog).
 - [x] **Attendance / absent** — occurrence keys unchanged; session updates include `tutorId`.
 - [x] **`pnpm verify:tutor-isolation`** — DB partition sanity script (`scripts/verify-tutor-isolation.ts`).
 
@@ -245,14 +245,14 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 
 - [x] Update **`PRODUCT.md`** — Phase 5 **shipped** positioning (multi-practice, `TEACHER` vs `Tutor`, admin provisioning).
 - [x] Update **`README.md`** — routes, roles, adding users/tutors via admin UI, migrate deploy, no env allowlist.
-- [x] **`.env.example`** — sign-in via **`User`** rows in Postgres (pointers to bootstrap / migrate).
+- [x] **`.env.example`** — sign-in via **`User`** rows in Postgres (pointers to initial-users / migrate).
 - [x] Vercel: same app; single deployment for all tutors.
 
 **Exit criteria:** New contributor can read README + PRODUCT and understand access model, deploy steps, and how to add a teacher without running seed on production.
 
 ### 5.6 — Cleanup (optional)
 
-- [ ] Remove deprecated **`AUTH_ALLOWED_EMAILS`** / `src/lib/auth/allowed-emails.ts` and `BOOTSTRAP_ALLOWED_EMAILS` if unused.
+- [ ] Remove deprecated **`AUTH_ALLOWED_EMAILS`** / `src/lib/auth/allowed-emails.ts` and `INITIAL_ALLOWED_EMAILS` if unused.
 - [ ] Remove any leftover **`resolve-tutor-id`** shims or dead Phase 5 scaffolding.
 
 **Phase 5 exit criteria (overall):** Multiple tutors use one deployment; each sees only their practice; admin can switch context securely and provision **`User`** / **`Tutor`** rows; v1 solo tutor data migrated; `pnpm db:migrate:deploy` + `pnpm verify:tutor-isolation` on Neon; `pnpm build` passes; no cross-tutor data leak in spot-check audit.
@@ -264,7 +264,7 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 | Auth | **Auth.js + Google**; **`User`** gate in DB; session `role` **`TEACHER`** \| **`ADMIN`** |
 | Allowlist | **Removed** for sign-in — use **`User.email`**; delete deprecated env allowlist in 5.6 |
 | Tutor billing fields | Bank / WhatsApp on **`Tutor`** (`displayName` for picker labels) |
-| Bootstrap | Pass `tutorId` into all loaders; admin loads tutor catalog once |
+| Initial load | Pass `tutorId` into all loaders; admin loads tutor catalog once |
 | WIB / billing | No change to `tutor-calendar` / `?month=` — scope queries by `tutorId` |
 | Platform admin | `src/app/actions/admin-tutors.ts`, `admin-users.ts`, `src/lib/platform-admin/paths.ts` |
 | Active tutor | `src/lib/tutor-context/`, `src/app/actions/tutor-context.ts`, `src/auth.ts` |
@@ -295,12 +295,13 @@ Do not build unless requirements change:
 | Mock (until Phase 2) | `src/lib/mock-data.ts` |
 | Roster (parents/students) | `src/context/RosterContext.tsx`, `src/app/actions/roster.ts` |
 | Schedule (recurring slots) | `src/context/ScheduleContext.tsx`, `src/app/actions/schedule.ts`, `src/lib/schedule/generate-sessions.ts` |
-| DB access | `src/lib/db/prisma.ts`, `src/lib/db/load-admin-bootstrap.ts` |
+| DB access | `src/lib/db/prisma.ts`, `src/lib/db/load-admin-initial.ts` |
 | Rupiah / invoice dates | `src/utils/format.ts` |
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google + DB users) | `src/auth.ts`, `src/lib/auth/sign-in-gate.ts`, `src/proxy.ts` |
+| Admin initial load | `load-admin-initial-core.ts`, `load-admin-initial-billing.ts`, `AdminInitialContext`, `BillingInitialContext` |
 | Active tutor context (Phase 5) | `src/lib/tutor-context/get-active-tutor-id.ts`, `assert-tutor-scope.ts`, `src/app/actions/tutor-context.ts` |
 | Platform admin UI (Phase 5.4) | `/admin/tutors`, `/admin/users`, `src/components/admin/`, `load-platform-admin.ts` |
 | Agent / repo conventions | `AGENTS.md` (`TEACHER` vs **`Tutor`** practice) |

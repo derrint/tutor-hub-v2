@@ -3,12 +3,12 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import SeeAllLink from "@/components/dashboard/SeeAllLink";
 import SessionList from "@/components/schedule/SessionList";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useTranslations } from "next-intl";
 
 export default function TodayScheduleCard() {
   const t = useTranslations("tutorHub.dashboard");
-  const { todaySessions } = useAdminBootstrap();
+  const { todaySessions } = useAdminInitial();
 
   return (
     <ComponentCard

@@ -30,8 +30,8 @@ export type TutorSessionContext = {
   needsTutorSelection: boolean;
 };
 
-/** Fast admin bootstrap — shell, dashboard, schedule rules (no full session window / paid invoices). */
-export type AdminBootstrapCoreData = {
+/** Fast admin initial load — shell, dashboard, schedule rules (no full session window / paid invoices). */
+export type AdminInitialCoreData = {
   profile: TutorProfile;
   parents: ParentRecord[];
   students: StudentRecord[];
@@ -41,7 +41,7 @@ export type AdminBootstrapCoreData = {
   tutorContext: TutorSessionContext;
 };
 
-export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> {
+export async function loadAdminInitialCore(): Promise<AdminInitialCoreData> {
   const [tutorId, requestUser] = await Promise.all([
     getActiveTutorId(),
     getRequestUser(),

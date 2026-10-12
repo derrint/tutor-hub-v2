@@ -6,14 +6,14 @@ import {
 } from "../src/lib/mock-data";
 import { calendarDateToStoredDate } from "../src/lib/datetime/calendar-date";
 import {
-  BOOTSTRAP_ADMIN_EMAIL,
-  BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL,
-  BOOTSTRAP_TUTOR_1_EMAIL,
-  BOOTSTRAP_TUTOR_1_ID,
-  BOOTSTRAP_TUTOR_2_EMAIL,
-  BOOTSTRAP_TUTOR_2_ID,
-  BOOTSTRAP_USER_IDS,
-} from "../src/lib/auth/bootstrap-users";
+  INITIAL_ADMIN_EMAIL,
+  INITIAL_TUTOR_1_NOBARSAMBAS_EMAIL,
+  INITIAL_TUTOR_1_EMAIL,
+  INITIAL_TUTOR_1_ID,
+  INITIAL_TUTOR_2_EMAIL,
+  INITIAL_TUTOR_2_ID,
+  INITIAL_USER_IDS,
+} from "../src/lib/auth/initial-users";
 import { ensureSessionsGenerated } from "../src/lib/schedule/generate-sessions";
 import { PrismaClient } from "@prisma/client";
 
@@ -35,7 +35,7 @@ async function main() {
   await prisma.tutor.createMany({
     data: [
       {
-        id: BOOTSTRAP_TUTOR_1_ID,
+        id: INITIAL_TUTOR_1_ID,
         displayName: "Tutor 1",
         slug: "tutor-1",
         bankName: TUTOR_PROFILE.bankName,
@@ -44,7 +44,7 @@ async function main() {
         whatsappNumber: TUTOR_PROFILE.whatsappNumber || null,
       },
       {
-        id: BOOTSTRAP_TUTOR_2_ID,
+        id: INITIAL_TUTOR_2_ID,
         displayName: "Tutor 2",
         slug: "tutor-2",
       },
@@ -54,26 +54,26 @@ async function main() {
   await prisma.user.createMany({
     data: [
       {
-        id: BOOTSTRAP_USER_IDS.tutor1,
-        email: BOOTSTRAP_TUTOR_1_EMAIL,
+        id: INITIAL_USER_IDS.tutor1,
+        email: INITIAL_TUTOR_1_EMAIL,
         role: "TEACHER",
-        tutorId: BOOTSTRAP_TUTOR_1_ID,
+        tutorId: INITIAL_TUTOR_1_ID,
       },
       {
-        id: BOOTSTRAP_USER_IDS.tutor1Nobarsambas,
-        email: BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL,
+        id: INITIAL_USER_IDS.tutor1Nobarsambas,
+        email: INITIAL_TUTOR_1_NOBARSAMBAS_EMAIL,
         role: "TEACHER",
-        tutorId: BOOTSTRAP_TUTOR_1_ID,
+        tutorId: INITIAL_TUTOR_1_ID,
       },
       {
-        id: BOOTSTRAP_USER_IDS.tutor2,
-        email: BOOTSTRAP_TUTOR_2_EMAIL,
+        id: INITIAL_USER_IDS.tutor2,
+        email: INITIAL_TUTOR_2_EMAIL,
         role: "TEACHER",
-        tutorId: BOOTSTRAP_TUTOR_2_ID,
+        tutorId: INITIAL_TUTOR_2_ID,
       },
       {
-        id: BOOTSTRAP_USER_IDS.admin,
-        email: BOOTSTRAP_ADMIN_EMAIL,
+        id: INITIAL_USER_IDS.admin,
+        email: INITIAL_ADMIN_EMAIL,
         role: "ADMIN",
       },
     ],
@@ -83,7 +83,7 @@ async function main() {
     await prisma.parent.create({
       data: {
         id: parent.id,
-        tutorId: BOOTSTRAP_TUTOR_1_ID,
+        tutorId: INITIAL_TUTOR_1_ID,
         name: parent.name,
         salutation: parent.salutation,
         honorific: parent.honorific,
@@ -96,7 +96,7 @@ async function main() {
     await prisma.student.create({
       data: {
         id: student.id,
-        tutorId: BOOTSTRAP_TUTOR_1_ID,
+        tutorId: INITIAL_TUTOR_1_ID,
         name: student.name,
         age: student.age,
         level: student.level,

@@ -30,7 +30,7 @@ The app runs on **Neon Postgres** with **server actions** for roster, schedule, 
 
 - **Sign-in:** Google OAuth via Auth.js — only emails with a **`User`** row in Postgres.
 - **Roles:** **`TEACHER`** → fixed `tutorId`; **`ADMIN`** → cookie `tutor-hub-active-tutor-id` + header switcher.
-- **PWA:** Web manifest + home-screen icons + iOS splash (`public/pwa/`, `src/app/manifest.ts`; regenerate splashes with `pnpm pwa:splash`) — installable on phone; no offline service worker. Cold start uses `BrandedLaunchScreen` for fast **core** bootstrap; billing loads in a second `Suspense`. Route `loading.tsx` skeletons under `src/app/[locale]/(admin)/`.
+- **PWA:** Web manifest + home-screen icons + iOS splash (`public/pwa/`, `src/app/manifest.ts`; regenerate splashes with `pnpm pwa:splash`) — installable on phone; no offline service worker. Cold start uses `BrandedLaunchScreen` for fast **core** initial load; billing loads in a second `Suspense`. Route `loading.tsx` skeletons under `src/app/[locale]/(admin)/`.
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
 - **Billing month:** `?month=YYYY-MM` on Invoices, Reports, Finance.
 
@@ -94,7 +94,7 @@ pnpm db:reset          # reset DB and re-seed (destructive)
 
 **Production / shared Neon:** prefer **`pnpm db:migrate:deploy`** and add users via **`/admin/users`** (as admin) or a SQL migration — **do not** run **`pnpm db:seed`** on branches with real data.
 
-Bootstrap reference emails and tutor ids: `src/lib/auth/bootstrap-users.ts` (kept in sync with Phase 5 migrations).
+Initial reference emails and tutor ids: `src/lib/auth/initial-users.ts` (kept in sync with Phase 5 migrations).
 
 After schema changes, restart `pnpm dev` so the Prisma client reloads (see `src/lib/db/prisma.ts` fingerprint).
 
@@ -133,7 +133,7 @@ src/
 ├── proxy.ts                  # Auth gate + next-intl (Next.js 16)
 ├── app/[locale]/(admin)/     # TutorHub pages (+ admin/tutors, admin/users)
 ├── app/actions/              # roster, schedule, admin-tutors, admin-users, tutor-context, …
-├── lib/db/                   # Prisma, bootstrap, platform admin loaders
+├── lib/db/                   # Prisma, admin initial loaders, platform admin
 ├── lib/tutor-context/        # getActiveTutorId, assert-tutor-scope
 ├── lib/platform-admin/       # /admin route helpers
 ├── lib/reports/              # contentJson schema + PDF template
@@ -152,7 +152,7 @@ prisma/migrations/            # Includes phase5_multi_tutor, user_role TEACHER, 
 2. Environment variables: `AUTH_SECRET`, Google OAuth, `DATABASE_URL` (Neon **pooler**), `DIRECT_URL` (Neon **direct**). See [`.env.example`](.env.example).
 3. Google Cloud **Authorized redirect URI:** `https://YOUR_DOMAIN/api/auth/callback/google`.
 4. On each release with schema changes, run **`pnpm db:migrate:deploy`** against production (CLI or CI). Fix **P3015** by ensuring every folder under `prisma/migrations/` contains a `migration.sql` (delete empty migration dirs).
-5. Ensure at least one **`ADMIN`** **`User`** exists (migration bootstrap or manual SQL) before first deploy sign-in.
+5. Ensure at least one **`ADMIN`** **`User`** exists (migration initial users or manual SQL) before first deploy sign-in.
 6. **`pnpm build`** must pass locally before shipping.
 7. **Production:** **Mark unpaid** is hidden on invoice cards (`NODE_ENV=production`). Rapot PDF: **`GET /api/reports/pdf`** (session required; route checks `auth()` internally).
 

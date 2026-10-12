@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { formatFullDate, getTimeOfDayPeriod } from "@/utils";
 import { useTranslations } from "next-intl";
 
@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
  */
 export default function GreetingBanner() {
   const t = useTranslations("tutorHub.dashboard");
-  const { todaySessions } = useAdminBootstrap();
+  const { todaySessions } = useAdminInitial();
   const classesToday = todaySessions.length;
   const now = new Date();
   const period = getTimeOfDayPeriod(now);

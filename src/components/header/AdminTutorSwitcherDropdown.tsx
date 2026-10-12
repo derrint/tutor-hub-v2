@@ -3,7 +3,7 @@
 import { setActiveTutorIdAction } from "@/app/actions/tutor-context";
 import Input from "@/components/form/input/InputField";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useRouter } from "@/i18n/navigation";
 import { CheckLineIcon, ChevronDownIcon, SchoolIcon } from "@/icons";
 import { cn } from "@/utils";
@@ -29,7 +29,7 @@ export default function AdminTutorSwitcherDropdown({
   compact = false,
 }: AdminTutorSwitcherDropdownProps) {
   const t = useTranslations("header.tutorSwitcher");
-  const { tutorContext } = useAdminBootstrap();
+  const { tutorContext } = useAdminInitial();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);

@@ -5,14 +5,14 @@ import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import { upsertTutorProfileAction } from "@/app/actions/profile";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 const TutorProfileSettings: React.FC = () => {
   const t = useTranslations("tutorHub.settings");
-  const { profile } = useAdminBootstrap();
+  const { profile } = useAdminInitial();
   const router = useRouter();
 
   const [form, setForm] = useState({

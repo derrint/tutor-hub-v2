@@ -1,5 +1,5 @@
 /**
- * Phase 5.2 sanity check: bootstrap tutors exist and business rows are partitioned.
+ * Phase 5.2 sanity check: initial tutors exist and business rows are partitioned.
  * Run: pnpm verify:tutor-isolation
  */
 import dotenv from "dotenv";
@@ -8,9 +8,9 @@ import { PrismaClient } from "@prisma/client";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 import {
-  BOOTSTRAP_TUTOR_1_ID,
-  BOOTSTRAP_TUTOR_2_ID,
-} from "../src/lib/auth/bootstrap-users";
+  INITIAL_TUTOR_1_ID,
+  INITIAL_TUTOR_2_ID,
+} from "../src/lib/auth/initial-users";
 
 const prisma = new PrismaClient();
 
@@ -18,7 +18,7 @@ async function main() {
   const tutors = await prisma.tutor.findMany({ select: { id: true } });
   const tutorIds = new Set(tutors.map((t) => t.id));
 
-  for (const required of [BOOTSTRAP_TUTOR_1_ID, BOOTSTRAP_TUTOR_2_ID]) {
+  for (const required of [INITIAL_TUTOR_1_ID, INITIAL_TUTOR_2_ID]) {
     if (!tutorIds.has(required)) {
       throw new Error(`Missing tutor row: ${required}`);
     }
@@ -41,7 +41,7 @@ async function main() {
 
   const orphanStudents = await prisma.student.count({
     where: {
-      tutorId: BOOTSTRAP_TUTOR_2_ID,
+      tutorId: INITIAL_TUTOR_2_ID,
     },
   });
 

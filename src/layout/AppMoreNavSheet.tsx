@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import {
   bottomNavInsetClass,
   bottomNavMoreItems,
@@ -26,7 +26,7 @@ export default function AppMoreNavSheet({
 }: AppMoreNavSheetProps) {
   const t = useTranslations("sidebar");
   const tCommon = useTranslations("common");
-  const { tutorContext } = useAdminBootstrap();
+  const { tutorContext } = useAdminInitial();
   const pathname = usePathname();
   const showPlatformAdmin = tutorContext.role === "ADMIN";
   const titleId = useId();

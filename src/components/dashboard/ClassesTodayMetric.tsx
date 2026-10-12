@@ -1,13 +1,13 @@
 "use client";
 
 import MetricCard from "@/components/dashboard/MetricCard";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { CalenderIcon } from "@/icons";
 import { useTranslations } from "next-intl";
 
 export default function ClassesTodayMetric() {
   const t = useTranslations("tutorHub.dashboard");
-  const { todaySessions } = useAdminBootstrap();
+  const { todaySessions } = useAdminInitial();
 
   return (
     <MetricCard
