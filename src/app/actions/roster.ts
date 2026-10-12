@@ -15,7 +15,7 @@ import {
   assertStudentInTutor,
   TutorScopeError,
 } from "@/lib/tutor-context/assert-tutor-scope";
-import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-id";
 
 export type ParentInput = {
   id?: string;
@@ -41,7 +41,7 @@ function newId(prefix: string): string {
 }
 
 export async function upsertParentAction(input: ParentInput) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   const id = input.id ?? newId("p");
   if (input.id) {
     await assertParentInTutor(input.id, tutorId);
@@ -68,7 +68,7 @@ export async function upsertParentAction(input: ParentInput) {
 }
 
 export async function deleteParentAction(parentId: string) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertParentInTutor(parentId, tutorId);
   } catch (error) {
@@ -87,7 +87,7 @@ export async function deleteParentAction(parentId: string) {
 }
 
 export async function upsertStudentAction(input: StudentInput) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   const id = input.id ?? newId("m");
 
   await assertParentInTutor(input.parentId, tutorId);
@@ -162,7 +162,7 @@ export async function upsertStudentAction(input: StudentInput) {
 }
 
 export async function deleteStudentAction(studentId: string) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertStudentInTutor(studentId, tutorId);
   } catch (error) {

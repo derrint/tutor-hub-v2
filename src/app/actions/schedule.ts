@@ -15,7 +15,7 @@ import {
   assertStudentInTutor,
   TutorScopeError,
 } from "@/lib/tutor-context/assert-tutor-scope";
-import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-id";
 
 export type RecurringSessionInput = {
   id?: string;
@@ -36,7 +36,7 @@ function ruleIdForDay(existingId: string | undefined, dayOfWeek: number): string
 }
 
 export async function upsertRecurringSessionAction(input: RecurringSessionInput) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertStudentInTutor(input.studentId, tutorId);
   } catch (error) {
@@ -106,7 +106,7 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
 }
 
 export async function deleteRecurringSessionAction(calendarRuleId: string) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertScheduleRuleInTutor(calendarRuleId, tutorId);
   } catch (error) {
@@ -126,6 +126,6 @@ export async function ensureSessionsAction() {
   const { ensureSessionsGeneratedIfNeeded } = await import(
     "@/lib/schedule/generate-sessions"
   );
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 }

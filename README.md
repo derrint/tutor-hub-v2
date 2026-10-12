@@ -23,7 +23,7 @@ The app runs on **Neon Postgres** with **server actions** for roster, schedule, 
 | `/finance` | Billed / collected / unpaid totals (billing month picker) |
 | `/settings` | **Settings** — bank details, account holder (WhatsApp + PDF signature) |
 
-- **Sign-in:** Google OAuth via Auth.js — only emails in `AUTH_ALLOWED_EMAILS`.
+- **Sign-in:** Google OAuth via Auth.js — only emails with a **`User`** row in Postgres (seed / migration).
 - **PWA:** Web manifest + home-screen icons + iOS splash (`public/pwa/`, `src/app/manifest.ts`; regenerate splashes with `pnpm pwa:splash`) — installable on phone; no offline service worker. Cold start uses `BrandedLaunchScreen` only for fast **core** bootstrap (roster + today); billing data (sessions window + paid invoices) loads in a second `Suspense` so the shell appears sooner. In-app route `loading.tsx` skeletons live under `src/app/[locale]/(admin)/`.
 - User-facing copy is **English** (`en-US` dates); **Rp** amounts and **WhatsApp** invoice text stay Indonesian-style per product rules.
 - **Billing month:** `?month=YYYY-MM` on Invoices, Reports, Finance.
@@ -35,7 +35,7 @@ TailAdmin **demo app routes** were removed; reusable UI lives under `src/compone
 ## Stack
 
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
-- **Auth.js** (`next-auth` v5) — Google provider, allowlist
+- **Auth.js** (`next-auth` v5) — Google provider, DB user gate
 - **Prisma** + **Neon PostgreSQL**
 - **Tailwind CSS v4** (theme in `src/app/globals.css`)
 - **next-intl** (locale `en`; copy in `src/messages/en.json`)
@@ -50,7 +50,7 @@ TailAdmin **demo app routes** were removed; reusable UI lives under `src/compone
 
 - Node.js **≥ 20.9**
 - **pnpm** 10.11.0 — `corepack enable` if needed
-- Google OAuth credentials and allowlisted emails for sign-in (see below)
+- Google OAuth credentials and seeded **`User`** rows for sign-in (see below)
 
 ### Environment
 
@@ -60,7 +60,7 @@ Copy `.env.example` to `.env.local` (or `.env`) and set:
 |----------|---------|
 | `AUTH_SECRET` | Session encryption (`openssl rand -base64 32`) |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_CLIENT_SECRET` | Google Cloud OAuth client |
-| `AUTH_ALLOWED_EMAILS` | Comma-separated Google emails allowed to sign in |
+| *(none)* | Sign-in allowlist is **`User.email`** in the database (see Phase 5 migration / seed) |
 | `DATABASE_URL` | Neon **pooler** URL |
 | `DIRECT_URL` | Neon **direct** URL (migrations) |
 
@@ -122,7 +122,7 @@ prisma/seed.ts                # Seed + session generation
 ## Deploy (Vercel + Neon)
 
 1. Create a **Vercel** project linked to this repo; framework preset **Next.js**.
-2. Set environment variables (same as [`.env.example`](.env.example)): `AUTH_SECRET`, Google OAuth, `AUTH_ALLOWED_EMAILS`, `DATABASE_URL` (Neon **pooler**), `DIRECT_URL` (Neon **direct**).
+2. Set environment variables (same as [`.env.example`](.env.example)): `AUTH_SECRET`, Google OAuth, `DATABASE_URL` (Neon **pooler**), `DIRECT_URL` (Neon **direct**). Ensure bootstrap **`User`** rows exist (migrate + seed or Phase 5 migration).
 3. Google Cloud **Authorized redirect URI:** `https://YOUR_DOMAIN/api/auth/callback/google`.
 4. On each release that includes schema changes, run **`pnpm db:migrate:deploy`** against production (Vercel build hook, local CLI, or CI — not on every static deploy unless migrations pending).
 5. **`pnpm build`** must pass locally before shipping.

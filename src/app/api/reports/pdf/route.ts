@@ -43,6 +43,9 @@ export async function GET(request: Request) {
   }
 
   const tutorId = await getActiveTutorId();
+  if (!tutorId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const props = await loadMonthlyReportPdfProps({ tutorId, studentId, period });
   if (!props) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

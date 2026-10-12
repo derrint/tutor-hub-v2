@@ -14,7 +14,7 @@ import {
   assertParentInTutor,
   TutorScopeError,
 } from "@/lib/tutor-context/assert-tutor-scope";
-import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-id";
 
 export async function setInvoiceStatusAction(
   invoiceId: string,
@@ -22,7 +22,7 @@ export async function setInvoiceStatusAction(
   period: InvoicePeriod,
   parentId: string,
 ) {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertParentInTutor(parentId, tutorId);
   } catch (error) {

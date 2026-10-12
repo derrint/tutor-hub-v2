@@ -19,9 +19,10 @@ export type TutorCatalogEntry = {
 };
 
 export type TutorSessionContext = {
-  activeTutorId: string;
+  activeTutorId: string | null;
   role: "TUTOR" | "ADMIN";
   tutors: TutorCatalogEntry[];
+  needsTutorSelection: boolean;
 };
 
 /** Fast admin bootstrap — shell, dashboard, schedule rules (no full session window / paid invoices). */
@@ -40,17 +41,43 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
     getActiveTutorId(),
     getRequestUser(),
   ]);
-  const todayStart = tutorTodayStoredDate();
-
-  const tutorCatalogPromise =
+  const tutors =
     requestUser?.role === "ADMIN"
-      ? prisma.tutor.findMany({
+      ? await prisma.tutor.findMany({
           orderBy: { displayName: "asc" },
           select: { id: true, displayName: true },
         })
-      : Promise.resolve([] as TutorCatalogEntry[]);
+      : ([] as TutorCatalogEntry[]);
 
-  const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds, tutors] =
+  const needsTutorSelection =
+    requestUser?.role === "ADMIN" && tutorId == null;
+
+  if (!tutorId) {
+    return {
+      profile: {
+        studioName: "TutorHub",
+        bankName: "",
+        bankAccountNumber: "",
+        accountHolderName: "",
+        whatsappNumber: "",
+      },
+      parents: [],
+      students: [],
+      recurringSessions: [],
+      todaySessions: [],
+      absentOccurrenceIds: [],
+      tutorContext: {
+        activeTutorId: null,
+        role: requestUser?.role ?? "TUTOR",
+        tutors,
+        needsTutorSelection,
+      },
+    };
+  }
+
+  const todayStart = tutorTodayStoredDate();
+
+  const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
     await Promise.all([
       prisma.profile.findFirst({ where: { tutorId } }),
       prisma.parent.findMany({
@@ -72,7 +99,6 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
         orderBy: [{ startTime: "asc" }],
       }),
       loadAbsentOccurrenceIds(tutorId),
-      tutorCatalogPromise,
     ]);
 
   const profile = profileRow
@@ -96,6 +122,7 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
       activeTutorId: tutorId,
       role: requestUser?.role ?? "TUTOR",
       tutors,
+      needsTutorSelection: false,
     },
   };
 }

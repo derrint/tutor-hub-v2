@@ -18,6 +18,9 @@ export type AdminBootstrapBillingData = {
 
 export async function loadAdminBootstrapBilling(): Promise<AdminBootstrapBillingData> {
   const tutorId = await getActiveTutorId();
+  if (!tutorId) {
+    return { sessions: [], paidInvoices: [] };
+  }
   await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 
   const [sessions, paidRows] = await Promise.all([

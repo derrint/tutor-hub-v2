@@ -8,12 +8,12 @@ import {
   assertStudentInTutor,
   TutorScopeError,
 } from "@/lib/tutor-context/assert-tutor-scope";
-import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-id";
 
 async function guardOccurrenceStudent(
   studentId: string,
 ): Promise<string | null> {
-  const tutorId = await getActiveTutorId();
+  const tutorId = await requireActiveTutorId();
   try {
     await assertStudentInTutor(studentId, tutorId);
   } catch (error) {

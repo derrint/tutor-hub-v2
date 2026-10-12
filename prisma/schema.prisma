@@ -62,7 +62,7 @@ model Tutor {
   invoices      Invoice[]
 }
 
-/// Sign-in identity (Google email). OAuth Account rows come in Phase 5.3.
+/// Sign-in identity (Google email). Must exist before OAuth sign-in (seed / migration).
 model User {
   id        String   @id @default(cuid())
   email     String   @unique

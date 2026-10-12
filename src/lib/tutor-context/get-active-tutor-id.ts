@@ -1,33 +1,31 @@
 import { cookies } from "next/headers";
-import { BOOTSTRAP_TUTOR_1_ID } from "@/lib/auth/bootstrap-users";
 import { prisma } from "@/lib/db/prisma";
-import {
-  ACTIVE_TUTOR_COOKIE_NAME,
-} from "@/lib/tutor-context/constants";
+import { ACTIVE_TUTOR_COOKIE_NAME } from "@/lib/tutor-context/constants";
 import { getRequestUser } from "@/lib/tutor-context/get-request-user";
 
-async function resolveAdminActiveTutorId(): Promise<string> {
+async function resolveAdminActiveTutorIdFromCookie(): Promise<string | null> {
   const cookieStore = await cookies();
   const fromCookie = cookieStore.get(ACTIVE_TUTOR_COOKIE_NAME)?.value?.trim();
   if (!fromCookie) {
-    return BOOTSTRAP_TUTOR_1_ID;
+    return null;
   }
 
   const tutor = await prisma.tutor.findUnique({
     where: { id: fromCookie },
     select: { id: true },
   });
-  return tutor?.id ?? BOOTSTRAP_TUTOR_1_ID;
+  return tutor?.id ?? null;
 }
 
 /**
- * Active tutor for the current request: TUTOR users → their `tutorId`;
- * ADMIN → cookie `tutor-hub-active-tutor-id` (validated), else tutor_1 default.
+ * Active tutor for the current request: TUTOR → their `tutorId`;
+ * ADMIN → validated cookie only (no default until picker / 5.4 switcher).
+ * Unauthenticated → `null`.
  */
-export async function getActiveTutorId(): Promise<string> {
+export async function getActiveTutorId(): Promise<string | null> {
   const user = await getRequestUser();
   if (!user) {
-    return BOOTSTRAP_TUTOR_1_ID;
+    return null;
   }
 
   if (user.role === "TUTOR" && user.tutorId) {
@@ -35,8 +33,8 @@ export async function getActiveTutorId(): Promise<string> {
   }
 
   if (user.role === "ADMIN") {
-    return resolveAdminActiveTutorId();
+    return resolveAdminActiveTutorIdFromCookie();
   }
 
-  return BOOTSTRAP_TUTOR_1_ID;
+  return null;
 }

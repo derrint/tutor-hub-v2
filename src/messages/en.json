@@ -166,10 +166,16 @@
       "logoAlt": "TutorHub home",
       "description": "Use your Google account to open TutorHub.",
       "signInWithGoogle": "Sign in with Google",
-      "accessDenied": "The Google account isn’t on the allowlist. Use one of the two tutor accounts configured for this app.",
+      "accessDenied": "This Google account isn’t invited. Sign in with an email that has been added as a tutor or admin user.",
       "signInFailed": "Sign-in didn’t complete. Check your Google account and try again.",
-      "allowlistHint": "Only approved Google accounts can access this dashboard.",
+      "allowlistHint": "Only invited Google accounts (in the TutorHub user list) can access this dashboard.",
       "defaultUserName": "Tutor"
+    },
+    "selectTutor": {
+      "title": "Choose a tutor practice",
+      "description": "As an admin, pick which tutor’s dashboard you want to open. You can switch later from the header.",
+      "opening": "Opening…",
+      "selectFailed": "Couldn’t switch to that tutor. Try again."
     },
     "attendance": {
       "markAbsent": "Mark absent",

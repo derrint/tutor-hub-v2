@@ -196,7 +196,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 | `rint.cold@gmail.com` | TUTOR | `tutor_2` (empty practice + empty profile shell) |
 | `lorensioderrint@gmail.com` | ADMIN | — (interim: app scopes to `tutor_1` until 5.4 picker) |
 
-Constants: `src/lib/auth/bootstrap-users.ts`. Add all three emails to **`AUTH_ALLOWED_EMAILS`** until 5.3.
+Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3).
 
 **Operational notes**
 
@@ -219,11 +219,11 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Add all three emails to **`AUTH_AL
 
 ### 5.3 — Auth & onboarding
 
-- [ ] Replace (or layer) **`AUTH_ALLOWED_EMAILS`** with DB **`User`** records + roles.
-- [ ] **Tutor role:** first Google sign-in for invited/seeded email → bind to pre-created `User` + **`Tutor`** (or admin-created **`Tutor`**).
-- [ ] **Admin role:** seeded admin email(s); sign-in → no active tutor until picker sets `activeTutorId`.
-- [ ] Session update when admin **switches tutor** (server action + session patch / cookie).
-- [ ] Sign-out clears active tutor context.
+- [x] Replace **`AUTH_ALLOWED_EMAILS`** with DB **`User`** gate (`isEmailInvitedForSignIn` in Auth.js `signIn`).
+- [x] **Tutor role:** Google sign-in for email with pre-created **`User`** + **`Tutor`** (JWT/session carries `role`, `tutorId`).
+- [x] **Admin role:** sign-in clears active-tutor cookie → **`/select-tutor`** until a practice is chosen.
+- [x] Admin **switches tutor** via cookie (`setActiveTutorIdAction`); session carries identity, not active tutor.
+- [x] Sign-out clears active tutor cookie (`clearActiveTutorCookieAction`).
 
 **Exit criteria:** Two Google accounts → two isolated **`Tutor`** practices; admin account → picker → sees chosen tutor’s dashboard.
 
@@ -286,7 +286,7 @@ Do not build unless requirements change:
 | WhatsApp templates | `src/lib/whatsapp/` |
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
-| Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
+| Auth (Google + DB users) | `src/auth.ts`, `src/lib/auth/sign-in-gate.ts`, `src/proxy.ts` |
 | Active tutor context (Phase 5) | `src/lib/tutor-context/get-active-tutor-id.ts`, `assert-tutor-scope.ts`, `src/app/actions/tutor-context.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
