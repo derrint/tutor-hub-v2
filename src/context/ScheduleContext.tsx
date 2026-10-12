@@ -5,7 +5,7 @@ import {
   upsertRecurringSessionAction,
   type RecurringSessionInput,
 } from "@/app/actions/schedule";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import type { RecurringSession } from "@/lib/domain/types";
 import { useRouter } from "@/i18n/navigation";
 import React, { createContext, useCallback, useContext, useMemo } from "react";
@@ -21,7 +21,7 @@ type ScheduleContextValue = {
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: React.ReactNode }) {
-  const { recurringSessions } = useAdminBootstrap();
+  const { recurringSessions } = useAdminInitial();
   const router = useRouter();
 
   const upsertRecurringSession = useCallback(

@@ -1,4 +1,9 @@
-import { isEmailAllowed } from "@/lib/auth/allowed-emails";
+import { isEmailInvitedForSignIn } from "@/lib/auth/sign-in-gate";
+import { loadUserByEmail } from "@/lib/auth/load-user-by-email";
+import {
+  ACTIVE_TUTOR_COOKIE_NAME,
+} from "@/lib/tutor-context/constants";
+import { cookies } from "next/headers";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
@@ -15,12 +20,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/signin",
   },
   callbacks: {
-    signIn({ profile }) {
-      if (isEmailAllowed(profile?.email)) {
+    async signIn({ profile }) {
+      const invited = await isEmailInvitedForSignIn(profile?.email);
+      if (invited) {
         return true;
       }
-      // Returning a path avoids the default `/api/auth/error` HTML page.
       return "/signin?error=AccessDenied";
+    },
+    async jwt({ token, profile }) {
+      const email =
+        profile?.email?.trim().toLowerCase() ??
+        token.email?.trim().toLowerCase();
+      if (!email) {
+        return token;
+      }
+
+      const user = await loadUserByEmail(email);
+      if (!user) {
+        return token;
+      }
+
+      token.email = user.email;
+      token.userId = user.id;
+      token.role = user.role;
+      token.tutorId = user.tutorId;
+      return token;
+    },
+    session({ session, token }) {
+      if (
+        session.user &&
+        typeof token.userId === "string" &&
+        (token.role === "TEACHER" || token.role === "ADMIN")
+      ) {
+        session.user.id = token.userId;
+        session.user.role = token.role;
+        session.user.tutorId =
+          typeof token.tutorId === "string" ? token.tutorId : null;
+      }
+      return session;
     },
     redirect({ url, baseUrl }) {
       if (url.startsWith("/")) {
@@ -30,6 +67,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return url;
       }
       return baseUrl;
+    },
+  },
+  events: {
+    async signIn({ user }) {
+      const email = user.email?.trim().toLowerCase();
+      if (!email) return;
+
+      const dbUser = await loadUserByEmail(email);
+      if (dbUser?.role !== "ADMIN") return;
+
+      const cookieStore = await cookies();
+      cookieStore.delete(ACTIVE_TUTOR_COOKIE_NAME);
     },
   },
 });

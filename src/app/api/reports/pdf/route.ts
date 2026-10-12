@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { buildMonthlyReportPdfFilename } from "@/lib/reports/pdf/filename";
 import { generateMonthlyReportPdf } from "@/lib/reports/pdf/generate-monthly-report-pdf";
 import { loadMonthlyReportPdfProps } from "@/lib/reports/pdf/load-report-pdf-props";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 import type { InvoicePeriod } from "@/utils/format";
 import { NextResponse } from "next/server";
 
@@ -41,7 +42,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const props = await loadMonthlyReportPdfProps({ studentId, period });
+  const tutorId = await getActiveTutorId();
+  if (!tutorId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const props = await loadMonthlyReportPdfProps({ tutorId, studentId, period });
   if (!props) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

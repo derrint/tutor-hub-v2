@@ -9,7 +9,7 @@ function tutorDayKey(reference: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-/** Refetch server bootstrap when WIB calendar day changes (midnight, open tabs). */
+/** Refetch server data when WIB calendar day changes (midnight, open tabs). */
 export function useTutorDayRolloverRefresh(): void {
   const router = useRouter();
   const dayKeyRef = useRef(tutorDayKey());

@@ -1,11 +1,13 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import {
   bottomNavInsetClass,
   bottomNavMoreItems,
   bottomNavIconClass,
   isNavItemActive,
+  platformAdminNavItems,
 } from "@/layout/admin-nav-items";
 import { cn } from "@/utils";
 import { useTranslations } from "next-intl";
@@ -24,7 +26,9 @@ export default function AppMoreNavSheet({
 }: AppMoreNavSheetProps) {
   const t = useTranslations("sidebar");
   const tCommon = useTranslations("common");
+  const { tutorContext } = useAdminInitial();
   const pathname = usePathname();
+  const showPlatformAdmin = tutorContext.role === "ADMIN";
   const titleId = useId();
 
   useEffect(() => {
@@ -108,6 +112,42 @@ export default function AppMoreNavSheet({
               </li>
             );
           })}
+          {showPlatformAdmin && (
+            <>
+              <li className="mt-2 px-1 pt-2 text-theme-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                {t("items.platformAdmin")}
+              </li>
+              {platformAdminNavItems.map((item) => {
+                const active = isNavItemActive(pathname, item.path);
+                const { Icon } = item;
+                return (
+                  <li key={item.key}>
+                    <Link
+                      href={item.path}
+                      onClick={onClose}
+                      tabIndex={visible ? 0 : -1}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-3 text-theme-sm font-medium transition-colors",
+                        active
+                          ? "bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400"
+                          : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5",
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          bottomNavIconClass,
+                          active
+                            ? "text-brand-500 dark:text-brand-400"
+                            : "text-gray-500 dark:text-gray-400",
+                        )}
+                      />
+                      {t(`items.${item.key}`)}
+                    </Link>
+                  </li>
+                );
+              })}
+            </>
+          )}
         </ul>
       </div>
     </div>

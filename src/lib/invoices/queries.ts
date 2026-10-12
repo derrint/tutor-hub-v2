@@ -5,7 +5,7 @@ import { defaultSessionGenerationWindow } from "@/lib/schedule/generate-sessions
 import { mapParent, mapStudent } from "@/lib/db/mappers";
 import type { InvoicePreview } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
-import { buildInvoiceId } from "./generate-invoice-from-schedule";
+import { buildInvoiceId } from "./invoice-id";
 import {
   deriveInvoiceForParent,
   invoicePreviewFromPaidRecord,
@@ -13,12 +13,13 @@ import {
   type SessionWithStudent,
 } from "./derive-from-sessions";
 
-export async function loadSessionsForGenerationWindow(): Promise<
-  SessionWithStudent[]
-> {
+export async function loadSessionsForGenerationWindow(
+  tutorId: string,
+): Promise<SessionWithStudent[]> {
   const window = defaultSessionGenerationWindow();
   const sessions = await prisma.session.findMany({
     where: {
+      tutorId,
       date: { gte: window.from, lte: window.to },
     },
     include: { student: true },
@@ -42,6 +43,7 @@ export function buildAbsentOccurrenceIdSet(
 }
 
 export async function getInvoicesForPeriodFromDb(
+  tutorId: string,
   period: InvoicePeriod,
   absentOccurrenceIds: ReadonlySet<string>,
   sessions: SessionWithStudent[],
@@ -49,7 +51,7 @@ export async function getInvoicesForPeriodFromDb(
   parents: ReturnType<typeof mapParent>[],
 ): Promise<InvoicePreview[]> {
   const paidRecords = await prisma.invoice.findMany({
-    where: { month: period.month, year: period.year },
+    where: { tutorId, month: period.month, year: period.year },
     include: {
       parent: true,
       items: {
@@ -100,14 +102,19 @@ export async function getInvoicesForPeriodFromDb(
 }
 
 export async function markInvoicePaidInDb(
+  tutorId: string,
   invoiceId: string,
   period: InvoicePeriod,
   parentId: string,
   absentOccurrenceIds: ReadonlySet<string>,
 ): Promise<void> {
-  const students = (await prisma.student.findMany()).map(mapStudent);
-  const parents = (await prisma.parent.findMany()).map(mapParent);
-  const sessions = await loadSessionsForGenerationWindow();
+  const students = (
+    await prisma.student.findMany({ where: { tutorId } })
+  ).map(mapStudent);
+  const parents = (
+    await prisma.parent.findMany({ where: { tutorId } })
+  ).map(mapParent);
+  const sessions = await loadSessionsForGenerationWindow(tutorId);
 
   const derived = deriveInvoiceForParent(
     parentId,
@@ -125,7 +132,8 @@ export async function markInvoicePaidInDb(
   await prisma.$transaction(async (tx) => {
     const existing = await tx.invoice.findUnique({
       where: {
-        parentId_month_year: {
+        tutorId_parentId_month_year: {
+          tutorId,
           parentId,
           month: period.month,
           year: period.year,
@@ -152,6 +160,7 @@ export async function markInvoicePaidInDb(
     const invoice = await tx.invoice.create({
       data: {
         id: invoiceId,
+        tutorId,
         parentId,
         month: period.month,
         year: period.year,
@@ -201,12 +210,14 @@ export async function markInvoicePaidInDb(
 }
 
 export async function markInvoiceUnpaidInDb(
+  tutorId: string,
   parentId: string,
   period: InvoicePeriod,
 ): Promise<void> {
   const invoice = await prisma.invoice.findUnique({
     where: {
-      parentId_month_year: {
+      tutorId_parentId_month_year: {
+        tutorId,
         parentId,
         month: period.month,
         year: period.year,

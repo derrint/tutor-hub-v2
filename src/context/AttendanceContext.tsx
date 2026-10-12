@@ -4,7 +4,7 @@ import {
   setOccurrenceAbsentAction,
   toggleOccurrenceAbsentAction,
 } from "@/app/actions/attendance";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useRouter } from "@/i18n/navigation";
 import React, {
   createContext,
@@ -26,7 +26,7 @@ type AttendanceContextValue = {
 const AttendanceContext = createContext<AttendanceContextValue | null>(null);
 
 export function AttendanceProvider({ children }: { children: React.ReactNode }) {
-  const { absentOccurrenceIds: serverAbsentIds } = useAdminBootstrap();
+  const { absentOccurrenceIds: serverAbsentIds } = useAdminInitial();
   const router = useRouter();
   const [localAbsentOverrides, setLocalAbsentOverrides] = useState<
     Map<string, boolean>

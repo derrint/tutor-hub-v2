@@ -1,7 +1,7 @@
 "use client";
 
 import { useAttendance } from "@/context/AttendanceContext";
-import { useBillingBootstrapOptional } from "@/context/BillingBootstrapContext";
+import { useBillingInitialOptional } from "@/context/BillingInitialContext";
 import { useInvoices } from "@/context/InvoiceContext";
 import { computeEarnedSoFarInPeriod } from "@/lib/attendance/compute-earned-so-far";
 import {
@@ -28,7 +28,7 @@ export function useFinanceSummary(
   period: InvoicePeriod = getCurrentInvoicePeriod(),
 ): FinanceSummaryResult {
   const { getInvoicesForPeriod, isBillingReady } = useInvoices();
-  const billing = useBillingBootstrapOptional();
+  const billing = useBillingInitialOptional();
   const { absentOccurrenceIds } = useAttendance();
   const absentSet = useMemo(
     () => new Set(absentOccurrenceIds),

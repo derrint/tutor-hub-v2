@@ -3,7 +3,7 @@
 import TutorHubMark from "@/components/branding/TutorHubMark";
 import { useTranslations } from "next-intl";
 
-/** Full-screen splash while admin bootstrap loads (PWA first paint). */
+/** Full-screen splash while admin initial load runs (PWA first paint). */
 export default function BrandedLaunchScreen() {
   const t = useTranslations("tutorHub");
 

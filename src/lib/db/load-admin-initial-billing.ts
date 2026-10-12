@@ -9,19 +9,24 @@ import {
 } from "@/lib/invoices/session-serialization";
 import type { InvoicePreview } from "@/lib/domain/types";
 import { ensureSessionsGeneratedIfNeeded } from "@/lib/schedule/generate-sessions";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
-export type AdminBootstrapBillingData = {
+export type AdminInitialBillingData = {
   sessions: SerializedSessionWithStudent[];
   paidInvoices: InvoicePreview[];
 };
 
-export async function loadAdminBootstrapBilling(): Promise<AdminBootstrapBillingData> {
-  await ensureSessionsGeneratedIfNeeded();
+export async function loadAdminInitialBilling(): Promise<AdminInitialBillingData> {
+  const tutorId = await getActiveTutorId();
+  if (!tutorId) {
+    return { sessions: [], paidInvoices: [] };
+  }
+  await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 
   const [sessions, paidRows] = await Promise.all([
-    loadSessionsForGenerationWindow(),
+    loadSessionsForGenerationWindow(tutorId),
     prisma.invoice.findMany({
-      where: { status: "PAID" },
+      where: { tutorId, status: "PAID" },
       include: {
         parent: true,
         items: {

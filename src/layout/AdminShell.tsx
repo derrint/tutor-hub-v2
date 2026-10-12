@@ -1,11 +1,11 @@
 "use client";
 
-import { AdminBootstrapProvider } from "@/context/AdminBootstrapContext";
+import { AdminInitialProvider } from "@/context/AdminInitialContext";
 import { AttendanceProvider } from "@/context/AttendanceContext";
 import { RosterProvider } from "@/context/RosterContext";
 import { ScheduleProvider } from "@/context/ScheduleContext";
 import { useSidebar } from "@/context/SidebarContext";
-import type { AdminBootstrapCoreData } from "@/lib/db/load-admin-bootstrap-core";
+import type { AdminInitialCoreData } from "@/lib/db/load-admin-initial-core";
 import AppBottomNav from "@/layout/AppBottomNav";
 import { bottomNavContentPaddingClass } from "@/layout/admin-nav-items";
 import AppHeader from "@/layout/AppHeader";
@@ -17,7 +17,7 @@ export default function AdminShell({
   initialCore,
   children,
 }: {
-  initialCore: AdminBootstrapCoreData;
+  initialCore: AdminInitialCoreData;
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered } = useSidebar();
@@ -26,7 +26,7 @@ export default function AdminShell({
     isExpanded || isHovered ? "xl:ms-[290px]" : "xl:ms-[90px]";
 
   return (
-    <AdminBootstrapProvider value={initialCore}>
+    <AdminInitialProvider value={initialCore}>
       <RosterProvider>
         <ScheduleProvider>
           <AttendanceProvider>
@@ -48,6 +48,6 @@ export default function AdminShell({
           </AttendanceProvider>
         </ScheduleProvider>
       </RosterProvider>
-    </AdminBootstrapProvider>
+    </AdminInitialProvider>
   );
 }

@@ -7,35 +7,40 @@ import {
 } from "@/utils/format";
 
 export async function loadMonthlyReportPdfProps(input: {
+  tutorId: string;
   studentId: string;
   period: InvoicePeriod;
 }): Promise<MonthlyReportPdfProps | null> {
-  const [student, profileRow] = await Promise.all([
-    prisma.student.findUnique({
-      where: { id: input.studentId },
-      select: { name: true },
-    }),
-    prisma.profile.findFirst({
-      select: { accountHolderName: true },
-    }),
-  ]);
+  const student = await prisma.student.findFirst({
+    where: { id: input.studentId, tutorId: input.tutorId },
+    select: { name: true, tutorId: true },
+  });
   if (!student) return null;
 
-  const report = await prisma.monthlyReport.findUnique({
-    where: {
-      studentId_month_year: {
-        studentId: input.studentId,
-        month: input.period.month,
-        year: input.period.year,
+  const [tutorRow, report] = await Promise.all([
+    prisma.tutor.findUnique({
+      where: { id: student.tutorId },
+      select: { displayName: true, accountHolderName: true },
+    }),
+    prisma.monthlyReport.findUnique({
+      where: {
+        tutorId_studentId_month_year: {
+          tutorId: student.tutorId,
+          studentId: input.studentId,
+          month: input.period.month,
+          year: input.period.year,
+        },
       },
-    },
-    select: { contentJson: true },
-  });
-
+      select: { contentJson: true },
+    }),
+  ]);
   const content = parseMonthlyReportContent(report?.contentJson);
   const periodLabel = formatInvoicePeriodLabel(input.period);
 
-  const tutorDisplayName = profileRow?.accountHolderName?.trim() ?? "";
+  const tutorDisplayName =
+    tutorRow?.accountHolderName?.trim() ||
+    tutorRow?.displayName?.trim() ||
+    "";
 
   return {
     studentName: student.name,
