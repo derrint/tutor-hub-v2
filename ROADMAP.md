@@ -229,8 +229,8 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 
 ### 5.4 — Admin UI
 
-- [ ] **Tutor switcher** in header (admin only) — list **`Tutor`** records, search/filter if many.
-- [ ] Visual badge: “Viewing: {studio name}” so admin never confuses context.
+- [x] **Tutor switcher** in header (admin only) — list **`Tutor`** records; filter when ≥5 tutors (`AdminTutorSwitcher`).
+- [x] Visual badge: “Viewing: {studio name}” (falls back to tutor `displayName`).
 - [ ] Optional: **`/admin/tutors`** — create **`Tutor`** + invite email (manual admin ops; no public signup).
 
 **Exit criteria:** Admin can switch tutor without reload bugs; finance/schedule/invoices match selected **`Tutor`**.

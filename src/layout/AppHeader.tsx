@@ -2,6 +2,7 @@
 
 import TutorHubMark from "@/components/branding/TutorHubMark";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
+import AdminTutorSwitcher from "@/components/header/AdminTutorSwitcher";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import { headerSafeAreaTopClass } from "@/layout/admin-nav-items";
@@ -120,7 +121,8 @@ const AppHeader: React.FC = () => {
             isApplicationMenuOpen ? "flex" : "hidden",
           )}
         >
-          <div className="flex items-center gap-2 2xsm:gap-3">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2 2xsm:gap-3 xl:flex-initial">
+            <AdminTutorSwitcher />
             <ThemeToggleButton />
           </div>
           <UserDropdown />

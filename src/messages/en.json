@@ -140,6 +140,15 @@
     "searchPlaceholder": "Search or type command...",
     "toggleSidebar": "Toggle Sidebar",
     "applicationMenu": "Application menu",
+    "tutorSwitcher": {
+      "viewing": "Viewing",
+      "viewingBadgeTitle": "Admin is viewing this tutor’s practice",
+      "switchTutor": "Switch tutor",
+      "searchPlaceholder": "Filter tutors…",
+      "noMatches": "No tutors match your search",
+      "switching": "Switching…",
+      "unknownPractice": "Tutor practice"
+    },
     "notifications": {
       "title": "Notification",
       "requestsPermission": "requests permission to change",
