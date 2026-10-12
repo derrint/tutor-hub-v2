@@ -10,7 +10,12 @@ import {
   generateSessionsInWindow,
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import {
+  assertScheduleRuleInTutor,
+  assertStudentInTutor,
+  TutorScopeError,
+} from "@/lib/tutor-context/assert-tutor-scope";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
 export type RecurringSessionInput = {
   id?: string;
@@ -31,8 +36,16 @@ function ruleIdForDay(existingId: string | undefined, dayOfWeek: number): string
 }
 
 export async function upsertRecurringSessionAction(input: RecurringSessionInput) {
-  const student = await prisma.student.findUnique({
-    where: { id: input.studentId },
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertStudentInTutor(input.studentId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return null;
+    throw error;
+  }
+
+  const student = await prisma.student.findFirst({
+    where: { id: input.studentId, tutorId },
   });
   if (!student) return null;
 
@@ -48,11 +61,17 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
   if (!startDate) return null;
 
   if (input.id) {
+    try {
+      await assertScheduleRuleInTutor(input.id, tutorId);
+    } catch (error) {
+      if (error instanceof TutorScopeError) return null;
+      throw error;
+    }
     await prisma.session.deleteMany({
-      where: { scheduleRuleId: input.id },
+      where: { scheduleRuleId: input.id, tutorId },
     });
     await prisma.scheduleRule.deleteMany({
-      where: { id: input.id },
+      where: { id: input.id, studentId: input.studentId },
     });
   }
 
@@ -76,7 +95,6 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
     },
   });
 
-  const tutorId = await resolveTutorIdForRequest();
   await generateSessionsInWindow(
     defaultSessionGenerationWindow(),
     prisma,
@@ -88,13 +106,16 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
 }
 
 export async function deleteRecurringSessionAction(calendarRuleId: string) {
-  const rule = await prisma.scheduleRule.findUnique({
-    where: { id: calendarRuleId },
-  });
-  if (!rule) return false;
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertScheduleRuleInTutor(calendarRuleId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return false;
+    throw error;
+  }
 
   await prisma.session.deleteMany({
-    where: { scheduleRuleId: calendarRuleId },
+    where: { scheduleRuleId: calendarRuleId, tutorId },
   });
   await prisma.scheduleRule.deleteMany({ where: { id: calendarRuleId } });
   revalidateAdminRoutes();
@@ -105,6 +126,6 @@ export async function ensureSessionsAction() {
   const { ensureSessionsGeneratedIfNeeded } = await import(
     "@/lib/schedule/generate-sessions"
   );
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
   await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 }

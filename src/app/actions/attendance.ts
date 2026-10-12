@@ -4,6 +4,24 @@ import { parseOccurrenceId } from "@/lib/attendance/parse-occurrence-id";
 import { calendarDateToStoredDate } from "@/lib/datetime/calendar-date";
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { prisma } from "@/lib/db/prisma";
+import {
+  assertStudentInTutor,
+  TutorScopeError,
+} from "@/lib/tutor-context/assert-tutor-scope";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+
+async function guardOccurrenceStudent(
+  studentId: string,
+): Promise<string | null> {
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertStudentInTutor(studentId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return null;
+    throw error;
+  }
+  return tutorId;
+}
 
 export async function setOccurrenceAbsentAction(
   occurrenceId: string,
@@ -11,6 +29,9 @@ export async function setOccurrenceAbsentAction(
 ) {
   const parsed = parseOccurrenceId(occurrenceId);
   if (!parsed) return;
+
+  const tutorId = await guardOccurrenceStudent(parsed.studentId);
+  if (!tutorId) return;
 
   const date = calendarDateToStoredDate(
     parsed.year,
@@ -20,6 +41,7 @@ export async function setOccurrenceAbsentAction(
 
   await prisma.session.updateMany({
     where: {
+      tutorId,
       studentId: parsed.studentId,
       date,
     },
@@ -35,6 +57,9 @@ export async function toggleOccurrenceAbsentAction(occurrenceId: string) {
   const parsed = parseOccurrenceId(occurrenceId);
   if (!parsed) return;
 
+  const tutorId = await guardOccurrenceStudent(parsed.studentId);
+  if (!tutorId) return;
+
   const date = calendarDateToStoredDate(
     parsed.year,
     parsed.month,
@@ -42,14 +67,14 @@ export async function toggleOccurrenceAbsentAction(occurrenceId: string) {
   );
 
   const sessions = await prisma.session.findMany({
-    where: { studentId: parsed.studentId, date },
+    where: { tutorId, studentId: parsed.studentId, date },
   });
 
   const anyAbsent = sessions.some((s) => s.status === "ABSENT");
   const nextAbsent = !anyAbsent;
 
   await prisma.session.updateMany({
-    where: { studentId: parsed.studentId, date },
+    where: { tutorId, studentId: parsed.studentId, date },
     data: { status: nextAbsent ? "ABSENT" : "SCHEDULED" },
   });
 

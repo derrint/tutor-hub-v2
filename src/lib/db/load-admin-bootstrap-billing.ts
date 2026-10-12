@@ -9,7 +9,7 @@ import {
 } from "@/lib/invoices/session-serialization";
 import type { InvoicePreview } from "@/lib/domain/types";
 import { ensureSessionsGeneratedIfNeeded } from "@/lib/schedule/generate-sessions";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
 export type AdminBootstrapBillingData = {
   sessions: SerializedSessionWithStudent[];
@@ -17,7 +17,7 @@ export type AdminBootstrapBillingData = {
 };
 
 export async function loadAdminBootstrapBilling(): Promise<AdminBootstrapBillingData> {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
   await ensureSessionsGeneratedIfNeeded(prisma, tutorId);
 
   const [sessions, paidRows] = await Promise.all([

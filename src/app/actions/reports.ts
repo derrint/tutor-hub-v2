@@ -9,7 +9,8 @@ import {
   type MonthlyReportContentV1,
 } from "@/lib/reports/content-schema";
 import type { InvoicePeriod } from "@/utils/format";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import { assertStudentInTutor } from "@/lib/tutor-context/assert-tutor-scope";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
 export type MonthlyReportRow = {
   id: string;
@@ -34,7 +35,7 @@ function computePdfNeedsRefresh(input: {
 export async function listMonthlyReportsForPeriod(
   period: InvoicePeriod,
 ): Promise<MonthlyReportRow[]> {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
   const rows = await prisma.monthlyReport.findMany({
     where: { tutorId, month: period.month, year: period.year },
     select: {
@@ -64,7 +65,8 @@ export async function upsertMonthlyReportDraftAction(input: {
   period: InvoicePeriod;
   content: MonthlyReportContentV1;
 }): Promise<MonthlyReportRow> {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
+  await assertStudentInTutor(input.studentId, tutorId);
   const contentJson = serializeMonthlyReportContent(input.content);
 
   const row = await prisma.monthlyReport.upsert({
@@ -116,7 +118,8 @@ export async function publishMonthlyReportAction(input: {
   period: InvoicePeriod;
   content?: MonthlyReportContentV1;
 }): Promise<void> {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
+  await assertStudentInTutor(input.studentId, tutorId);
   const contentJson = input.content
     ? serializeMonthlyReportContent(input.content)
     : serializeMonthlyReportContent(emptyMonthlyReportContent());

@@ -10,7 +10,12 @@ import {
 import type { EducationLevel, StudentStatus } from "@/lib/domain/types";
 import { deactivateStudentSchedule } from "@/lib/roster/deactivate-student";
 import { syncSessionFeesForUnpaidMonths } from "@/lib/roster/sync-session-fees";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import {
+  assertParentInTutor,
+  assertStudentInTutor,
+  TutorScopeError,
+} from "@/lib/tutor-context/assert-tutor-scope";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
 export type ParentInput = {
   id?: string;
@@ -36,8 +41,11 @@ function newId(prefix: string): string {
 }
 
 export async function upsertParentAction(input: ParentInput) {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
   const id = input.id ?? newId("p");
+  if (input.id) {
+    await assertParentInTutor(input.id, tutorId);
+  }
   const parent = await prisma.parent.upsert({
     where: { id },
     create: {
@@ -60,19 +68,37 @@ export async function upsertParentAction(input: ParentInput) {
 }
 
 export async function deleteParentAction(parentId: string) {
-  const linked = await prisma.student.count({ where: { parentId } });
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertParentInTutor(parentId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return { ok: false as const };
+    throw error;
+  }
+
+  const linked = await prisma.student.count({
+    where: { parentId, tutorId },
+  });
   if (linked > 0) return { ok: false as const };
 
-  await prisma.parent.delete({ where: { id: parentId } });
+  await prisma.parent.deleteMany({ where: { id: parentId, tutorId } });
   revalidateAdminRoutes();
   return { ok: true as const };
 }
 
 export async function upsertStudentAction(input: StudentInput) {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
   const id = input.id ?? newId("m");
+
+  await assertParentInTutor(input.parentId, tutorId);
+  if (input.id) {
+    await assertStudentInTutor(input.id, tutorId);
+  }
+
   const existing = input.id
-    ? await prisma.student.findUnique({ where: { id: input.id } })
+    ? await prisma.student.findFirst({
+        where: { id: input.id, tutorId },
+      })
     : null;
 
   const allStudents = await prisma.student.findMany({
@@ -136,8 +162,16 @@ export async function upsertStudentAction(input: StudentInput) {
 }
 
 export async function deleteStudentAction(studentId: string) {
-  await prisma.session.deleteMany({ where: { studentId } });
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertStudentInTutor(studentId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return;
+    throw error;
+  }
+
+  await prisma.session.deleteMany({ where: { studentId, tutorId } });
   await prisma.scheduleRule.deleteMany({ where: { studentId } });
-  await prisma.student.delete({ where: { id: studentId } });
+  await prisma.student.deleteMany({ where: { id: studentId, tutorId } });
   revalidateAdminRoutes();
 }

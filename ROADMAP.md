@@ -208,11 +208,12 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Add all three emails to **`AUTH_AL
 
 ### 5.2 — Server tutor context & query scoping
 
-- [ ] **`getActiveTutorId()`** — from session: tutor user’s own `tutorId`, or admin’s selected `activeTutorId`.
-- [ ] Central guard: every **`lib/db/*` loader**, server action, and API route resolves active tutor and adds `where: { tutorId }`.
-- [ ] **`loadAdminBootstrapCore` / billing** — scoped bootstrap; admin shell loads tutor list + active tutor.
-- [ ] **Attendance / absent** keys unchanged in shape; data already isolated by tutor’s sessions.
-- [ ] Integration tests or scripted checks: **tutor A cannot read tutor B** (IDs, actions, PDF routes).
+- [x] **`getActiveTutorId()`** — TUTOR → own `tutorId`; ADMIN → HttpOnly cookie `tutor-hub-active-tutor-id` (validated), else `tutor_1`.
+- [x] **`setActiveTutorIdAction`** / **`clearActiveTutorCookieAction`** — admin cookie + sign-out clears context (picker UI in 5.4).
+- [x] **`assert*InTutor` guards** — roster, schedule, attendance, invoices, reports; PDF route scopes by active tutor.
+- [x] **`loadAdminBootstrapCore` / billing** — scoped bootstrap + **`tutorContext`** (active id, role, admin tutor catalog).
+- [x] **Attendance / absent** — occurrence keys unchanged; session updates include `tutorId`.
+- [x] **`pnpm verify:tutor-isolation`** — DB partition sanity script (`scripts/verify-tutor-isolation.ts`).
 
 **Exit criteria:** Solo tutor deploy works as today with one **`Tutor`**; second tutor’s data never appears in the first tutor’s UI.
 
@@ -286,7 +287,7 @@ Do not build unless requirements change:
 | Invoice generation (mock) | `src/lib/invoices/` (`resolve-invoice-display.ts`), `src/context/InvoiceContext.tsx` |
 | Billing month navigation | `src/lib/billing-period.ts`, `src/hooks/useBillingPeriod.ts`, `src/components/billing/` |
 | Auth (Google allowlist) | `src/auth.ts`, `src/lib/auth/allowed-emails.ts`, `src/proxy.ts` |
-| Active tutor context (Phase 5) | `src/lib/tutor-context/resolve-tutor-id.ts`, `src/lib/auth/bootstrap-users.ts` |
+| Active tutor context (Phase 5) | `src/lib/tutor-context/get-active-tutor-id.ts`, `assert-tutor-scope.ts`, `src/app/actions/tutor-context.ts` |
 | Agent / repo conventions | `AGENTS.md` |
 
 **Suggested next sprint:** Start **Phase 5.1** (schema + migration) **or** v1 maintenance (compact month list, report photo blob storage, datetime edge cases).

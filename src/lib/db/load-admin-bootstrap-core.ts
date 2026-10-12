@@ -10,7 +10,20 @@ import type {
   TutorProfile,
 } from "@/lib/domain/types";
 import { groupScheduleRulesForCalendar } from "@/lib/schedule/group-rules";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
+import { getRequestUser } from "@/lib/tutor-context/get-request-user";
+
+export type TutorCatalogEntry = {
+  id: string;
+  displayName: string;
+};
+
+export type TutorSessionContext = {
+  activeTutorId: string;
+  role: "TUTOR" | "ADMIN";
+  tutors: TutorCatalogEntry[];
+};
+
 /** Fast admin bootstrap — shell, dashboard, schedule rules (no full session window / paid invoices). */
 export type AdminBootstrapCoreData = {
   profile: TutorProfile;
@@ -19,13 +32,25 @@ export type AdminBootstrapCoreData = {
   recurringSessions: RecurringSession[];
   todaySessions: TodaySession[];
   absentOccurrenceIds: string[];
+  tutorContext: TutorSessionContext;
 };
 
 export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> {
-  const tutorId = await resolveTutorIdForRequest();
+  const [tutorId, requestUser] = await Promise.all([
+    getActiveTutorId(),
+    getRequestUser(),
+  ]);
   const todayStart = tutorTodayStoredDate();
 
-  const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
+  const tutorCatalogPromise =
+    requestUser?.role === "ADMIN"
+      ? prisma.tutor.findMany({
+          orderBy: { displayName: "asc" },
+          select: { id: true, displayName: true },
+        })
+      : Promise.resolve([] as TutorCatalogEntry[]);
+
+  const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds, tutors] =
     await Promise.all([
       prisma.profile.findFirst({ where: { tutorId } }),
       prisma.parent.findMany({
@@ -47,6 +72,7 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
         orderBy: [{ startTime: "asc" }],
       }),
       loadAbsentOccurrenceIds(tutorId),
+      tutorCatalogPromise,
     ]);
 
   const profile = profileRow
@@ -66,5 +92,10 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
     recurringSessions: groupScheduleRulesForCalendar(rulesRows),
     todaySessions: todayRows.map(mapTodaySession),
     absentOccurrenceIds,
+    tutorContext: {
+      activeTutorId: tutorId,
+      role: requestUser?.role ?? "TUTOR",
+      tutors,
+    },
   };
 }

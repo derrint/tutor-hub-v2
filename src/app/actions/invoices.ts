@@ -10,7 +10,11 @@ import {
 import type { InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
 import { parseInvoiceId } from "@/lib/invoices/build-period-invoices";
-import { resolveTutorIdForRequest } from "@/lib/tutor-context/resolve-tutor-id";
+import {
+  assertParentInTutor,
+  TutorScopeError,
+} from "@/lib/tutor-context/assert-tutor-scope";
+import { getActiveTutorId } from "@/lib/tutor-context/get-active-tutor-id";
 
 export async function setInvoiceStatusAction(
   invoiceId: string,
@@ -18,7 +22,13 @@ export async function setInvoiceStatusAction(
   period: InvoicePeriod,
   parentId: string,
 ) {
-  const tutorId = await resolveTutorIdForRequest();
+  const tutorId = await getActiveTutorId();
+  try {
+    await assertParentInTutor(parentId, tutorId);
+  } catch (error) {
+    if (error instanceof TutorScopeError) return;
+    throw error;
+  }
   const sessions = await loadSessionsForGenerationWindow(tutorId);
   const absentOccurrenceIds = buildAbsentOccurrenceIdSet(sessions);
 
@@ -34,6 +44,12 @@ export async function setInvoiceStatusAction(
     const parsed = parseInvoiceId(invoiceId);
     const resolvedParentId = parsed?.parentId ?? parentId;
     const resolvedPeriod = parsed?.period ?? period;
+    try {
+      await assertParentInTutor(resolvedParentId, tutorId);
+    } catch (error) {
+      if (error instanceof TutorScopeError) return;
+      throw error;
+    }
     await markInvoiceUnpaidInDb(tutorId, resolvedParentId, resolvedPeriod);
   }
 

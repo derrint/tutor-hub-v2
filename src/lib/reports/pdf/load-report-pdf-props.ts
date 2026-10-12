@@ -7,11 +7,12 @@ import {
 } from "@/utils/format";
 
 export async function loadMonthlyReportPdfProps(input: {
+  tutorId: string;
   studentId: string;
   period: InvoicePeriod;
 }): Promise<MonthlyReportPdfProps | null> {
-  const student = await prisma.student.findUnique({
-    where: { id: input.studentId },
+  const student = await prisma.student.findFirst({
+    where: { id: input.studentId, tutorId: input.tutorId },
     select: { name: true, tutorId: true },
   });
   if (!student) return null;

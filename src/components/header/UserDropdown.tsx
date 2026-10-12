@@ -8,6 +8,7 @@ import { ChevronDownIcon, GlobeIcon, SettingsIcon } from "@/icons";
 import { cn } from "@/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import { clearActiveTutorCookieAction } from "@/app/actions/tutor-context";
 import { signOut, useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
@@ -188,7 +189,9 @@ export default function UserDropdown() {
           type="button"
           onClick={() => {
             closeDropdown();
-            void signOut({ callbackUrl: "/signin" });
+            void clearActiveTutorCookieAction().then(() =>
+              signOut({ callbackUrl: "/signin" }),
+            );
           }}
           className="group mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
