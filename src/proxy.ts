@@ -30,7 +30,15 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  return intlMiddleware(req);
+  const response = intlMiddleware(req);
+  if (response instanceof NextResponse) {
+    response.headers.set("x-pathname", pathname);
+    return response;
+  }
+
+  const next = NextResponse.next();
+  next.headers.set("x-pathname", pathname);
+  return next;
 });
 
 export const config = {

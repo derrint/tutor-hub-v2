@@ -6,7 +6,9 @@ import {
   DollarLineIcon,
   FileIcon,
   GridIcon,
+  GroupIcon,
   ReceiptTextIcon,
+  UserCircleIcon,
   UsersIcon,
 } from "@/icons";
 import type { ComponentType, SVGProps } from "react";
@@ -18,7 +20,9 @@ export type AdminNavKey =
   | "parents"
   | "invoices"
   | "reports"
-  | "finance";
+  | "finance"
+  | "adminTutors"
+  | "adminUsers";
 
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -52,6 +56,11 @@ export const adminNavItems: AdminNavItem[] = [
   { key: "finance", path: "/finance", Icon: DollarLineIcon },
 ];
 
+export const platformAdminNavItems: AdminNavItem[] = [
+  { key: "adminTutors", path: "/admin/tutors", Icon: GroupIcon },
+  { key: "adminUsers", path: "/admin/users", Icon: UserCircleIcon },
+];
+
 export const BOTTOM_NAV_PRIMARY_KEYS = [
   "dashboard",
   "schedule",
@@ -83,7 +92,8 @@ export function isNavItemActive(pathname: string, path: string): boolean {
 }
 
 export function isMoreNavPath(pathname: string): boolean {
-  return bottomNavMoreItems.some((item) =>
-    isNavItemActive(pathname, item.path),
+  return (
+    bottomNavMoreItems.some((item) => isNavItemActive(pathname, item.path)) ||
+    platformAdminNavItems.some((item) => isNavItemActive(pathname, item.path))
   );
 }
