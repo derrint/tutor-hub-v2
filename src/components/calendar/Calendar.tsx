@@ -24,7 +24,13 @@ import multiMonthPlugin from "@fullcalendar/react/multimonth";
 import themePlugin from "@fullcalendar/react/themes/classic";
 import timeGridPlugin from "@fullcalendar/react/timegrid";
 import { useLocale } from "next-intl";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import CalendarEventItem from "./CalendarEventItem";
 import CalendarEventModal from "./CalendarEventModal";
@@ -176,10 +182,29 @@ const Calendar: React.FC<CalendarProps> = ({
   const calendarRef = useRef<CalendarRef>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const calendarReadyFired = useRef(false);
+  const mountedRef = useRef(false);
+  const datesSetRafRef = useRef<number | null>(null);
+  const onCalendarReadyRef = useRef(onCalendarReady);
   const { isOpen, openModal, closeModal } = useModal();
+
+  useEffect(() => {
+    onCalendarReadyRef.current = onCalendarReady;
+  }, [onCalendarReady]);
+
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (datesSetRafRef.current !== null) {
+        cancelAnimationFrame(datesSetRafRef.current);
+        datesSetRafRef.current = null;
+      }
+    };
+  }, []);
 
   const syncToolbarPortal = useCallback(() => {
     requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
       const chunk = calendarContainerRef.current?.querySelector(
         ".ta-toolbar-section:last-child",
       );
@@ -189,20 +214,32 @@ const Calendar: React.FC<CalendarProps> = ({
     });
   }, []);
 
-  /** FullCalendar may call `datesSet` during its first render — defer setState. */
+  const flushDatesSet = useCallback(
+    (viewType: string) => {
+      if (!mountedRef.current) return;
+      setCurrentView((prev) => (prev === viewType ? prev : viewType));
+      if (!calendarReadyFired.current) {
+        calendarReadyFired.current = true;
+        onCalendarReadyRef.current?.();
+      }
+      syncToolbarPortal();
+    },
+    [syncToolbarPortal],
+  );
+
+  /** FullCalendar may call `datesSet` during render — never setState synchronously. */
   const handleDatesSet = useCallback(
     (arg: { view: { type: string } }) => {
       const viewType = arg.view.type;
-      queueMicrotask(() => {
-        setCurrentView((prev) => (prev === viewType ? prev : viewType));
-        if (!calendarReadyFired.current) {
-          calendarReadyFired.current = true;
-          onCalendarReady?.();
-        }
-        syncToolbarPortal();
+      if (datesSetRafRef.current !== null) {
+        cancelAnimationFrame(datesSetRafRef.current);
+      }
+      datesSetRafRef.current = requestAnimationFrame(() => {
+        datesSetRafRef.current = null;
+        flushDatesSet(viewType);
       });
     },
-    [onCalendarReady, syncToolbarPortal],
+    [flushDatesSet],
   );
 
   const handleViewChange = (viewKey: string) => {
