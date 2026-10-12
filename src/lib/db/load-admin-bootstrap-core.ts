@@ -1,5 +1,10 @@
 import { tutorTodayStoredDate } from "@/lib/datetime/tutor-calendar";
-import { mapParent, mapProfile, mapStudent, mapTodaySession } from "@/lib/db/mappers";
+import {
+  mapParent,
+  mapStudent,
+  mapTodaySession,
+  mapTutorProfile,
+} from "@/lib/db/mappers";
 import { loadAbsentOccurrenceIds } from "@/lib/db/load-absent-occurrence-ids";
 import { prisma } from "@/lib/db/prisma";
 import type {
@@ -55,7 +60,6 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
   if (!tutorId) {
     return {
       profile: {
-        studioName: "TutorHub",
         bankName: "",
         bankAccountNumber: "",
         accountHolderName: "",
@@ -77,9 +81,9 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
 
   const todayStart = tutorTodayStoredDate();
 
-  const [profileRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
+  const [tutorRow, parentsRows, studentsRows, rulesRows, todayRows, absentOccurrenceIds] =
     await Promise.all([
-      prisma.profile.findFirst({ where: { tutorId } }),
+      prisma.tutor.findUnique({ where: { id: tutorId } }),
       prisma.parent.findMany({
         where: { tutorId },
         orderBy: { name: "asc" },
@@ -101,10 +105,9 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
       loadAbsentOccurrenceIds(tutorId),
     ]);
 
-  const profile = profileRow
-    ? mapProfile(profileRow)
+  const profile = tutorRow
+    ? mapTutorProfile(tutorRow)
     : {
-        studioName: "TutorHub",
         bankName: "",
         bankAccountNumber: "",
         accountHolderName: "",

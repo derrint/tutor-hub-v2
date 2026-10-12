@@ -45,16 +45,19 @@ enum InvoiceStatus {
   PAID
 }
 
-/// One tutor practice (studio). All roster / billing data belongs to a Tutor.
+/// One tutor practice. All roster / billing data belongs to a Tutor.
 model Tutor {
-  id          String   @id @default(cuid())
-  displayName String
-  slug        String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  displayName       String
+  slug              String?  @unique
+  accountHolderName String?
+  bankName          String?
+  bankAccountNumber String?
+  whatsappNumber    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   users         User[]
-  profile       Profile?
   parents       Parent[]
   students      Student[]
   sessions      Session[]
@@ -73,20 +76,6 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@index([tutorId])
-}
-
-model Profile {
-  id                String  @id @default(cuid())
-  tutorId           String  @unique
-  tutor             Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
-  studioName        String  @default("TutorHub")
-  accountHolderName String?
-  bankName          String?
-  bankAccountNumber String?
-  whatsappNumber    String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Parent {

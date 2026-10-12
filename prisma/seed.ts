@@ -28,7 +28,6 @@ async function main() {
   await prisma.scheduleRule.deleteMany();
   await prisma.student.deleteMany();
   await prisma.parent.deleteMany();
-  await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
   await prisma.tutor.deleteMany();
 
@@ -38,6 +37,10 @@ async function main() {
         id: BOOTSTRAP_TUTOR_1_ID,
         displayName: "Tutor 1",
         slug: "tutor-1",
+        bankName: TUTOR_PROFILE.bankName,
+        bankAccountNumber: TUTOR_PROFILE.bankAccountNumber,
+        accountHolderName: TUTOR_PROFILE.accountHolderName,
+        whatsappNumber: TUTOR_PROFILE.whatsappNumber || null,
       },
       {
         id: BOOTSTRAP_TUTOR_2_ID,
@@ -65,24 +68,6 @@ async function main() {
         id: BOOTSTRAP_USER_IDS.admin,
         email: BOOTSTRAP_ADMIN_EMAIL,
         role: "ADMIN",
-      },
-    ],
-  });
-
-  await prisma.profile.createMany({
-    data: [
-      {
-        id: "profile_tutor_1",
-        tutorId: BOOTSTRAP_TUTOR_1_ID,
-        studioName: "TutorHub",
-        bankName: TUTOR_PROFILE.bankName,
-        bankAccountNumber: TUTOR_PROFILE.bankAccountNumber,
-        accountHolderName: TUTOR_PROFILE.accountHolderName,
-      },
-      {
-        id: "profile_tutor_2",
-        tutorId: BOOTSTRAP_TUTOR_2_ID,
-        studioName: "TutorHub",
       },
     ],
   });
@@ -134,7 +119,7 @@ async function main() {
   await ensureSessionsGenerated(prisma);
 
   console.log(
-    "Seed complete: tutors, users, profile, roster, schedule rules, and sessions.",
+    "Seed complete: tutors, users, roster, schedule rules, and sessions.",
   );
 }
 

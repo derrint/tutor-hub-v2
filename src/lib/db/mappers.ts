@@ -4,7 +4,7 @@ import type {
   TodaySession,
   TutorProfile,
 } from "@/lib/domain/types";
-import type { Parent, Profile, Session, Student } from "@prisma/client";
+import type { Parent, Session, Student, Tutor } from "@prisma/client";
 
 export function mapParent(parent: Parent): ParentRecord {
   return {
@@ -29,15 +29,23 @@ export function mapStudent(student: Student): StudentRecord {
   };
 }
 
-export function mapProfile(profile: Profile): TutorProfile {
+export function mapTutorProfile(tutor: Pick<
+  Tutor,
+  | "bankName"
+  | "bankAccountNumber"
+  | "accountHolderName"
+  | "whatsappNumber"
+>): TutorProfile {
   return {
-    studioName: profile.studioName,
-    bankName: profile.bankName ?? "",
-    bankAccountNumber: profile.bankAccountNumber ?? "",
-    accountHolderName: profile.accountHolderName ?? "",
-    whatsappNumber: profile.whatsappNumber ?? "",
+    bankName: tutor.bankName ?? "",
+    bankAccountNumber: tutor.bankAccountNumber ?? "",
+    accountHolderName: tutor.accountHolderName ?? "",
+    whatsappNumber: tutor.whatsappNumber ?? "",
   };
 }
+
+/** @deprecated Use `mapTutorProfile`. */
+export const mapProfile = mapTutorProfile;
 
 export function mapTodaySession(
   session: Session & { student: Student },

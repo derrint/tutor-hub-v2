@@ -250,7 +250,7 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 |-------|-----------|
 | Auth | Keep **Auth.js + Google**; add `User` / role in DB |
 | Allowlist | Transitional: env allowlist → auto-provision `User` on first login, then remove env |
-| Profile | One **`Profile` per `Tutor`** (not single-row) |
+| Tutor billing fields | Bank / WhatsApp on **`Tutor`** (`displayName` for picker labels) |
 | Bootstrap | Pass `tutorId` into all loaders; admin loads tutor catalog once |
 | WIB / billing | No change to `tutor-calendar` / `?month=` — scope queries by `tutorId` |
 | Quick ref (future) | `src/lib/tutor-context/` (active tutor + guards), extend `src/auth.ts` |

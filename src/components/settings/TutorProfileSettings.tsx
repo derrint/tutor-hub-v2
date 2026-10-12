@@ -16,7 +16,6 @@ const TutorProfileSettings: React.FC = () => {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    studioName: "",
     accountHolderName: "",
     bankName: "",
     bankAccountNumber: "",
@@ -28,7 +27,6 @@ const TutorProfileSettings: React.FC = () => {
 
   useEffect(() => {
     setForm({
-      studioName: profile.studioName,
       accountHolderName: profile.accountHolderName,
       bankName: profile.bankName,
       bankAccountNumber: profile.bankAccountNumber,
@@ -65,16 +63,6 @@ const TutorProfileSettings: React.FC = () => {
         </p>
 
         <div className="mt-6 flex flex-col gap-4">
-          <div>
-            <Label htmlFor="studio-name">{t("fieldStudioName")}</Label>
-            <Input
-              id="studio-name"
-              value={form.studioName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, studioName: e.target.value }))
-              }
-            />
-          </div>
           <div>
             <Label htmlFor="account-holder">{t("fieldAccountHolder")}</Label>
             <Input

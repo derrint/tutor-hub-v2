@@ -399,7 +399,6 @@
       "title": "Settings",
       "description": "Bank details for WhatsApp invoices and your name on report PDFs.",
       "formHint": "Parents see bank info in the monthly WhatsApp message. Account holder name appears on rapot PDF signatures.",
-      "fieldStudioName": "Display name",
       "fieldAccountHolder": "Account holder name",
       "fieldAccountHolderPlaceholder": "Demo Tutor, S.Pd",
       "fieldBankName": "Bank name",

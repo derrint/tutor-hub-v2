@@ -6,8 +6,8 @@ export type StudentStatus = "ACTIVE" | "INACTIVE";
 export type SessionStatus = "SCHEDULED" | "ATTENDED" | "ABSENT";
 export type InvoiceStatus = "UNPAID" | "PAID";
 
+/** Bank / WhatsApp details for the active tutor (stored on `Tutor`). */
 export type TutorProfile = {
-  studioName: string;
   bankName: string;
   bankAccountNumber: string;
   accountHolderName: string;

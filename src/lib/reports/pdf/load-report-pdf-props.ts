@@ -17,10 +17,10 @@ export async function loadMonthlyReportPdfProps(input: {
   });
   if (!student) return null;
 
-  const [profileRow, report] = await Promise.all([
-    prisma.profile.findUnique({
-      where: { tutorId: student.tutorId },
-      select: { accountHolderName: true },
+  const [tutorRow, report] = await Promise.all([
+    prisma.tutor.findUnique({
+      where: { id: student.tutorId },
+      select: { displayName: true, accountHolderName: true },
     }),
     prisma.monthlyReport.findUnique({
       where: {
@@ -37,7 +37,10 @@ export async function loadMonthlyReportPdfProps(input: {
   const content = parseMonthlyReportContent(report?.contentJson);
   const periodLabel = formatInvoicePeriodLabel(input.period);
 
-  const tutorDisplayName = profileRow?.accountHolderName?.trim() ?? "";
+  const tutorDisplayName =
+    tutorRow?.accountHolderName?.trim() ||
+    tutorRow?.displayName?.trim() ||
+    "";
 
   return {
     studentName: student.name,

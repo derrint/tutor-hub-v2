@@ -55,7 +55,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
 - **Finance / Dashboard:** totals from session-derived invoice previews (same as invoice cards).
 - **Reports:** `MonthlyReport.contentJson` (v1: can do / still learning / goals / photos / notes); **Save** persists without clearing “PDF ready”; edits after export show **Re-download PDF** until exported again; **PDF on demand** (`/api/reports/pdf`, not stored); attach in WhatsApp manually.
-- **Settings:** `Profile` row (bank, account holder, optional tutor WhatsApp) editable at `/settings` — used in WhatsApp footers and rapot PDF signature name.
+- **Settings:** `Tutor` billing fields (bank, account holder, optional tutor WhatsApp) editable at `/settings` — used in WhatsApp footers and rapot PDF signature name. Picker labels use `Tutor.displayName`.
 - **Data:** **Neon Postgres**; seed in `prisma/seed.ts`; `mock-data.ts` for fixtures only.
 
 ## Capabilities and Constraints
