@@ -173,7 +173,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 ### Product rules
 
 - **`Tutor`** (record) = one tutor’s practice (studio). All business data is scoped with **`tutorId`**.
-- **`User` with role `TUTOR`** — Google account linked to exactly one **`Tutor`**; sees only that practice’s data.
+- **`User` with role `TEACHER`** — Google account linked to exactly one **`Tutor`** practice; sees only that practice’s data.
 - **`User` with role `ADMIN`** — after sign-in, picks **active tutor** from a list; all pages and actions run in that **`Tutor`** until switched.
 - **Impersonation** is **context switch** (`activeTutorId` in session), with optional audit log — not shared passwords.
 - Existing v1 behavior (WIB “today”, billing month, absent → exclude from invoice, paid snapshots) **unchanged per `Tutor`**.
@@ -181,7 +181,7 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 ### 5.1 — Data model & migration
 
 - [x] Introduce **`Tutor`** — e.g. `id`, `displayName` / studio label, `slug?`, timestamps.
-- [x] Introduce **`User`** — `email` (unique, from Google), `role` (`TUTOR` | `ADMIN`), optional `tutorId` (required for `TUTOR` role, null for `ADMIN`).
+- [x] Introduce **`User`** — `email` (unique, from Google), `role` (`TEACHER` | `ADMIN`), optional `tutorId` (required for `TEACHER` role, null for `ADMIN`).
 - [ ] Auth.js **`Account` / session** — link OAuth to `User` row (Prisma adapter or custom callback) — **deferred to 5.3**.
 - [x] Add **`tutorId`** to tutor-owned models: `Profile`, `Parent`, `Student`, `Session`, `Invoice`, `MonthlyReport`, … (`ScheduleRule` scoped via `Student`).
 - [x] Replace global uniques with **composite uniques per `tutorId`** where needed (`Invoice`, `MonthlyReport`, `Profile`).
@@ -192,8 +192,8 @@ Goal: persistent operations the tutor actually needs. Per [`PRODUCT.md`](./PRODU
 
 | Email | Role | Tutor |
 |-------|------|--------|
-| `anasandin87@gmail.com` | TUTOR | `tutor_1` (inherits all pre-migration data) |
-| `rint.cold@gmail.com` | TUTOR | `tutor_2` (empty practice + empty profile shell) |
+| `anasandin87@gmail.com` | TEACHER | `tutor_1` (inherits all pre-migration data) |
+| `rint.cold@gmail.com` | TEACHER | `tutor_2` (empty practice + empty profile shell) |
 | `lorensioderrint@gmail.com` | ADMIN | — (interim: app scopes to `tutor_1` until 5.4 picker) |
 
 Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`** rows (Phase 5.3).
@@ -208,7 +208,7 @@ Constants: `src/lib/auth/bootstrap-users.ts`. Sign-in requires matching **`User`
 
 ### 5.2 — Server tutor context & query scoping
 
-- [x] **`getActiveTutorId()`** — TUTOR → own `tutorId`; ADMIN → HttpOnly cookie `tutor-hub-active-tutor-id` (validated), else `tutor_1`.
+- [x] **`getActiveTutorId()`** — TEACHER → own `tutorId`; ADMIN → HttpOnly cookie `tutor-hub-active-tutor-id` (validated), else `tutor_1`.
 - [x] **`setActiveTutorIdAction`** / **`clearActiveTutorCookieAction`** — admin cookie + sign-out clears context (picker UI in 5.4).
 - [x] **`assert*InTutor` guards** — roster, schedule, attendance, invoices, reports; PDF route scopes by active tutor.
 - [x] **`loadAdminBootstrapCore` / billing** — scoped bootstrap + **`tutorContext`** (active id, role, admin tutor catalog).

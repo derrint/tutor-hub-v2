@@ -18,7 +18,7 @@ async function resolveAdminActiveTutorIdFromCookie(): Promise<string | null> {
 }
 
 /**
- * Active tutor for the current request: TUTOR → their `tutorId`;
+ * Active tutor for the current request: TEACHER → their `tutorId`;
  * ADMIN → validated cookie only (no default until picker / 5.4 switcher).
  * Unauthenticated → `null`.
  */
@@ -28,7 +28,7 @@ export async function getActiveTutorId(): Promise<string | null> {
     return null;
   }
 
-  if (user.role === "TUTOR" && user.tutorId) {
+  if (user.role === "TEACHER" && user.tutorId) {
     return user.tutorId;
   }
 

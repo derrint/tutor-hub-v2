@@ -3,7 +3,7 @@ export const BOOTSTRAP_TUTOR_1_ID = "tutor_1";
 export const BOOTSTRAP_TUTOR_2_ID = "tutor_2";
 
 export const BOOTSTRAP_TUTOR_1_EMAIL = "anasandin87@gmail.com";
-/** Second TUTOR user on `tutor_1` (same practice as Anas). */
+/** Second TEACHER user on `tutor_1` (same practice as Anas). */
 export const BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL = "nobarsambas@gmail.com";
 export const BOOTSTRAP_TUTOR_2_EMAIL = "rint.cold@gmail.com";
 export const BOOTSTRAP_ADMIN_EMAIL = "lorensioderrint@gmail.com";

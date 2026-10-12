@@ -25,7 +25,7 @@ export type TutorCatalogEntry = {
 
 export type TutorSessionContext = {
   activeTutorId: string | null;
-  role: "TUTOR" | "ADMIN";
+  role: "TEACHER" | "ADMIN";
   tutors: TutorCatalogEntry[];
   needsTutorSelection: boolean;
 };
@@ -72,7 +72,7 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
       absentOccurrenceIds: [],
       tutorContext: {
         activeTutorId: null,
-        role: requestUser?.role ?? "TUTOR",
+        role: requestUser?.role ?? "TEACHER",
         tutors,
         needsTutorSelection,
       },
@@ -123,7 +123,7 @@ export async function loadAdminBootstrapCore(): Promise<AdminBootstrapCoreData> 
     absentOccurrenceIds,
     tutorContext: {
       activeTutorId: tutorId,
-      role: requestUser?.role ?? "TUTOR",
+      role: requestUser?.role ?? "TEACHER",
       tutors,
       needsTutorSelection: false,
     },

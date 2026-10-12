@@ -15,7 +15,7 @@ export type AdminTutorListItem = {
 export type AdminUserListItem = {
   id: string;
   email: string;
-  role: "TUTOR" | "ADMIN";
+  role: "TEACHER" | "ADMIN";
   tutorId: string | null;
   tutorDisplayName: string | null;
 };

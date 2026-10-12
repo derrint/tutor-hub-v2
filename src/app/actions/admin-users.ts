@@ -46,17 +46,17 @@ export async function upsertAdminUserAction(
   }
 
   const role = input.role;
-  if (role !== "ADMIN" && role !== "TUTOR") {
+  if (role !== "ADMIN" && role !== "TEACHER") {
     return { ok: false, error: "VALIDATION", field: "role" };
   }
 
   const tutorId =
-    role === "TUTOR" ? input.tutorId.trim() || null : null;
-  if (role === "TUTOR" && !tutorId) {
+    role === "TEACHER" ? input.tutorId.trim() || null : null;
+  if (role === "TEACHER" && !tutorId) {
     return { ok: false, error: "VALIDATION", field: "tutorId" };
   }
 
-  if (role === "TUTOR" && tutorId) {
+  if (role === "TEACHER" && tutorId) {
     const tutor = await prisma.tutor.findUnique({
       where: { id: tutorId },
       select: { id: true },

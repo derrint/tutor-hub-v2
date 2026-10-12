@@ -28,7 +28,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   const tCommon = useTranslations("common");
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "TUTOR">("TUTOR");
+  const [role, setRole] = useState<"ADMIN" | "TEACHER">("TEACHER");
   const [tutorId, setTutorId] = useState("");
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +44,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
 
   const roleOptions = useMemo(
     () => [
-      { value: "TUTOR", label: t("roleTutor") },
+      { value: "TEACHER", label: t("roleTeacher") },
       { value: "ADMIN", label: t("roleAdmin") },
     ],
     [t],
@@ -59,7 +59,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       setTutorId(user.tutorId ?? "");
     } else {
       setEmail("");
-      setRole("TUTOR");
+      setRole("TEACHER");
       setTutorId(tutorOptions[0]?.id ?? "");
     }
   }, [isOpen, user, tutorOptions]);
@@ -124,11 +124,11 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             key={`role-${user?.id ?? "new"}-${isOpen}`}
             options={roleOptions}
             defaultValue={role}
-            onChange={(value) => setRole(value as "ADMIN" | "TUTOR")}
+            onChange={(value) => setRole(value as "ADMIN" | "TEACHER")}
             placeholder={t("fieldRole")}
           />
         </div>
-        {role === "TUTOR" && (
+        {role === "TEACHER" && (
           <div>
             <Label>{t("fieldTutor")}</Label>
             <Select

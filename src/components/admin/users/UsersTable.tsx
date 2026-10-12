@@ -57,7 +57,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, onEdit }) => {
                   </span>
                 </TableCell>
                 <TableCell className="px-5 py-4 text-start text-theme-sm text-gray-500 dark:text-gray-400">
-                  {user.role === "ADMIN" ? t("roleAdmin") : t("roleTutor")}
+                  {user.role === "ADMIN" ? t("roleAdmin") : t("roleTeacher")}
                 </TableCell>
                 <TableCell className="hidden px-5 py-4 text-start text-theme-sm text-gray-500 md:table-cell dark:text-gray-400">
                   {user.role === "ADMIN" ? "—" : (user.tutorDisplayName ?? "—")}

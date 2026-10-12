@@ -1,6 +1,6 @@
 // TutorHub — Prisma schema (Phase 5: multi-tutor)
 // - Each `Tutor` is one practice; business rows are scoped with `tutorId`.
-// - `User` links Google email to role TUTOR (one Tutor) or ADMIN (no Tutor).
+// - `User` links Google email to role TEACHER (one Tutor practice) or ADMIN (no Tutor).
 // - Recurring schedule with materialized Session rows; absent excludes from invoice.
 // - Invoice per Parent per calendar month per Tutor; UNPAID / PAID only.
 
@@ -15,7 +15,7 @@ datasource db {
 }
 
 enum UserRole {
-  TUTOR
+  TEACHER
   ADMIN
 }
 

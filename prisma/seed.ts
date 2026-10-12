@@ -56,19 +56,19 @@ async function main() {
       {
         id: BOOTSTRAP_USER_IDS.tutor1,
         email: BOOTSTRAP_TUTOR_1_EMAIL,
-        role: "TUTOR",
+        role: "TEACHER",
         tutorId: BOOTSTRAP_TUTOR_1_ID,
       },
       {
         id: BOOTSTRAP_USER_IDS.tutor1Nobarsambas,
         email: BOOTSTRAP_TUTOR_1_NOBARSAMBAS_EMAIL,
-        role: "TUTOR",
+        role: "TEACHER",
         tutorId: BOOTSTRAP_TUTOR_1_ID,
       },
       {
         id: BOOTSTRAP_USER_IDS.tutor2,
         email: BOOTSTRAP_TUTOR_2_EMAIL,
-        role: "TUTOR",
+        role: "TEACHER",
         tutorId: BOOTSTRAP_TUTOR_2_ID,
       },
       {

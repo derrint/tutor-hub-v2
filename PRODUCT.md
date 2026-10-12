@@ -63,7 +63,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 Confirmed decisions (from product discussion):
 
 - **v1:** Single-tenant operation with **allowlisted Google logins** (`AUTH_ALLOWED_EMAILS`) — no public sign-up.
-- **Phase 5 (planned):** Data scoped by **`tutorId`** on model **`Tutor`**; **TUTOR** vs **ADMIN** roles; admin selects active tutor — see roadmap.
+- **Phase 5 (planned):** Data scoped by **`tutorId`** on model **`Tutor`**; **TEACHER** vs **ADMIN** sign-in roles; admin selects active tutor — see roadmap.
 - **Recurring schedule**: weekly-repeating sessions are supported; edits/cancellations apply per individual occurrence only (no "this and following" / "all events" editing mode — deliberately simplified vs. Google Calendar).
 - **Attendance & billing**: a session marked absent is excluded from that month's invoice total; this must be visually obvious (disabled/grey) wherever sessions are shown.
 - **Student status**: `ACTIVE` / `INACTIVE`. Deactivating a student auto-stops their recurring schedule rule (sets an end date) and removes not-yet-occurred future sessions; past sessions remain untouched for billing/report history.
