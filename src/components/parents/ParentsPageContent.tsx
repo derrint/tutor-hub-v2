@@ -1,5 +1,6 @@
 "use client";
 
+import ListPageEmptyState from "@/components/common/ListPageEmptyState";
 import PageHeader from "@/components/common/PageHeader";
 import ParentFormModal from "@/components/parents/ParentFormModal";
 import ParentsTable from "@/components/parents/ParentsTable";
@@ -36,7 +37,11 @@ const ParentsPageContent: React.FC = () => {
     <div>
       <PageHeader
         title={t("title")}
-        description={t("description", { count: parents.length })}
+        description={
+          parents.length === 0
+            ? t("descriptionEmpty")
+            : t("description", { count: parents.length })
+        }
         action={
           <Button
             size="sm"
@@ -47,7 +52,23 @@ const ParentsPageContent: React.FC = () => {
           </Button>
         }
       />
-      <ParentsTable onEdit={handleEdit} />
+      {parents.length === 0 ? (
+        <ListPageEmptyState
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          action={
+            <Button
+              size="sm"
+              startIcon={<PlusIcon className="size-4" />}
+              onClick={handleAdd}
+            >
+              {t("add")}
+            </Button>
+          }
+        />
+      ) : (
+        <ParentsTable onEdit={handleEdit} />
+      )}
       <ParentFormModal
         isOpen={isOpen}
         onClose={handleClose}

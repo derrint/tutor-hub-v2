@@ -313,11 +313,19 @@
       "columnParent": "Parent",
       "columnFee": "Fee / session",
       "columnStatus": "Status",
-      "age": "{count} years old"
+      "age": "{count} years old",
+      "descriptionEmpty": "No students yet",
+      "emptyTitle": "No students yet",
+      "emptyDescription": "Add students and link each one to a parent for scheduling and billing.",
+      "emptyNoParentsTitle": "Add a parent first",
+      "emptyNoParentsDescription": "Each student must belong to a parent before you can add them here."
     },
     "parents": {
       "title": "Parents",
       "description": "{count, plural, one {# parent} other {# parents}} · WhatsApp & invoice grouping",
+      "descriptionEmpty": "No parents yet",
+      "emptyTitle": "No parents yet",
+      "emptyDescription": "Parents group WhatsApp contacts and invoices — add one before creating students.",
       "add": "Add parent",
       "addTitle": "Add parent",
       "editTitle": "Edit parent",
@@ -367,6 +375,10 @@
     "reports": {
       "title": "Reports",
       "description": "{draftCount} of {total} not written yet",
+      "descriptionEmpty": "No active students for reports",
+      "emptyTitle": "No reports to write yet",
+      "emptyDescription": "Monthly rapot PDFs are created per active student. Add students first, then return here for this billing month.",
+      "emptyCta": "Go to Students →",
       "writeDraft": "Write draft",
       "editDraft": "Edit draft",
       "edit": "Edit",
