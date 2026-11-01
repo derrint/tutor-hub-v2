@@ -5,6 +5,15 @@ import {
   TUTOR_PROFILE,
 } from "../src/lib/mock-data";
 import { calendarDateToStoredDate } from "../src/lib/datetime/calendar-date";
+import {
+  INITIAL_ADMIN_EMAIL,
+  INITIAL_TUTOR_1_NOBARSAMBAS_EMAIL,
+  INITIAL_TUTOR_1_EMAIL,
+  INITIAL_TUTOR_1_ID,
+  INITIAL_TUTOR_2_EMAIL,
+  INITIAL_TUTOR_2_ID,
+  INITIAL_USER_IDS,
+} from "../src/lib/auth/initial-users";
 import { ensureSessionsGenerated } from "../src/lib/schedule/generate-sessions";
 import { PrismaClient } from "@prisma/client";
 
@@ -20,22 +29,61 @@ async function main() {
   await prisma.scheduleRule.deleteMany();
   await prisma.student.deleteMany();
   await prisma.parent.deleteMany();
-  await prisma.profile.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.tutor.deleteMany();
 
-  await prisma.profile.create({
-    data: {
-      id: "profile-1",
-      studioName: "TutorHub",
-      bankName: TUTOR_PROFILE.bankName,
-      bankAccountNumber: TUTOR_PROFILE.bankAccountNumber,
-      accountHolderName: TUTOR_PROFILE.accountHolderName,
-    },
+  await prisma.tutor.createMany({
+    data: [
+      {
+        id: INITIAL_TUTOR_1_ID,
+        displayName: "Tutor 1",
+        slug: "tutor-1",
+        bankName: TUTOR_PROFILE.bankName,
+        bankAccountNumber: TUTOR_PROFILE.bankAccountNumber,
+        accountHolderName: TUTOR_PROFILE.accountHolderName,
+        whatsappNumber: TUTOR_PROFILE.whatsappNumber || null,
+      },
+      {
+        id: INITIAL_TUTOR_2_ID,
+        displayName: "Tutor 2",
+        slug: "tutor-2",
+      },
+    ],
+  });
+
+  await prisma.user.createMany({
+    data: [
+      {
+        id: INITIAL_USER_IDS.tutor1,
+        email: INITIAL_TUTOR_1_EMAIL,
+        role: "TEACHER",
+        tutorId: INITIAL_TUTOR_1_ID,
+      },
+      {
+        id: INITIAL_USER_IDS.tutor1Nobarsambas,
+        email: INITIAL_TUTOR_1_NOBARSAMBAS_EMAIL,
+        role: "TEACHER",
+        tutorId: INITIAL_TUTOR_1_ID,
+      },
+      {
+        id: INITIAL_USER_IDS.tutor2,
+        email: INITIAL_TUTOR_2_EMAIL,
+        role: "TEACHER",
+        tutorId: INITIAL_TUTOR_2_ID,
+      },
+      {
+        id: INITIAL_USER_IDS.admin,
+        email: INITIAL_ADMIN_EMAIL,
+        role: "ADMIN",
+      },
+    ],
   });
 
   for (const parent of SEED_PARENTS) {
     await prisma.parent.create({
       data: {
         id: parent.id,
+        tutorId: INITIAL_TUTOR_1_ID,
         name: parent.name,
         salutation: parent.salutation,
         honorific: parent.honorific,
@@ -48,6 +96,7 @@ async function main() {
     await prisma.student.create({
       data: {
         id: student.id,
+        tutorId: INITIAL_TUTOR_1_ID,
         name: student.name,
         age: student.age,
         level: student.level,
@@ -76,7 +125,9 @@ async function main() {
 
   await ensureSessionsGenerated(prisma);
 
-  console.log("Seed complete: profile, roster, schedule rules, and sessions.");
+  console.log(
+    "Seed complete: tutors, users, roster, schedule rules, and sessions.",
+  );
 }
 
 main()

@@ -1,6 +1,6 @@
-import { BillingBootstrapProvider } from "@/context/BillingBootstrapContext";
+import { BillingInitialProvider } from "@/context/BillingInitialContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
-import { loadAdminBootstrapBilling } from "@/lib/db/load-admin-bootstrap-billing";
+import { loadAdminInitialBilling } from "@/lib/db/load-admin-initial-billing";
 
 /** Loads session window + paid invoices after core shell is visible. */
 export default async function AdminBillingLoader({
@@ -8,11 +8,11 @@ export default async function AdminBillingLoader({
 }: {
   children: React.ReactNode;
 }) {
-  const billing = await loadAdminBootstrapBilling();
+  const billing = await loadAdminInitialBilling();
 
   return (
-    <BillingBootstrapProvider value={billing}>
+    <BillingInitialProvider value={billing}>
       <InvoiceProvider>{children}</InvoiceProvider>
-    </BillingBootstrapProvider>
+    </BillingInitialProvider>
   );
 }

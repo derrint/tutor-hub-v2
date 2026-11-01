@@ -24,7 +24,13 @@ import multiMonthPlugin from "@fullcalendar/react/multimonth";
 import themePlugin from "@fullcalendar/react/themes/classic";
 import timeGridPlugin from "@fullcalendar/react/timegrid";
 import { useLocale } from "next-intl";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import CalendarEventItem from "./CalendarEventItem";
 import CalendarEventModal from "./CalendarEventModal";
@@ -176,7 +182,65 @@ const Calendar: React.FC<CalendarProps> = ({
   const calendarRef = useRef<CalendarRef>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const calendarReadyFired = useRef(false);
+  const mountedRef = useRef(false);
+  const datesSetRafRef = useRef<number | null>(null);
+  const onCalendarReadyRef = useRef(onCalendarReady);
   const { isOpen, openModal, closeModal } = useModal();
+
+  useEffect(() => {
+    onCalendarReadyRef.current = onCalendarReady;
+  }, [onCalendarReady]);
+
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (datesSetRafRef.current !== null) {
+        cancelAnimationFrame(datesSetRafRef.current);
+        datesSetRafRef.current = null;
+      }
+    };
+  }, []);
+
+  const syncToolbarPortal = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (!mountedRef.current) return;
+      const chunk = calendarContainerRef.current?.querySelector(
+        ".ta-toolbar-section:last-child",
+      );
+      if (chunk) {
+        setPortalNode((prev) => (prev === chunk ? prev : chunk));
+      }
+    });
+  }, []);
+
+  const flushDatesSet = useCallback(
+    (viewType: string) => {
+      if (!mountedRef.current) return;
+      setCurrentView((prev) => (prev === viewType ? prev : viewType));
+      if (!calendarReadyFired.current) {
+        calendarReadyFired.current = true;
+        onCalendarReadyRef.current?.();
+      }
+      syncToolbarPortal();
+    },
+    [syncToolbarPortal],
+  );
+
+  /** FullCalendar may call `datesSet` during render — never setState synchronously. */
+  const handleDatesSet = useCallback(
+    (arg: { view: { type: string } }) => {
+      const viewType = arg.view.type;
+      if (datesSetRafRef.current !== null) {
+        cancelAnimationFrame(datesSetRafRef.current);
+      }
+      datesSetRafRef.current = requestAnimationFrame(() => {
+        datesSetRafRef.current = null;
+        flushDatesSet(viewType);
+      });
+    },
+    [flushDatesSet],
+  );
 
   const handleViewChange = (viewKey: string) => {
     setCurrentView(viewKey);
@@ -308,16 +372,7 @@ const Calendar: React.FC<CalendarProps> = ({
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    const frameId = requestAnimationFrame(() => {
-      const el = calendarContainerRef.current?.querySelector(
-        ".ta-toolbar-section:last-child",
-      );
-      if (el) {
-        setPortalNode(el);
-      }
-    });
     return () => {
-      cancelAnimationFrame(frameId);
       window.removeEventListener("resize", checkMobile);
     };
   }, [isRtlLayout]);
@@ -635,21 +690,7 @@ const Calendar: React.FC<CalendarProps> = ({
           popoverClass="z-99999! w-72 max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900"
           popoverCloseClass="absolute end-3 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
           popoverCloseContent={() => <CloseIcon className="size-4" />}
-          datesSet={(arg) => {
-            setCurrentView(arg.view.type);
-            if (!calendarReadyFired.current) {
-              calendarReadyFired.current = true;
-              onCalendarReady?.();
-            }
-            requestAnimationFrame(() => {
-              const chunk = calendarContainerRef.current?.querySelector(
-                ".ta-toolbar-section:last-child",
-              );
-              if (chunk) {
-                setPortalNode(chunk);
-              }
-            });
-          }}
+          datesSet={handleDatesSet}
           selectable={!readOnly || Boolean(onTimeSlotSelect)}
           events={events}
           select={handleDateSelect}

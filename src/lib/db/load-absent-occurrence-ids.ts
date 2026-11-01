@@ -4,10 +4,13 @@ import { prisma } from "@/lib/db/prisma";
 import { defaultSessionGenerationWindow } from "@/lib/schedule/generate-sessions";
 
 /** Absent session keys for invoice derive — without loading every session in the window. */
-export async function loadAbsentOccurrenceIds(): Promise<string[]> {
+export async function loadAbsentOccurrenceIds(
+  tutorId: string,
+): Promise<string[]> {
   const window = defaultSessionGenerationWindow();
   const rows = await prisma.session.findMany({
     where: {
+      tutorId,
       status: "ABSENT",
       date: { gte: window.from, lte: window.to },
     },

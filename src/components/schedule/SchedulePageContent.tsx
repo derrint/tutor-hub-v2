@@ -23,6 +23,7 @@ const SchedulePageContent: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
   const [slotPrefill, setSlotPrefill] = useState<SlotPrefill | null>(null);
   const [calendarReady, setCalendarReady] = useState(false);
+  const handleCalendarReady = useCallback(() => setCalendarReady(true), []);
 
   const openAddSlot = useCallback(
     (prefill: SlotPrefill | null) => {
@@ -91,7 +92,7 @@ const SchedulePageContent: React.FC = () => {
         <ScheduleCalendar
           onTimeSlotSelect={handleTimeSlotSelect}
           onEditWeeklySlot={handleEditWeeklySlot}
-          onCalendarReady={() => setCalendarReady(true)}
+          onCalendarReady={handleCalendarReady}
         />
       </div>
 

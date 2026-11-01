@@ -2,6 +2,7 @@
 
 import TutorHubMark from "@/components/branding/TutorHubMark";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
+import AdminTutorSwitcherDropdown from "@/components/header/AdminTutorSwitcherDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import { headerSafeAreaTopClass } from "@/layout/admin-nav-items";
@@ -38,9 +39,10 @@ const AppHeader: React.FC = () => {
     >
       <div className="flex grow flex-col items-center justify-between xl:flex-row xl:px-6">
         <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 xl:py-4 dark:border-gray-800">
+          <div className="hidden min-w-0 items-center gap-2 xl:flex">
           <button
             type="button"
-            className={`z-99999 hidden h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 lg:h-11 lg:w-11 lg:bg-transparent xl:flex xl:border dark:border-gray-800 dark:text-gray-400 dark:lg:bg-transparent ${
+            className={`z-99999 hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border-gray-200 text-gray-500 lg:h-11 lg:w-11 lg:bg-transparent xl:flex xl:border dark:border-gray-800 dark:text-gray-400 dark:lg:bg-transparent ${
               isMobileOpen ? "bg-gray-100 dark:bg-white/3" : ""
             }`}
             onClick={handleToggle}
@@ -80,9 +82,12 @@ const AppHeader: React.FC = () => {
             )}
           </button>
 
+          <AdminTutorSwitcherDropdown menuAlign="start" />
+          </div>
+
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-brand-500 xl:hidden dark:text-brand-400"
+            className="inline-flex min-w-0 items-center gap-2 text-brand-500 xl:hidden dark:text-brand-400"
             aria-label={tBrand("brand")}
           >
             <TutorHubMark className="size-8" />
@@ -91,28 +96,31 @@ const AppHeader: React.FC = () => {
             </span>
           </Link>
 
-          <button
-            type="button"
-            onClick={toggleApplicationMenu}
-            className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 xl:hidden dark:text-gray-400 dark:hover:bg-gray-800"
-            aria-expanded={isApplicationMenuOpen}
-            aria-label={t("applicationMenu")}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <div className="flex shrink-0 items-center gap-1.5 xl:hidden">
+            <AdminTutorSwitcherDropdown menuAlign="end" compact />
+            <button
+              type="button"
+              onClick={toggleApplicationMenu}
+              className="z-99999 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              aria-expanded={isApplicationMenuOpen}
+              aria-label={t("applicationMenu")}
             >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M5.99902 10.4951C6.82745 10.4951 7.49902 11.1667 7.49902 11.9951V12.0051C7.49902 12.8335 6.82745 13.5051 5.99902 13.5051C5.1706 13.5051 4.49902 12.8335 4.49902 12.0051V11.9951C4.49902 11.1667 5.1706 10.4951 5.99902 10.4951ZM17.999 10.4951C18.8275 10.4951 19.499 11.1667 19.499 11.9951V12.0051C19.499 12.8335 18.8275 13.5051 17.999 13.5051C17.1706 13.5051 16.499 12.8335 16.499 12.0051V11.9951C16.499 11.1667 17.1706 10.4951 17.999 10.4951ZM13.499 11.9951C13.499 11.1667 12.8275 10.4951 11.999 10.4951C11.1706 10.4951 10.499 11.1667 10.499 11.9951V12.0051C10.499 12.8335 11.1706 13.5051 11.999 13.5051C12.8275 13.5051 13.499 12.8335 13.499 12.0051V11.9951Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M5.99902 10.4951C6.82745 10.4951 7.49902 11.1667 7.49902 11.9951V12.0051C7.49902 12.8335 6.82745 13.5051 5.99902 13.5051C5.1706 13.5051 4.49902 12.8335 4.49902 12.0051V11.9951C4.49902 11.1667 5.1706 10.4951 5.99902 10.4951ZM17.999 10.4951C18.8275 10.4951 19.499 11.1667 19.499 11.9951V12.0051C19.499 12.8335 18.8275 13.5051 17.999 13.5051C17.1706 13.5051 16.499 12.8335 16.499 12.0051V11.9951C16.499 11.1667 17.1706 10.4951 17.999 10.4951ZM13.499 11.9951C13.499 11.1667 12.8275 10.4951 11.999 10.4951C11.1706 10.4951 10.499 11.1667 10.499 11.9951V12.0051C10.499 12.8335 11.1706 13.5051 11.999 13.5051C12.8275 13.5051 13.499 12.8335 13.499 12.0051V11.9951Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
         <div
           className={cn(

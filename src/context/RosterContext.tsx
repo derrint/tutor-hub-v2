@@ -8,7 +8,7 @@ import {
   type ParentInput,
   type StudentInput,
 } from "@/app/actions/roster";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import type { ParentRecord, StudentRecord } from "@/lib/domain/types";
 import { useRouter } from "@/i18n/navigation";
 import React, { createContext, useCallback, useContext, useMemo } from "react";
@@ -27,7 +27,7 @@ type RosterContextValue = {
 const RosterContext = createContext<RosterContextValue | null>(null);
 
 export function RosterProvider({ children }: { children: React.ReactNode }) {
-  const { parents, students } = useAdminBootstrap();
+  const { parents, students } = useAdminInitial();
   const router = useRouter();
 
   const getParentById = useCallback(

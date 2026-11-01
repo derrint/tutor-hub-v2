@@ -53,6 +53,8 @@ src/
 - Component files are **PascalCase** (`MonthlySalesChart.tsx`) with a **default export**; route files stay lowercase (`page.tsx`, `layout.tsx`); hooks are camelCase (`useModal.ts`).
 - Root `app/[locale]/layout.tsx` is a Server Component setting up `NextIntlClientProvider`, fonts, direction (`dir="ltr"|"rtl"`), and providers. The `(admin)` shell layout and interactive UI are Client Components — add `"use client"` whenever using hooks, event handlers, or browser APIs.
 - Import via the alias (`@/context/...`, `@/icons/...`, `@/i18n/...`) for cross-folder imports; relative imports are fine within a feature folder.
+- **Auth naming:** Prisma **`User.role`** uses `TEACHER` | `ADMIN` (the Google sign-in person). Model **`Tutor`** + **`tutorId`** = one practice’s business data — do not use `UserRole.TUTOR` (renamed to `TEACHER`).
+- **Initial load naming:** Admin shell data = `loadAdminInitialCore` / `useAdminInitial` (`AdminInitialContext`); seed reference users = `src/lib/auth/initial-users.ts` (`INITIAL_*` constants). Do not use “bootstrap” in new code.
 
 ## Internationalization (next-intl) rules
 

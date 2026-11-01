@@ -102,14 +102,17 @@ function sessionSlotKey(
 export async function generateSessionsInWindow(
   window: SessionGenerationWindow,
   client: PrismaClient = prisma,
+  tutorId?: string,
 ): Promise<number> {
   const rules = await client.scheduleRule.findMany({
+    where: tutorId ? { student: { tutorId } } : undefined,
     include: { student: true },
   });
   if (rules.length === 0) return 0;
 
   const existing = await client.session.findMany({
     where: {
+      ...(tutorId ? { tutorId } : {}),
       date: { gte: window.from, lte: window.to },
     },
     select: {
@@ -158,6 +161,7 @@ export async function generateSessionsInWindow(
       }
 
       toCreate.push({
+        tutorId: rule.student.tutorId,
         studentId: rule.studentId,
         scheduleRuleId: rule.id,
         date,
@@ -199,21 +203,27 @@ export async function generateSessionsInWindow(
  */
 export async function ensureSessionsGeneratedIfNeeded(
   client: PrismaClient = prisma,
+  tutorId?: string,
 ): Promise<void> {
   const window = defaultSessionGenerationWindow();
 
-  const ruleCount = await client.scheduleRule.count();
+  const ruleCount = await client.scheduleRule.count({
+    where: tutorId ? { student: { tutorId } } : undefined,
+  });
   if (ruleCount === 0) return;
 
   const agg = await client.session.aggregate({
-    where: { date: { gte: window.from, lte: window.to } },
+    where: {
+      ...(tutorId ? { tutorId } : {}),
+      date: { gte: window.from, lte: window.to },
+    },
     _max: { date: true },
     _min: { date: true },
     _count: true,
   });
 
   if (agg._count === 0) {
-    await generateSessionsInWindow(window, client);
+    await generateSessionsInWindow(window, client, tutorId);
     return;
   }
 
@@ -228,6 +238,7 @@ export async function ensureSessionsGeneratedIfNeeded(
     await generateSessionsInWindow(
       { from: addCalendarDays(maxDate, 1), to: window.to },
       client,
+      tutorId,
     );
   }
 
@@ -235,6 +246,7 @@ export async function ensureSessionsGeneratedIfNeeded(
     await generateSessionsInWindow(
       { from: window.from, to: addCalendarDays(minDate, -1) },
       client,
+      tutorId,
     );
   }
 }

@@ -21,9 +21,8 @@ export type {
 
 import type { TutorProfile } from "@/lib/domain/types";
 
-/** Tutor bank details for WhatsApp invoice footers (mirrors `Profile`). */
+/** Tutor bank details for WhatsApp invoice footers (mirrors `Tutor` columns). */
 export const TUTOR_PROFILE: TutorProfile = {
-  studioName: "TutorHub",
   bankName: "Example Bank",
   bankAccountNumber: "1234567890",
   accountHolderName: "Demo Tutor, S.Pd",

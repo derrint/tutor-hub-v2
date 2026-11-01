@@ -1,9 +1,11 @@
 "use client";
 
 import TutorHubMark from "@/components/branding/TutorHubMark";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import {
   adminNavItems,
   isNavItemActive,
+  platformAdminNavItems,
   sidebarNavIconClass,
 } from "@/layout/admin-nav-items";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -16,6 +18,8 @@ const AppSidebar: React.FC = () => {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tBrand = useTranslations("tutorHub");
+  const { tutorContext } = useAdminInitial();
+  const showPlatformAdmin = tutorContext.role === "ADMIN";
 
   const isWide = isExpanded || isHovered;
 
@@ -79,6 +83,46 @@ const AppSidebar: React.FC = () => {
                 </li>
               );
             })}
+            {showPlatformAdmin && (
+              <>
+                {isWide && (
+                  <li className="mt-4 px-3 pb-1 text-theme-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    {t("items.platformAdmin")}
+                  </li>
+                )}
+                {platformAdminNavItems.map((nav) => {
+                  const { Icon } = nav;
+                  const active = isNavItemActive(pathname, nav.path);
+                  return (
+                    <li key={nav.key}>
+                      <Link
+                        href={nav.path}
+                        className={cn(
+                          "group menu-item",
+                          active ? "menu-item-active" : "menu-item-inactive",
+                          isWide ? "xl:justify-start" : "xl:justify-center",
+                        )}
+                      >
+                        <span
+                          className={
+                            active
+                              ? "menu-item-icon-active"
+                              : "menu-item-icon-inactive"
+                          }
+                        >
+                          <Icon className={sidebarNavIconClass} />
+                        </span>
+                        {isWide && (
+                          <span className="menu-item-text">
+                            {t(`items.${nav.key}`)}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </>
+            )}
           </ul>
         </nav>
       </div>

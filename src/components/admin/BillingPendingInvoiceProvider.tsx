@@ -12,7 +12,7 @@ const pendingValue: InvoiceContextValue = {
   setInvoiceStatus: async () => {},
 };
 
-/** Stub invoice context while billing bootstrap loads (dashboard / shell stay usable). */
+/** Stub invoice context while billing initial load runs (dashboard / shell stay usable). */
 export default function BillingPendingInvoiceProvider({
   children,
 }: {

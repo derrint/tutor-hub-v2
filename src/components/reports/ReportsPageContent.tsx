@@ -1,6 +1,7 @@
 "use client";
 
 import BillingMonthNavigator from "@/components/billing/BillingMonthNavigator";
+import ListPageEmptyState from "@/components/common/ListPageEmptyState";
 import PageHeader from "@/components/common/PageHeader";
 import ReportEditorModal from "@/components/reports/ReportEditorModal";
 import ReportRow, {
@@ -14,6 +15,7 @@ import {
 } from "@/app/actions/reports";
 import { emptyMonthlyReportContent } from "@/lib/reports/content-schema";
 import type { StudentRecord } from "@/lib/domain/types";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -66,13 +68,31 @@ const ReportsPageContent: React.FC = () => {
     <div>
       <PageHeader
         title={t("title")}
-        description={t("description", {
-          draftCount,
-          total: activeStudents.length,
-        })}
+        description={
+          activeStudents.length === 0
+            ? t("descriptionEmpty")
+            : t("description", {
+                draftCount,
+                total: activeStudents.length,
+              })
+        }
         action={<BillingMonthNavigator />}
       />
 
+      {activeStudents.length === 0 ? (
+        <ListPageEmptyState
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
+          action={
+            <Link
+              href="/students"
+              className="text-theme-sm font-medium text-brand-500 underline-offset-4 hover:underline"
+            >
+              {t("emptyCta")}
+            </Link>
+          }
+        />
+      ) : (
       <div className="flex flex-col gap-3">
         {activeStudents.map((student) => {
           const row = reportByStudentId.get(student.id);
@@ -93,6 +113,7 @@ const ReportsPageContent: React.FC = () => {
           );
         })}
       </div>
+      )}
 
       {editingStudent && (
         <ReportEditorModal

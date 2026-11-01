@@ -3,7 +3,7 @@
 import StatusBadge from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { ChatIcon, CheckLineIcon } from "@/icons";
-import { useAdminBootstrap } from "@/context/AdminBootstrapContext";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useRoster } from "@/context/RosterContext";
 import type { InvoicePreview } from "@/lib/mock-data";
 import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
@@ -118,7 +118,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
 }) => {
   const t = useTranslations("tutorHub.invoices");
   const { setInvoiceStatus } = useInvoices();
-  const { profile } = useAdminBootstrap();
+  const { profile } = useAdminInitial();
   const { getParentById } = useRoster();
   const parent = getParentById(invoice.parentId);
 

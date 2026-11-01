@@ -65,6 +65,7 @@ export {
   User as UserIcon,
   Users as UsersIcon,
   Video as VideoIcon,
+  School as SchoolIcon,
 } from "lucide-react";
 
 export { default as DeFlagIcon } from "./flag-de.svg";

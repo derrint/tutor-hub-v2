@@ -15,7 +15,7 @@ import {
   sessionStoredDate,
   type SerializedSessionWithStudent,
 } from "@/lib/invoices/session-serialization";
-import { buildInvoiceId } from "./generate-invoice-from-schedule";
+import { buildInvoiceId } from "./invoice-id";
 
 export type SessionWithStudent = Session & { student: Student };
 
