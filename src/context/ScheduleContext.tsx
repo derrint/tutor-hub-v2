@@ -3,56 +3,95 @@
 import {
   deleteRecurringSessionAction,
   upsertRecurringSessionAction,
+  type DeleteRecurringSessionResult,
   type RecurringSessionInput,
+  type UpsertRecurringSessionResult,
 } from "@/app/actions/schedule";
 import { useAdminInitial } from "@/context/AdminInitialContext";
 import type { RecurringSession } from "@/lib/domain/types";
+import {
+  applyDeleteOverlayPatch,
+  applyUpsertOverlayPatch,
+  emptyRecurringSessionOverlay,
+  mergeRecurringSessionsWithOverlay,
+  reconcileRecurringSessionOverlay,
+  type RecurringSessionOverlay,
+} from "@/lib/schedule/merge-recurring-session-overlay";
 import { useRouter } from "@/i18n/navigation";
-import React, { createContext, useCallback, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type ScheduleContextValue = {
   recurringSessions: RecurringSession[];
   upsertRecurringSession: (
     input: RecurringSessionInput,
-  ) => Promise<RecurringSession | null>;
-  deleteRecurringSession: (ruleId: string) => Promise<boolean>;
+  ) => Promise<UpsertRecurringSessionResult>;
+  deleteRecurringSession: (
+    ruleId: string,
+  ) => Promise<DeleteRecurringSessionResult>;
 };
 
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: React.ReactNode }) {
-  const { recurringSessions } = useAdminInitial();
+  const { recurringSessions: serverRecurringSessions, tutorContext } =
+    useAdminInitial();
+  const activeTutorId = tutorContext.activeTutorId;
   const router = useRouter();
+  const [overlay, setOverlay] = useState<RecurringSessionOverlay>(() =>
+    emptyRecurringSessionOverlay(),
+  );
+
+  useEffect(() => {
+    setOverlay(emptyRecurringSessionOverlay());
+  }, [activeTutorId]);
+
+  useEffect(() => {
+    setOverlay((prev) =>
+      reconcileRecurringSessionOverlay(serverRecurringSessions, prev),
+    );
+  }, [serverRecurringSessions]);
+
+  const recurringSessions = useMemo(
+    () =>
+      mergeRecurringSessionsWithOverlay(serverRecurringSessions, overlay),
+    [serverRecurringSessions, overlay],
+  );
 
   const upsertRecurringSession = useCallback(
     async (input: RecurringSessionInput) => {
-      const anchorId = await upsertRecurringSessionAction(input);
-      router.refresh();
-      if (!anchorId) return null;
-      const existing =
-        recurringSessions.find((s) => s.id === anchorId) ??
-        recurringSessions.find((s) => s.id === input.id);
-      return (
-        existing ?? {
-          id: anchorId,
-          studentId: input.studentId,
-          studentName: "",
-          level: "TK",
-          daysOfWeek: input.daysOfWeek,
-          startTime: input.startTime,
-          endTime: input.endTime,
-          startDate: input.startDate,
-        }
-      );
+      const result = await upsertRecurringSessionAction(input);
+      if (result.ok) {
+        setOverlay((prev) =>
+          applyUpsertOverlayPatch(
+            prev,
+            result.session,
+            result.previousRuleId,
+          ),
+        );
+        router.refresh();
+      }
+      return result;
     },
-    [router, recurringSessions],
+    [router],
   );
 
   const deleteRecurringSession = useCallback(
     async (ruleId: string) => {
-      const ok = await deleteRecurringSessionAction(ruleId);
-      if (ok) router.refresh();
-      return ok;
+      const result = await deleteRecurringSessionAction(ruleId);
+      if (result.ok) {
+        setOverlay((prev) =>
+          applyDeleteOverlayPatch(prev, result.deletedRuleId),
+        );
+        router.refresh();
+      }
+      return result;
     },
     [router],
   );

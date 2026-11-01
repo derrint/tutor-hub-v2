@@ -10,6 +10,8 @@ import {
   generateSessionsInWindow,
   defaultSessionGenerationWindow,
 } from "@/lib/schedule/generate-sessions";
+import { recurringSessionFromFields } from "@/lib/schedule/map-recurring-session";
+import type { RecurringSession } from "@/lib/domain/types";
 import {
   assertScheduleRuleInTutor,
   assertStudentInTutor,
@@ -27,6 +29,14 @@ export type RecurringSessionInput = {
   startDate: string;
 };
 
+export type UpsertRecurringSessionResult =
+  | { ok: true; session: RecurringSession; previousRuleId?: string }
+  | { ok: false; reason: "invalid" };
+
+export type DeleteRecurringSessionResult =
+  | { ok: true; deletedRuleId: string }
+  | { ok: false; reason: "invalid" };
+
 function ruleIdForDay(existingId: string | undefined, dayOfWeek: number): string {
   if (!existingId) {
     return `r-${Date.now().toString(36)}-d${dayOfWeek}`;
@@ -35,22 +45,24 @@ function ruleIdForDay(existingId: string | undefined, dayOfWeek: number): string
   return `${base}-d${dayOfWeek}`;
 }
 
-export async function upsertRecurringSessionAction(input: RecurringSessionInput) {
+export async function upsertRecurringSessionAction(
+  input: RecurringSessionInput,
+): Promise<UpsertRecurringSessionResult> {
   const tutorId = await requireActiveTutorId();
   try {
     await assertStudentInTutor(input.studentId, tutorId);
   } catch (error) {
-    if (error instanceof TutorScopeError) return null;
+    if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
     throw error;
   }
 
   const student = await prisma.student.findFirst({
     where: { id: input.studentId, tutorId },
   });
-  if (!student) return null;
+  if (!student) return { ok: false, reason: "invalid" };
 
   const uniqueDays = [...new Set(input.daysOfWeek)].sort((a, b) => a - b);
-  if (uniqueDays.length === 0) return null;
+  if (uniqueDays.length === 0) return { ok: false, reason: "invalid" };
 
   /** UI creates one weekday per slot; only the first day is persisted. */
   const dayOfWeek = uniqueDays[0];
@@ -58,13 +70,13 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
   const startDate =
     parseIsoDateToStoredDate(input.startDate) ??
     parseIsoDateToStoredDate(todayIsoDateLocal());
-  if (!startDate) return null;
+  if (!startDate) return { ok: false, reason: "invalid" };
 
   if (input.id) {
     try {
       await assertScheduleRuleInTutor(input.id, tutorId);
     } catch (error) {
-      if (error instanceof TutorScopeError) return null;
+      if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
       throw error;
     }
     await prisma.session.deleteMany({
@@ -102,15 +114,32 @@ export async function upsertRecurringSessionAction(input: RecurringSessionInput)
   );
   revalidateAdminRoutes();
 
-  return ruleId;
+  const session = recurringSessionFromFields(
+    {
+      id: ruleId,
+      studentId: input.studentId,
+      dayOfWeek,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      startDate,
+    },
+    student,
+  );
+
+  const previousRuleId =
+    input.id && input.id !== ruleId ? input.id : undefined;
+
+  return { ok: true, session, previousRuleId };
 }
 
-export async function deleteRecurringSessionAction(calendarRuleId: string) {
+export async function deleteRecurringSessionAction(
+  calendarRuleId: string,
+): Promise<DeleteRecurringSessionResult> {
   const tutorId = await requireActiveTutorId();
   try {
     await assertScheduleRuleInTutor(calendarRuleId, tutorId);
   } catch (error) {
-    if (error instanceof TutorScopeError) return false;
+    if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
     throw error;
   }
 
@@ -119,7 +148,7 @@ export async function deleteRecurringSessionAction(calendarRuleId: string) {
   });
   await prisma.scheduleRule.deleteMany({ where: { id: calendarRuleId } });
   revalidateAdminRoutes();
-  return true;
+  return { ok: true, deletedRuleId: calendarRuleId };
 }
 
 export async function ensureSessionsAction() {
