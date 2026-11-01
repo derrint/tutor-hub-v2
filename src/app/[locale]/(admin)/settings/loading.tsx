@@ -1,5 +1,5 @@
-import DefaultPageSkeleton from "@/components/loading/skeletons/DefaultPageSkeleton";
+import AdminRouteSkeleton from "@/components/loading/AdminRouteSkeleton";
 
 export default function SettingsLoading() {
-  return <DefaultPageSkeleton />;
+  return <AdminRouteSkeleton pathname="/settings" />;
 }

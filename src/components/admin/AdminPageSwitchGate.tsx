@@ -1,7 +1,8 @@
 "use client";
 
-import DefaultPageSkeleton from "@/components/loading/skeletons/DefaultPageSkeleton";
+import AdminRouteSkeleton from "@/components/loading/AdminRouteSkeleton";
 import { useTutorSwitch } from "@/context/TutorSwitchContext";
+import { usePathname } from "@/i18n/navigation";
 
 /** Hides route content while admin tutor context is refreshing after a switch. */
 export default function AdminPageSwitchGate({
@@ -9,10 +10,11 @@ export default function AdminPageSwitchGate({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { isSwitchingTutor } = useTutorSwitch();
 
   if (isSwitchingTutor) {
-    return <DefaultPageSkeleton />;
+    return <AdminRouteSkeleton pathname={pathname} />;
   }
 
   return children;

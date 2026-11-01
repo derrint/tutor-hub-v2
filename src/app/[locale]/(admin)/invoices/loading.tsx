@@ -1,5 +1,5 @@
-import BillingPageSkeleton from "@/components/loading/skeletons/BillingPageSkeleton";
+import AdminRouteSkeleton from "@/components/loading/AdminRouteSkeleton";
 
 export default function InvoicesLoading() {
-  return <BillingPageSkeleton />;
+  return <AdminRouteSkeleton pathname="/invoices" />;
 }

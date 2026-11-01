@@ -1,5 +1,5 @@
-import SchedulePageSkeleton from "@/components/loading/skeletons/SchedulePageSkeleton";
+import AdminRouteSkeleton from "@/components/loading/AdminRouteSkeleton";
 
 export default function ScheduleLoading() {
-  return <SchedulePageSkeleton />;
+  return <AdminRouteSkeleton pathname="/schedule" />;
 }

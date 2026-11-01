@@ -1,5 +1,5 @@
-import TablePageSkeleton from "@/components/loading/skeletons/TablePageSkeleton";
+import AdminRouteSkeleton from "@/components/loading/AdminRouteSkeleton";
 
 export default function StudentsLoading() {
-  return <TablePageSkeleton />;
+  return <AdminRouteSkeleton pathname="/students" />;
 }
