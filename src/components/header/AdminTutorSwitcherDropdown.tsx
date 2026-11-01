@@ -4,11 +4,13 @@ import { setActiveTutorIdAction } from "@/app/actions/tutor-context";
 import Input from "@/components/form/input/InputField";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { useAdminInitial } from "@/context/AdminInitialContext";
+import { useTutorSwitch } from "@/context/TutorSwitchContext";
 import { useRouter } from "@/i18n/navigation";
 import { CheckLineIcon, ChevronDownIcon, SchoolIcon } from "@/icons";
 import { cn } from "@/utils";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
 const SEARCH_THRESHOLD = 5;
 
@@ -30,15 +32,24 @@ export default function AdminTutorSwitcherDropdown({
 }: AdminTutorSwitcherDropdownProps) {
   const t = useTranslations("header.tutorSwitcher");
   const { tutorContext } = useAdminInitial();
+  const {
+    switchTargetId,
+    isSwitchingTutor,
+    beginTutorSwitch,
+    cancelTutorSwitch,
+  } = useTutorSwitch();
   const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
-  const [pendingId, setPendingId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const { role, tutors, activeTutorId } = tutorContext;
 
+  const isBusy = isSwitchingTutor || isRefreshing;
+
   const activeTutor = tutors.find((row) => row.id === activeTutorId);
   const activeLabel = activeTutor?.displayName ?? t("unknownPractice");
+  const toggleLabel = isBusy ? t("switching") : activeLabel;
 
   const filteredTutors = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,19 +59,31 @@ export default function AdminTutorSwitcherDropdown({
 
   const handleSelect = useCallback(
     async (tutorId: string) => {
-      if (tutorId === activeTutorId || pendingId) return;
-      setPendingId(tutorId);
+      if (tutorId === activeTutorId || isBusy) return;
+      beginTutorSwitch(tutorId);
       const result = await setActiveTutorIdAction(tutorId);
-      setPendingId(null);
-      if (!result.ok) return;
+      if (!result.ok) {
+        cancelTutorSwitch();
+        return;
+      }
       setIsOpen(false);
       setQuery("");
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     },
-    [activeTutorId, pendingId, router],
+    [
+      activeTutorId,
+      beginTutorSwitch,
+      cancelTutorSwitch,
+      isBusy,
+      router,
+      startTransition,
+    ],
   );
 
   const closeDropdown = () => {
+    if (isBusy) return;
     setIsOpen(false);
     setQuery("");
   };
@@ -85,22 +108,32 @@ export default function AdminTutorSwitcherDropdown({
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        aria-label={t("switchTutor")}
-        disabled={pendingId != null}
-        title={activeLabel}
+        aria-busy={isBusy}
+        aria-label={isBusy ? t("switching") : t("switchTutor")}
+        disabled={isBusy}
+        title={toggleLabel}
       >
-        <SchoolIcon className="size-5 shrink-0 text-gray-500 dark:text-gray-400" />
+        {isBusy ? (
+          <Loader2
+            className="size-5 shrink-0 animate-spin text-gray-500 dark:text-gray-400"
+            aria-hidden
+          />
+        ) : (
+          <SchoolIcon className="size-5 shrink-0 text-gray-500 dark:text-gray-400" />
+        )}
         {!compact && (
           <>
             <span className="truncate text-theme-sm font-medium">
-              {activeLabel}
+              {toggleLabel}
             </span>
-            <ChevronDownIcon
-              className={cn(
-                "size-4 shrink-0 text-gray-500 transition-transform dark:text-gray-400",
-                isOpen && "rotate-180",
-              )}
-            />
+            {!isBusy && (
+              <ChevronDownIcon
+                className={cn(
+                  "size-4 shrink-0 text-gray-500 transition-transform dark:text-gray-400",
+                  isOpen && "rotate-180",
+                )}
+              />
+            )}
           </>
         )}
       </button>
@@ -121,6 +154,7 @@ export default function AdminTutorSwitcherDropdown({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               className="h-9"
+              disabled={isBusy}
             />
           </div>
         )}
@@ -136,7 +170,7 @@ export default function AdminTutorSwitcherDropdown({
           ) : (
             filteredTutors.map((tutor) => {
               const isActive = tutor.id === activeTutorId;
-              const isPending = pendingId === tutor.id;
+              const isPending = switchTargetId === tutor.id;
               return (
                 <li key={tutor.id}>
                   <button
@@ -149,14 +183,20 @@ export default function AdminTutorSwitcherDropdown({
                         ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
                         : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5",
                     )}
-                    disabled={pendingId != null}
+                    disabled={isBusy}
                     onClick={() => void handleSelect(tutor.id)}
                   >
                     <span className="truncate">
                       {isPending ? t("switching") : tutor.displayName}
                     </span>
-                    {isActive && (
+                    {isActive && !isPending && (
                       <CheckLineIcon className="size-4 shrink-0 text-brand-600 dark:text-brand-400" />
+                    )}
+                    {isPending && (
+                      <Loader2
+                        className="size-4 shrink-0 animate-spin text-brand-600 dark:text-brand-400"
+                        aria-hidden
+                      />
                     )}
                   </button>
                 </li>

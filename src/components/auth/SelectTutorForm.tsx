@@ -5,7 +5,7 @@ import Button from "@/components/ui/button/Button";
 import { setActiveTutorIdAction } from "@/app/actions/tutor-context";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 
 export type SelectTutorOption = {
   id: string;
@@ -21,21 +21,25 @@ export default function SelectTutorForm({ tutors }: SelectTutorFormProps) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   const handleSelect = useCallback(
     async (tutorId: string) => {
+      if (pendingId) return;
       setPendingId(tutorId);
       setError(null);
       const result = await setActiveTutorIdAction(tutorId);
-      setPendingId(null);
       if (!result.ok) {
+        setPendingId(null);
         setError(t("selectFailed"));
         return;
       }
-      router.push("/");
-      router.refresh();
+      startTransition(() => {
+        router.push("/");
+        router.refresh();
+      });
     },
-    [router, t],
+    [pendingId, router, startTransition, t],
   );
 
   return (
