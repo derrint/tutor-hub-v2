@@ -18,9 +18,9 @@ import React, {
 type AttendanceContextValue = {
   absentOccurrenceIds: ReadonlySet<string>;
   isAbsent: (occurrenceId: string) => boolean;
-  markAbsent: (occurrenceId: string) => Promise<void>;
-  markBillable: (occurrenceId: string) => Promise<void>;
-  toggleAbsent: (occurrenceId: string) => Promise<void>;
+  markAbsent: (occurrenceId: string) => Promise<boolean>;
+  markBillable: (occurrenceId: string) => Promise<boolean>;
+  toggleAbsent: (occurrenceId: string) => Promise<boolean>;
 };
 
 const AttendanceContext = createContext<AttendanceContextValue | null>(null);
@@ -81,10 +81,17 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
     async (occurrenceId: string) => {
       applyOptimistic(occurrenceId, true);
       try {
-        await setOccurrenceAbsentAction(occurrenceId, true);
+        const result = await setOccurrenceAbsentAction(occurrenceId, true);
+        if (!result.ok) {
+          revertOptimistic(occurrenceId);
+          return false;
+        }
+        router.refresh();
+        return true;
       } catch {
         revertOptimistic(occurrenceId);
         router.refresh();
+        return false;
       }
     },
     [applyOptimistic, revertOptimistic, router],
@@ -94,10 +101,17 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
     async (occurrenceId: string) => {
       applyOptimistic(occurrenceId, false);
       try {
-        await setOccurrenceAbsentAction(occurrenceId, false);
+        const result = await setOccurrenceAbsentAction(occurrenceId, false);
+        if (!result.ok) {
+          revertOptimistic(occurrenceId);
+          return false;
+        }
+        router.refresh();
+        return true;
       } catch {
         revertOptimistic(occurrenceId);
         router.refresh();
+        return false;
       }
     },
     [applyOptimistic, revertOptimistic, router],
@@ -108,10 +122,17 @@ export function AttendanceProvider({ children }: { children: React.ReactNode }) 
       const nextAbsent = !isAbsent(occurrenceId);
       applyOptimistic(occurrenceId, nextAbsent);
       try {
-        await toggleOccurrenceAbsentAction(occurrenceId);
+        const result = await toggleOccurrenceAbsentAction(occurrenceId);
+        if (!result.ok) {
+          revertOptimistic(occurrenceId);
+          return false;
+        }
+        router.refresh();
+        return true;
       } catch {
         revertOptimistic(occurrenceId);
         router.refresh();
+        return false;
       }
     },
     [applyOptimistic, isAbsent, revertOptimistic, router],

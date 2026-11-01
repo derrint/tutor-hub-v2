@@ -10,6 +10,10 @@ import {
 } from "@/lib/tutor-context/assert-tutor-scope";
 import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-id";
 
+export type AttendanceMutationResult =
+  | { ok: true }
+  | { ok: false; reason: "invalid" };
+
 async function guardOccurrenceStudent(
   studentId: string,
 ): Promise<string | null> {
@@ -26,12 +30,12 @@ async function guardOccurrenceStudent(
 export async function setOccurrenceAbsentAction(
   occurrenceId: string,
   absent: boolean,
-) {
+): Promise<AttendanceMutationResult> {
   const parsed = parseOccurrenceId(occurrenceId);
-  if (!parsed) return;
+  if (!parsed) return { ok: false, reason: "invalid" };
 
   const tutorId = await guardOccurrenceStudent(parsed.studentId);
-  if (!tutorId) return;
+  if (!tutorId) return { ok: false, reason: "invalid" };
 
   const date = calendarDateToStoredDate(
     parsed.year,
@@ -51,14 +55,17 @@ export async function setOccurrenceAbsentAction(
   });
 
   revalidateAdminRoutes();
+  return { ok: true };
 }
 
-export async function toggleOccurrenceAbsentAction(occurrenceId: string) {
+export async function toggleOccurrenceAbsentAction(
+  occurrenceId: string,
+): Promise<AttendanceMutationResult> {
   const parsed = parseOccurrenceId(occurrenceId);
-  if (!parsed) return;
+  if (!parsed) return { ok: false, reason: "invalid" };
 
   const tutorId = await guardOccurrenceStudent(parsed.studentId);
-  if (!tutorId) return;
+  if (!tutorId) return { ok: false, reason: "invalid" };
 
   const date = calendarDateToStoredDate(
     parsed.year,
@@ -79,4 +86,5 @@ export async function toggleOccurrenceAbsentAction(occurrenceId: string) {
   });
 
   revalidateAdminRoutes();
+  return { ok: true };
 }

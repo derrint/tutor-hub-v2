@@ -9,6 +9,7 @@ import LevelBadge from "@/components/common/LevelBadge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
+import RemoveWeeklySlotConfirmModal from "@/components/schedule/RemoveWeeklySlotConfirmModal";
 import SessionAttendanceToggle from "@/components/schedule/SessionAttendanceToggle";
 import StatusBadge from "@/components/common/StatusBadge";
 import { useAttendance } from "@/context/AttendanceContext";
@@ -104,7 +105,13 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   );
 
   const { isOpen, openModal, closeModal } = useModal();
+  const {
+    isOpen: isRemoveConfirmOpen,
+    openModal: openRemoveConfirm,
+    closeModal: closeRemoveConfirm,
+  } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
+  const [isRemovingSlot, setIsRemovingSlot] = useState(false);
 
   const selectedOccurrenceId =
     selected?.date != null
@@ -135,29 +142,27 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     openModal();
   };
 
-  const handleRemoveWeeklySlot = () => {
-    if (!selected) return;
-
-    const weekdays = formatWeekdayLabels(selected.session.daysOfWeek, (key) =>
-      t(`weekdays.${key}`),
-    );
-    const confirmed = window.confirm(
-      t("removeWeeklySlotConfirm", {
-        studentName: selected.session.studentName,
-        weekdays,
-        startTime: selected.session.startTime,
-        endTime: selected.session.endTime,
-      }),
-    );
-    if (!confirmed) return;
-
-    void deleteRecurringSession(selected.session.id).then((ok) => {
-      if (ok) {
-        closeModal();
-        setSelected(null);
-      }
-    });
+  const handleRequestRemoveWeeklySlot = () => {
+    if (!selected || isRemovingSlot) return;
+    openRemoveConfirm();
   };
+
+  const handleConfirmRemoveWeeklySlot = async () => {
+    if (!selected || isRemovingSlot) return;
+    setIsRemovingSlot(true);
+    const result = await deleteRecurringSession(selected.session.id);
+    setIsRemovingSlot(false);
+    if (!result.ok) return;
+    closeRemoveConfirm();
+    closeModal();
+    setSelected(null);
+  };
+
+  const removeConfirmWeekdays = selected
+    ? formatWeekdayLabels(selected.session.daysOfWeek, (key) =>
+        t(`weekdays.${key}`),
+      )
+    : "";
 
   const handleEditWeeklySlot = () => {
     if (!selected || !onEditWeeklySlot) return;
@@ -192,7 +197,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 
       <Modal
         isOpen={isOpen}
-        onClose={closeModal}
+        onClose={isRemovingSlot ? () => {} : closeModal}
         className="max-w-125 p-5 sm:p-6"
       >
         {selected && (
@@ -266,7 +271,8 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                 variant="outline"
                 className={removeWeeklySlotButtonClassName}
                 startIcon={<TrashBinIcon className="size-4 shrink-0" />}
-                onClick={handleRemoveWeeklySlot}
+                disabled={isRemovingSlot}
+                onClick={handleRequestRemoveWeeklySlot}
                 aria-label={t("removeWeeklySlotAria", {
                   studentName: selected.session.studentName,
                 })}
@@ -277,6 +283,19 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           </div>
         )}
       </Modal>
+
+      {selected && (
+        <RemoveWeeklySlotConfirmModal
+          isOpen={isRemoveConfirmOpen}
+          onClose={closeRemoveConfirm}
+          studentName={selected.session.studentName}
+          weekdays={removeConfirmWeekdays}
+          startTime={selected.session.startTime}
+          endTime={selected.session.endTime}
+          isSubmitting={isRemovingSlot}
+          onConfirm={() => void handleConfirmRemoveWeeklySlot()}
+        />
+      )}
     </>
   );
 };

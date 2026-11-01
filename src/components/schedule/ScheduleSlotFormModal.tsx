@@ -8,6 +8,7 @@ import { useRoster } from "@/context/RosterContext";
 import { useSchedule } from "@/context/ScheduleContext";
 import { todayIsoDateLocal } from "@/lib/datetime/calendar-date";
 import type { SlotPrefill } from "@/lib/schedule/parse-slot-select";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
@@ -52,9 +53,13 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:00");
   const [startDate, setStartDate] = useState(() => todayIsoDateLocal());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFailed, setSubmitFailed] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
+    setSubmitFailed(false);
+    setIsSubmitting(false);
     const base = prefill ?? {
       dayOfWeek: new Date().getDay(),
       startTime: "17:00",
@@ -73,10 +78,17 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
     setStartDate(base.startDate ?? todayIsoDateLocal());
   }, [isOpen, prefill, activeStudents]);
 
+  const handleClose = () => {
+    if (isSubmitting) return;
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId) return;
-    const created = await upsertRecurringSession({
+    if (!studentId || isSubmitting) return;
+    setIsSubmitting(true);
+    setSubmitFailed(false);
+    const result = await upsertRecurringSession({
       id: prefill?.ruleId,
       studentId,
       daysOfWeek: [dayOfWeek],
@@ -84,13 +96,18 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
       endTime,
       startDate,
     });
-    if (created !== null) onClose();
+    setIsSubmitting(false);
+    if (result.ok) {
+      onClose();
+      return;
+    }
+    setSubmitFailed(true);
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       className="max-w-lg p-6 sm:p-8"
     >
       <h2 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">
@@ -99,6 +116,15 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
       <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
         {isEdit ? t("editSlotHint") : t("addSlotHint")}
       </p>
+
+      {submitFailed && (
+        <p
+          className="mt-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
+          role="alert"
+        >
+          {t("slotSaveFailed")}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div>
@@ -114,7 +140,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               required
-              disabled={isEdit}
+              disabled={isEdit || isSubmitting}
             >
               {activeStudents.map((student) => (
                 <option key={student.id} value={student.id}>
@@ -133,6 +159,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
+            disabled={isSubmitting}
           />
           <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">
             {t("fieldStartDateHint")}
@@ -148,6 +175,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
             onChange={(e) =>
               setDayOfWeek(Number.parseInt(e.target.value, 10))
             }
+            disabled={isSubmitting}
           >
             {WEEKDAY_KEYS.map((key, index) => (
               <option key={key} value={index}>
@@ -166,6 +194,7 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -176,20 +205,32 @@ const ScheduleSlotFormModal: React.FC<ScheduleSlotFormModalProps> = ({
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               required
+              disabled={isSubmitting}
             />
           </div>
         </div>
 
         <div className="mt-2 flex flex-wrap justify-end gap-3">
-          <Button size="sm" variant="outline" onClick={onClose} htmlType="button">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleClose}
+            htmlType="button"
+            disabled={isSubmitting}
+          >
             {tCommon("close")}
           </Button>
           <Button
             size="sm"
             htmlType="submit"
-            disabled={activeStudents.length === 0}
+            disabled={activeStudents.length === 0 || isSubmitting}
+            startIcon={
+              isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : undefined
+            }
           >
-            {tCommon("saveChanges")}
+            {isSubmitting ? t("slotSaving") : tCommon("saveChanges")}
           </Button>
         </div>
       </form>

@@ -3,8 +3,9 @@
 import Button from "@/components/ui/button/Button";
 import { useAttendance } from "@/context/AttendanceContext";
 import { cn } from "@/utils";
-import { RotateCcw, UserX } from "lucide-react";
+import { Loader2, RotateCcw, UserX } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 type SessionAttendanceToggleProps = {
   occurrenceId: string;
@@ -22,14 +23,25 @@ const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
   const t = useTranslations("tutorHub.attendance");
   const { isAbsent, toggleAbsent } = useAttendance();
   const absent = isAbsent(occurrenceId);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleClick = async () => {
+    if (isPending) return;
+    setIsPending(true);
+    await toggleAbsent(occurrenceId);
+    setIsPending(false);
+  };
 
   return (
     <Button
       size="sm"
       variant={absent ? "outlineSuccess" : "outlineWarning"}
       className={cn(compact && "shrink-0", className)}
+      disabled={isPending}
       startIcon={
-        showIcon ? (
+        isPending ? (
+          <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+        ) : showIcon ? (
           absent ? (
             <RotateCcw className="size-4 shrink-0" aria-hidden />
           ) : (
@@ -38,10 +50,15 @@ const SessionAttendanceToggle: React.FC<SessionAttendanceToggleProps> = ({
         ) : undefined
       }
       aria-pressed={absent}
+      aria-busy={isPending}
       aria-label={absent ? t("markBillableAria") : t("markAbsentAria")}
-      onClick={() => toggleAbsent(occurrenceId)}
+      onClick={() => void handleClick()}
     >
-      {absent ? t("markBillable") : t("markAbsent")}
+      {isPending
+        ? t("saving")
+        : absent
+          ? t("markBillable")
+          : t("markAbsent")}
     </Button>
   );
 };
