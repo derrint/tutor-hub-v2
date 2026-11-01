@@ -6,9 +6,11 @@ import { ChatIcon, CheckLineIcon } from "@/icons";
 import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useRoster } from "@/context/RosterContext";
 import type { InvoicePreview } from "@/lib/mock-data";
+import InvoiceStatusConfirmModal from "@/components/invoices/InvoiceStatusConfirmModal";
 import InvoiceWhatsAppPreviewModal from "@/components/invoices/InvoiceWhatsAppPreviewModal";
 import { useModal } from "@/hooks/useModal";
 import { useInvoices } from "@/context/InvoiceContext";
+import type { InvoiceStatus } from "@/lib/domain/types";
 import {
   buildParentMonthlyWhatsAppMessage,
   buildWaMeUrl,
@@ -21,7 +23,7 @@ import {
   formatRupiah,
 } from "@/utils";
 import { useTranslations } from "next-intl";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 /**
  * One card per parent per month, mirroring the WhatsApp message the tutor
@@ -41,9 +43,10 @@ type InvoiceCardActionsProps = {
   showMarkUnpaid: boolean;
   showMarkPaid: boolean;
   layout: "mobile" | "desktop";
+  statusPending: InvoiceStatus | null;
   onOpenWhatsAppPreview: () => void;
-  onMarkUnpaid: () => void;
-  onMarkPaid: () => void;
+  onRequestMarkUnpaid: () => void;
+  onRequestMarkPaid: () => void;
 };
 
 function InvoiceCardActions({
@@ -52,12 +55,14 @@ function InvoiceCardActions({
   showMarkUnpaid,
   showMarkPaid,
   layout,
+  statusPending,
   onOpenWhatsAppPreview,
-  onMarkUnpaid,
-  onMarkPaid,
+  onRequestMarkUnpaid,
+  onRequestMarkPaid,
 }: InvoiceCardActionsProps) {
   const t = useTranslations("tutorHub.invoices");
   const isMobile = layout === "mobile";
+  const actionsDisabled = statusPending !== null;
   const buttonClass = isMobile
     ? "min-h-11 w-full"
     : "min-h-11 w-full md:min-h-0 md:w-auto";
@@ -74,6 +79,7 @@ function InvoiceCardActions({
           size="sm"
           variant="primary"
           className={buttonClass}
+          disabled={actionsDisabled}
           startIcon={<ChatIcon className="size-4" />}
           aria-label={t("sendWhatsAppAria", {
             parentName: invoice.parentName,
@@ -88,12 +94,13 @@ function InvoiceCardActions({
           size="sm"
           variant="outline"
           className={buttonClass}
+          disabled={actionsDisabled}
           aria-label={t("markUnpaidAria", {
             parentName: invoice.parentName,
           })}
-          onClick={onMarkUnpaid}
+          onClick={onRequestMarkUnpaid}
         >
-          {t("markUnpaid")}
+          {statusPending === "UNPAID" ? t("statusSaving") : t("markUnpaid")}
         </Button>
       )}
       {showMarkPaid && (
@@ -101,11 +108,16 @@ function InvoiceCardActions({
           size="sm"
           variant="outline"
           className={buttonClass}
-          startIcon={<CheckLineIcon className="size-4" />}
+          disabled={actionsDisabled}
+          startIcon={
+            statusPending === "PAID" ? undefined : (
+              <CheckLineIcon className="size-4" />
+            )
+          }
           aria-label={t("markPaidAria", { parentName: invoice.parentName })}
-          onClick={onMarkPaid}
+          onClick={onRequestMarkPaid}
         >
-          {t("markPaid")}
+          {statusPending === "PAID" ? t("statusSaving") : t("markPaid")}
         </Button>
       )}
     </div>
@@ -127,6 +139,46 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     openModal: openPreview,
     closeModal: closePreview,
   } = useModal();
+  const {
+    isOpen: isStatusConfirmOpen,
+    openModal: openStatusConfirm,
+    closeModal: closeStatusConfirm,
+  } = useModal();
+  const [confirmIntent, setConfirmIntent] = useState<InvoiceStatus>("PAID");
+  const [statusPending, setStatusPending] = useState<InvoiceStatus | null>(null);
+
+  const periodLabel = formatInvoicePeriodLabel(invoice.period);
+
+  const handleRequestMarkStatus = useCallback(
+    (intent: InvoiceStatus) => {
+      if (statusPending) return;
+      setConfirmIntent(intent);
+      openStatusConfirm();
+    },
+    [openStatusConfirm, statusPending],
+  );
+
+  const handleCloseStatusConfirm = useCallback(() => {
+    if (statusPending) return;
+    closeStatusConfirm();
+  }, [closeStatusConfirm, statusPending]);
+
+  const handleConfirmStatus = useCallback(async () => {
+    if (statusPending) return;
+    setStatusPending(confirmIntent);
+    try {
+      await setInvoiceStatus(invoice.id, confirmIntent);
+      closeStatusConfirm();
+    } finally {
+      setStatusPending(null);
+    }
+  }, [
+    closeStatusConfirm,
+    confirmIntent,
+    invoice.id,
+    setInvoiceStatus,
+    statusPending,
+  ]);
 
   const whatsAppPayload = useMemo(() => {
     if (actionsLocked || invoice.status !== "UNPAID" || !parent) return null;
@@ -163,9 +215,10 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     whatsAppPayload,
     showMarkUnpaid,
     showMarkPaid,
+    statusPending,
     onOpenWhatsAppPreview: openPreview,
-    onMarkUnpaid: () => setInvoiceStatus(invoice.id, "UNPAID"),
-    onMarkPaid: () => setInvoiceStatus(invoice.id, "PAID"),
+    onRequestMarkUnpaid: () => handleRequestMarkStatus("UNPAID"),
+    onRequestMarkPaid: () => handleRequestMarkStatus("PAID"),
   };
 
   return (
@@ -253,6 +306,16 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
           whatsAppUrl={whatsAppPayload.whatsAppUrl}
         />
       )}
+
+      <InvoiceStatusConfirmModal
+        isOpen={isStatusConfirmOpen}
+        onClose={handleCloseStatusConfirm}
+        intent={confirmIntent}
+        parentName={invoice.parentName}
+        periodLabel={periodLabel}
+        isSubmitting={statusPending !== null}
+        onConfirm={() => void handleConfirmStatus()}
+      />
     </div>
   );
 };

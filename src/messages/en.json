@@ -3,6 +3,7 @@
     "home": "Home",
     "edit": "Edit",
     "close": "Close",
+    "cancel": "Cancel",
     "saveChanges": "Save Changes",
     "viewMore": "View More",
     "delete": "Delete",
@@ -370,7 +371,12 @@
       "attachReportHintNamed": "In WhatsApp, attach each rapot PDF for: {names}.",
       "copyMessage": "Copy message",
       "copiedMessage": "Copied!",
-      "openWhatsApp": "Open WhatsApp"
+      "openWhatsApp": "Open WhatsApp",
+      "confirmMarkPaidTitle": "Mark as paid?",
+      "confirmMarkPaidBody": "Record {parentName} ({period}) as paid. Amounts will be saved as they appear on this invoice.",
+      "confirmMarkUnpaidTitle": "Mark as unpaid?",
+      "confirmMarkUnpaidBody": "Revert {parentName} ({period}) to unpaid. Line items will be calculated from sessions again.",
+      "statusSaving": "Saving…"
     },
     "reports": {
       "title": "Reports",
