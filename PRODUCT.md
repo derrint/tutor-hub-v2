@@ -61,7 +61,7 @@ Shipped in **tutor-hub-v2** (see [`ROADMAP.md`](./ROADMAP.md)):
 - **Parents / Students:** CRUD via server actions; empty states when roster is empty; **INACTIVE** stops rules (`endDate`) and deletes future sessions; fee changes sync `Session.fee` in unpaid calendar months.
 - **Schedule:** add/edit/remove weekly slots; mark absent per date on calendar; optimistic absent toggle.
 - **Access:** **Auth.js** + **Google sign-in**; only emails with a **`User`** row in Postgres (`src/lib/auth/sign-in-gate.ts`).
-- **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** dev-only; **WhatsApp** preview + `wa.me`.
+- **Invoices:** auto-list per billing month; derive-on-read unpaid from materialized sessions (non-`ABSENT`); mark paid snapshots; **Mark unpaid** on paid cards (when month not locked); **WhatsApp** preview + `wa.me`.
 - **Billing month:** shared month picker + `?month=` on Invoices, Reports, Finance.
 - **Finance / Dashboard:** totals from session-derived invoice previews (same as invoice cards).
 - **Reports:** `MonthlyReport.contentJson` (v1: can do / still learning / goals / photos / notes); empty state when no active students; **Save** persists without clearing “PDF ready”; edits after export show **Re-download PDF** until exported again; **PDF on demand** (`/api/reports/pdf`, not stored); attach in WhatsApp manually.

@@ -152,15 +152,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     status: invoice.status,
   });
 
-  const showMarkUnpaid =
-    !actionsLocked &&
-    invoice.status === "PAID" &&
-    process.env.NODE_ENV !== "production";
+  const showMarkUnpaid = !actionsLocked && invoice.status === "PAID";
 
   const showMarkPaid = !actionsLocked && invoice.status === "UNPAID";
 
-  const hasActions =
-    Boolean(whatsAppPayload) || showMarkUnpaid || showMarkPaid;
+  const hasActions = Boolean(whatsAppPayload) || showMarkUnpaid || showMarkPaid;
 
   const actionProps = {
     invoice,
@@ -242,7 +238,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
       </div>
 
       {hasActions && (
-        <div className="border-t border-gray-100 px-5 pb-4 pt-4 sm:px-6 md:hidden dark:border-gray-800">
+        <div className="border-t border-gray-100 px-5 pt-4 pb-4 sm:px-6 md:hidden dark:border-gray-800">
           <InvoiceCardActions {...actionProps} layout="mobile" />
         </div>
       )}

@@ -154,7 +154,7 @@ prisma/migrations/            # Includes phase5_multi_tutor, user_role TEACHER, 
 4. On each release with schema changes, run **`pnpm db:migrate:deploy`** against production (CLI or CI). Fix **P3015** by ensuring every folder under `prisma/migrations/` contains a `migration.sql` (delete empty migration dirs).
 5. Ensure at least one **`ADMIN`** **`User`** exists (migration initial users or manual SQL) before first deploy sign-in.
 6. **`pnpm build`** must pass locally before shipping.
-7. **Production:** **Mark unpaid** is hidden on invoice cards (`NODE_ENV=production`). Rapot PDF: **`GET /api/reports/pdf`** (session required; route checks `auth()` internally).
+7. **Production:** Rapot PDF: **`GET /api/reports/pdf`** (session required; route checks `auth()` internally). Paid invoices can be reverted to unpaid from the invoice card when the billing month is not locked.
 
 One Vercel app serves all practices; isolation is **`tutorId`** in the database and server guards, not separate deployments.
 
