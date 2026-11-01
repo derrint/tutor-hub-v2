@@ -13,10 +13,12 @@ import React, { useId } from "react";
 
 type BillingMonthNavigatorProps = {
   className?: string;
+  disabled?: boolean;
 };
 
 const BillingMonthNavigator: React.FC<BillingMonthNavigatorProps> = ({
   className,
+  disabled = false,
 }) => {
   const t = useTranslations("tutorHub.billingMonth");
   const { period, setPeriod, goToPreviousMonth, goToNextMonth } =
@@ -35,8 +37,9 @@ const BillingMonthNavigator: React.FC<BillingMonthNavigatorProps> = ({
       <div className="flex max-w-full flex-wrap items-center justify-end gap-1">
         <button
           type="button"
+          disabled={disabled}
           onClick={goToPreviousMonth}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-white/3 dark:text-gray-400 dark:hover:bg-white/5"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-white/3 dark:text-gray-400 dark:hover:bg-white/5"
           aria-label={t("previousMonth")}
         >
           <ChevronLeftIcon className="size-5 rtl:rotate-180" />
@@ -48,18 +51,20 @@ const BillingMonthNavigator: React.FC<BillingMonthNavigatorProps> = ({
         <input
           id={inputId}
           type="month"
+          disabled={disabled}
           value={toMonthInputValue(period)}
           onChange={(event) => {
             const next = periodFromMonthInputValue(event.target.value);
             if (next) setPeriod(next);
           }}
-          className="h-9 min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-theme-sm font-medium text-gray-800 dark:border-gray-800 dark:bg-white/3 dark:text-white/90 sm:min-w-44"
+          className="h-9 min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-theme-sm font-medium text-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-white/3 dark:text-white/90 sm:min-w-44"
         />
 
         <button
           type="button"
+          disabled={disabled}
           onClick={goToNextMonth}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-white/3 dark:text-gray-400 dark:hover:bg-white/5"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-white/3 dark:text-gray-400 dark:hover:bg-white/5"
           aria-label={t("nextMonth")}
         >
           <ChevronRightIcon className="size-5 rtl:rotate-180" />

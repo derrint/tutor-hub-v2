@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  listInvoicesForPeriodAction,
   setInvoiceStatusAction,
   type SetInvoiceStatusResult,
 } from "@/app/actions/invoices";
+import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useBillingInitial } from "@/context/BillingInitialContext";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
+import { formatBillingMonthParam } from "@/lib/billing-period";
 import { buildInvoiceId, parseInvoiceId } from "@/lib/invoices/invoice-id";
 import {
   deriveInvoiceForParent,
@@ -15,19 +18,21 @@ import {
 import { hydrateSessions } from "@/lib/invoices/session-serialization";
 import type { InvoicePreview, InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
-import { useRouter } from "@/i18n/navigation";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
 export type InvoiceContextValue = {
   isBillingReady: boolean;
   getInvoicesForPeriod: (period: InvoicePeriod) => InvoicePreview[];
+  isPeriodLoading: (period: InvoicePeriod) => boolean;
+  loadInvoicesForPeriod: (period: InvoicePeriod) => Promise<void>;
   setInvoiceStatus: (
     invoiceId: string,
     status: InvoiceStatus,
@@ -36,7 +41,29 @@ export type InvoiceContextValue = {
 
 export const InvoiceContext = createContext<InvoiceContextValue | null>(null);
 
-function applyInvoicePatches(
+function applyPatchesToPeriodInvoices(
+  period: InvoicePeriod,
+  invoices: InvoicePreview[],
+  patches: Record<string, InvoicePreview>,
+): InvoicePreview[] {
+  const byParent = new Map(invoices.map((inv) => [inv.parentId, inv]));
+
+  for (const patch of Object.values(patches)) {
+    if (
+      patch.period.month !== period.month ||
+      patch.period.year !== period.year
+    ) {
+      continue;
+    }
+    byParent.set(patch.parentId, patch);
+  }
+
+  return [...byParent.values()].sort((a, b) =>
+    a.parentName.localeCompare(b.parentName),
+  );
+}
+
+function applyInvoicePatchesToPaidList(
   period: InvoicePeriod,
   paidInvoices: InvoicePreview[],
   patches: Record<string, InvoicePreview>,
@@ -66,7 +93,28 @@ function applyInvoicePatches(
   return [...paidByParent.values()];
 }
 
+function periodCacheKey(
+  tutorId: string | null | undefined,
+  period: InvoicePeriod,
+): string | null {
+  if (!tutorId) return null;
+  return `${tutorId}:${formatBillingMonthParam(period)}`;
+}
+
+function mergeInvoiceIntoPeriodCache(
+  cache: InvoicePreview[],
+  invoice: InvoicePreview,
+): InvoicePreview[] {
+  const byParent = new Map(cache.map((inv) => [inv.parentId, inv]));
+  byParent.set(invoice.parentId, invoice);
+  return [...byParent.values()].sort((a, b) =>
+    a.parentName.localeCompare(b.parentName),
+  );
+}
+
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
+  const { tutorContext } = useAdminInitial();
+  const activeTutorId = tutorContext.activeTutorId;
   const { sessions: serializedSessions, paidInvoices } = useBillingInitial();
   const sessions = useMemo(
     () => hydrateSessions(serializedSessions),
@@ -74,11 +122,24 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   );
   const { absentOccurrenceIds } = useAttendance();
   const { students, parents } = useRoster();
-  const router = useRouter();
   const absentSet = absentOccurrenceIds;
   const [invoicePatches, setInvoicePatches] = useState<
     Record<string, InvoicePreview>
   >({});
+  const [periodCache, setPeriodCache] = useState<
+    Record<string, InvoicePreview[]>
+  >({});
+  const [periodLoadingKey, setPeriodLoadingKey] = useState<string | null>(null);
+  const loadGenerationRef = useRef(0);
+  const periodCacheRef = useRef(periodCache);
+  periodCacheRef.current = periodCache;
+
+  useEffect(() => {
+    loadGenerationRef.current += 1;
+    setPeriodCache({});
+    setInvoicePatches({});
+    setPeriodLoadingKey(null);
+  }, [activeTutorId]);
 
   useEffect(() => {
     setInvoicePatches((prev) => {
@@ -110,9 +171,9 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     });
   }, [paidInvoices]);
 
-  const getInvoicesForPeriod = useCallback(
-    (period: InvoicePeriod) => {
-      const patchedPaid = applyInvoicePatches(
+  const deriveInvoicesClientSide = useCallback(
+    (period: InvoicePeriod): InvoicePreview[] => {
+      const patchedPaid = applyInvoicePatchesToPaidList(
         period,
         paidInvoices,
         invoicePatches,
@@ -176,6 +237,52 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
+  const getInvoicesForPeriod = useCallback(
+    (period: InvoicePeriod) => {
+      const key = periodCacheKey(activeTutorId, period);
+      if (key) {
+        const cached = periodCache[key];
+        if (cached) {
+          return applyPatchesToPeriodInvoices(period, cached, invoicePatches);
+        }
+      }
+      return deriveInvoicesClientSide(period);
+    },
+    [activeTutorId, periodCache, invoicePatches, deriveInvoicesClientSide],
+  );
+
+  const isPeriodLoading = useCallback(
+    (period: InvoicePeriod) => {
+      const key = periodCacheKey(activeTutorId, period);
+      return key !== null && periodLoadingKey === key;
+    },
+    [activeTutorId, periodLoadingKey],
+  );
+
+  const loadInvoicesForPeriod = useCallback(
+    async (period: InvoicePeriod) => {
+      const key = periodCacheKey(activeTutorId, period);
+      if (!key) return;
+      if (periodCacheRef.current[key]) {
+        return;
+      }
+
+      const generation = loadGenerationRef.current + 1;
+      loadGenerationRef.current = generation;
+      setPeriodLoadingKey(key);
+      try {
+        const list = await listInvoicesForPeriodAction(period);
+        if (loadGenerationRef.current !== generation) return;
+        setPeriodCache((prev) => ({ ...prev, [key]: list }));
+      } finally {
+        if (loadGenerationRef.current === generation) {
+          setPeriodLoadingKey(null);
+        }
+      }
+    },
+    [activeTutorId],
+  );
+
   const setInvoiceStatus = useCallback(
     async (invoiceId: string, status: InvoiceStatus) => {
       const parsed = parseInvoiceId(invoiceId);
@@ -200,20 +307,36 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           [result.invoice.id]: result.invoice,
         }));
-        router.refresh();
+        const key = periodCacheKey(activeTutorId, result.invoice.period);
+        if (key) {
+          setPeriodCache((prev) => ({
+            ...prev,
+            [key]: mergeInvoiceIntoPeriodCache(
+              prev[key] ?? deriveInvoicesClientSide(result.invoice.period),
+              result.invoice,
+            ),
+          }));
+        }
       }
       return result;
     },
-    [router],
+    [activeTutorId, deriveInvoicesClientSide],
   );
 
   const value = useMemo(
     () => ({
       isBillingReady: true,
       getInvoicesForPeriod,
+      isPeriodLoading,
+      loadInvoicesForPeriod,
       setInvoiceStatus,
     }),
-    [getInvoicesForPeriod, setInvoiceStatus],
+    [
+      getInvoicesForPeriod,
+      isPeriodLoading,
+      loadInvoicesForPeriod,
+      setInvoiceStatus,
+    ],
   );
 
   return (

@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
+import { mapParent, mapStudent } from "@/lib/db/mappers";
+import { prisma } from "@/lib/db/prisma";
 import type { InvoicePreview, InvoiceStatus } from "@/lib/domain/types";
 import {
   buildAbsentOccurrenceIdSet,
+  getInvoicesForPeriodFromDb,
   loadSessionsForGenerationWindow,
   markInvoicePaidInDb,
   markInvoiceUnpaidInDb,
@@ -19,6 +22,29 @@ import { requireActiveTutorId } from "@/lib/tutor-context/require-active-tutor-i
 export type SetInvoiceStatusResult =
   | { ok: true; invoice: InvoicePreview }
   | { ok: false; reason: "forbidden" | "invalid" };
+
+/** Server-derived invoice list for one billing month (active tutor). */
+export async function listInvoicesForPeriodAction(
+  period: InvoicePeriod,
+): Promise<InvoicePreview[]> {
+  const tutorId = await requireActiveTutorId();
+  const [sessions, studentsRows, parentsRows] = await Promise.all([
+    loadSessionsForGenerationWindow(tutorId),
+    prisma.student.findMany({ where: { tutorId } }),
+    prisma.parent.findMany({ where: { tutorId } }),
+  ]);
+  const absentOccurrenceIds = buildAbsentOccurrenceIdSet(sessions);
+  const students = studentsRows.map(mapStudent);
+  const parents = parentsRows.map(mapParent);
+  return getInvoicesForPeriodFromDb(
+    tutorId,
+    period,
+    absentOccurrenceIds,
+    sessions,
+    students,
+    parents,
+  );
+}
 
 export async function setInvoiceStatusAction(
   invoiceId: string,
