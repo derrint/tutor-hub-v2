@@ -101,6 +101,8 @@ export interface CalendarProps {
   onTimeSlotSelect?: (info: DateSelectInfo) => void;
   /** Bumps event content when attendance (or similar) changes outside FC state. */
   eventContentRevision?: string;
+  /** Read-only schedules: sync FullCalendar when recurring rules change. */
+  eventsKey?: string;
   /** Extra class on the inner calendar root (e.g. schedule scroll constraints). */
   containerClassName?: string;
   /** Fixed height for time-grid views; default `auto`. */
@@ -132,6 +134,7 @@ const Calendar: React.FC<CalendarProps> = ({
   onEventClick,
   onTimeSlotSelect,
   eventContentRevision = "",
+  eventsKey = "",
   containerClassName = "",
   timeGridHeight,
   weekends,
@@ -185,11 +188,24 @@ const Calendar: React.FC<CalendarProps> = ({
   const mountedRef = useRef(false);
   const datesSetRafRef = useRef<number | null>(null);
   const onCalendarReadyRef = useRef(onCalendarReady);
+  const scheduleEventsRef = useRef(initialEvents);
+  scheduleEventsRef.current = initialEvents;
+  const prevScheduleEventsKeyRef = useRef(eventsKey);
   const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     onCalendarReadyRef.current = onCalendarReady;
   }, [onCalendarReady]);
+
+  /** Read-only schedule: replace events without remounting (preserves week/day navigation). */
+  useEffect(() => {
+    if (!readOnly || !eventsKey) return;
+    if (prevScheduleEventsKeyRef.current === eventsKey) return;
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    prevScheduleEventsKeyRef.current = eventsKey;
+    api.setOption("events", scheduleEventsRef.current);
+  }, [readOnly, eventsKey]);
 
   useLayoutEffect(() => {
     mountedRef.current = true;

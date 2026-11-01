@@ -91,6 +91,18 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     [recurringSessions, studentColorById],
   );
 
+  const eventsKey = useMemo(
+    () =>
+      recurringSessions
+        .map(
+          (session) =>
+            `${session.id}|${session.startDate}|${session.startTime}|${session.endTime}|${session.daysOfWeek.join(",")}`,
+        )
+        .sort()
+        .join("\n"),
+    [recurringSessions],
+  );
+
   const { isOpen, openModal, closeModal } = useModal();
   const [selected, setSelected] = useState<SelectedOccurrence | null>(null);
 
@@ -160,6 +172,7 @@ const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         readOnly
         initialView="timeGridWeek"
         initialEvents={sessionEvents}
+        eventsKey={eventsKey}
         slotMinTime="12:00:00"
         slotMaxTime="21:00:00"
         viewOptions={viewOptions}
