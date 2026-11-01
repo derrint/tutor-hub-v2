@@ -22,8 +22,13 @@ import {
   formatInvoiceSessionDays,
   formatRupiah,
 } from "@/utils";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useMemo, useState } from "react";
+
+function ActionSpinner() {
+  return <Loader2 className="size-4 animate-spin" aria-hidden />;
+}
 
 /**
  * One card per parent per month, mirroring the WhatsApp message the tutor
@@ -95,6 +100,9 @@ function InvoiceCardActions({
           variant="outline"
           className={buttonClass}
           disabled={actionsDisabled}
+          startIcon={
+            statusPending === "UNPAID" ? <ActionSpinner /> : undefined
+          }
           aria-label={t("markUnpaidAria", {
             parentName: invoice.parentName,
           })}
@@ -110,7 +118,9 @@ function InvoiceCardActions({
           className={buttonClass}
           disabled={actionsDisabled}
           startIcon={
-            statusPending === "PAID" ? undefined : (
+            statusPending === "PAID" ? (
+              <ActionSpinner />
+            ) : (
               <CheckLineIcon className="size-4" />
             )
           }
@@ -167,8 +177,10 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     if (statusPending) return;
     setStatusPending(confirmIntent);
     try {
-      await setInvoiceStatus(invoice.id, confirmIntent);
-      closeStatusConfirm();
+      const result = await setInvoiceStatus(invoice.id, confirmIntent);
+      if (result.ok) {
+        closeStatusConfirm();
+      }
     } finally {
       setStatusPending(null);
     }

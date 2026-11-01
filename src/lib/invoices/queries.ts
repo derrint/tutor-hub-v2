@@ -101,13 +101,20 @@ export async function getInvoicesForPeriodFromDb(
   return shells.sort((a, b) => a.parentName.localeCompare(b.parentName));
 }
 
+const paidInvoiceInclude = {
+  parent: true,
+  items: {
+    include: { student: true, sessions: true },
+  },
+} as const;
+
 export async function markInvoicePaidInDb(
   tutorId: string,
   invoiceId: string,
   period: InvoicePeriod,
   parentId: string,
   absentOccurrenceIds: ReadonlySet<string>,
-): Promise<void> {
+): Promise<InvoicePreview> {
   const students = (
     await prisma.student.findMany({ where: { tutorId } })
   ).map(mapStudent);
@@ -207,13 +214,23 @@ export async function markInvoicePaidInDb(
       }
     }
   });
+
+  const saved = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: paidInvoiceInclude,
+  });
+  if (!saved) {
+    throw new Error("Paid invoice record missing after save");
+  }
+  return invoicePreviewFromPaidRecord(saved);
 }
 
 export async function markInvoiceUnpaidInDb(
   tutorId: string,
   parentId: string,
   period: InvoicePeriod,
-): Promise<void> {
+  absentOccurrenceIds: ReadonlySet<string>,
+): Promise<InvoicePreview> {
   const invoice = await prisma.invoice.findUnique({
     where: {
       tutorId_parentId_month_year: {
@@ -225,7 +242,37 @@ export async function markInvoiceUnpaidInDb(
     },
   });
 
-  if (!invoice) return;
+  const students = (
+    await prisma.student.findMany({ where: { tutorId } })
+  ).map(mapStudent);
+  const parents = (
+    await prisma.parent.findMany({ where: { tutorId } })
+  ).map(mapParent);
+  const sessions = await loadSessionsForGenerationWindow(tutorId);
+
+  if (!invoice) {
+    const derived = deriveInvoiceForParent(
+      parentId,
+      period,
+      absentOccurrenceIds,
+      students,
+      sessions,
+      parents,
+    );
+    if (derived) {
+      return { ...derived, status: "UNPAID" };
+    }
+    return {
+      id: buildInvoiceId(parentId, period),
+      status: "UNPAID",
+      parentId,
+      parentName:
+        parents.find((p) => p.id === parentId)?.name ?? parentId,
+      period,
+      children: [],
+      total: 0,
+    };
+  }
 
   await prisma.$transaction(async (tx) => {
     const items = await tx.invoiceItem.findMany({
@@ -242,6 +289,27 @@ export async function markInvoiceUnpaidInDb(
     await tx.invoiceItem.deleteMany({ where: { invoiceId: invoice.id } });
     await tx.invoice.delete({ where: { id: invoice.id } });
   });
+
+  const derived = deriveInvoiceForParent(
+    parentId,
+    period,
+    absentOccurrenceIds,
+    students,
+    sessions,
+    parents,
+  );
+  if (derived) {
+    return { ...derived, status: "UNPAID" };
+  }
+  return {
+    id: buildInvoiceId(parentId, period),
+    status: "UNPAID",
+    parentId,
+    parentName: parents.find((p) => p.id === parentId)?.name ?? parentId,
+    period,
+    children: [],
+    total: 0,
+  };
 }
 
 export { buildInvoiceId };

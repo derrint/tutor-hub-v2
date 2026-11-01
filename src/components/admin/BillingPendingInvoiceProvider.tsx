@@ -9,7 +9,7 @@ import { useMemo } from "react";
 const pendingValue: InvoiceContextValue = {
   isBillingReady: false,
   getInvoicesForPeriod: () => [],
-  setInvoiceStatus: async () => {},
+  setInvoiceStatus: async () => ({ ok: false, reason: "invalid" }),
 };
 
 /** Stub invoice context while billing initial load runs (dashboard / shell stay usable). */

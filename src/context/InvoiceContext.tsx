@@ -1,6 +1,9 @@
 "use client";
 
-import { setInvoiceStatusAction } from "@/app/actions/invoices";
+import {
+  setInvoiceStatusAction,
+  type SetInvoiceStatusResult,
+} from "@/app/actions/invoices";
 import { useBillingInitial } from "@/context/BillingInitialContext";
 import { useAttendance } from "@/context/AttendanceContext";
 import { useRoster } from "@/context/RosterContext";
@@ -17,7 +20,9 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 
 export type InvoiceContextValue = {
@@ -26,10 +31,40 @@ export type InvoiceContextValue = {
   setInvoiceStatus: (
     invoiceId: string,
     status: InvoiceStatus,
-  ) => Promise<void>;
+  ) => Promise<SetInvoiceStatusResult>;
 };
 
 export const InvoiceContext = createContext<InvoiceContextValue | null>(null);
+
+function applyInvoicePatches(
+  period: InvoicePeriod,
+  paidInvoices: InvoicePreview[],
+  patches: Record<string, InvoicePreview>,
+): InvoicePreview[] {
+  const paidForPeriod = paidInvoices.filter(
+    (inv) =>
+      inv.period.month === period.month && inv.period.year === period.year,
+  );
+  const paidByParent = new Map(
+    paidForPeriod.map((inv) => [inv.parentId, inv]),
+  );
+
+  for (const patch of Object.values(patches)) {
+    if (
+      patch.period.month !== period.month ||
+      patch.period.year !== period.year
+    ) {
+      continue;
+    }
+    if (patch.status === "PAID") {
+      paidByParent.set(patch.parentId, patch);
+    } else {
+      paidByParent.delete(patch.parentId);
+    }
+  }
+
+  return [...paidByParent.values()];
+}
 
 export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const { sessions: serializedSessions, paidInvoices } = useBillingInitial();
@@ -41,15 +76,49 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const { students, parents } = useRoster();
   const router = useRouter();
   const absentSet = absentOccurrenceIds;
+  const [invoicePatches, setInvoicePatches] = useState<
+    Record<string, InvoicePreview>
+  >({});
+
+  useEffect(() => {
+    setInvoicePatches((prev) => {
+      if (Object.keys(prev).length === 0) return prev;
+      const next = { ...prev };
+      let changed = false;
+      for (const [id, patch] of Object.entries(prev)) {
+        if (patch.status === "PAID") {
+          const server = paidInvoices.find((inv) => inv.id === id);
+          if (server?.status === "PAID") {
+            delete next[id];
+            changed = true;
+          }
+        } else {
+          const serverPaid = paidInvoices.some(
+            (inv) =>
+              inv.id === id &&
+              inv.parentId === patch.parentId &&
+              inv.period.month === patch.period.month &&
+              inv.period.year === patch.period.year,
+          );
+          if (!serverPaid) {
+            delete next[id];
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [paidInvoices]);
 
   const getInvoicesForPeriod = useCallback(
     (period: InvoicePeriod) => {
-      const paidForPeriod = paidInvoices.filter(
-        (inv) =>
-          inv.period.month === period.month && inv.period.year === period.year,
+      const patchedPaid = applyInvoicePatches(
+        period,
+        paidInvoices,
+        invoicePatches,
       );
       const paidByParent = new Map(
-        paidForPeriod.map((inv) => [inv.parentId, inv]),
+        patchedPaid.map((inv) => [inv.parentId, inv]),
       );
 
       const parentIds = listParentIdsWithSessionsInPeriod(
@@ -64,6 +133,18 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
         const paid = paidByParent.get(parentId);
         if (paid) {
           shells.push(paid);
+          continue;
+        }
+
+        const patch = Object.values(invoicePatches).find(
+          (p) =>
+            p.parentId === parentId &&
+            p.period.month === period.month &&
+            p.period.year === period.year &&
+            p.status === "UNPAID",
+        );
+        if (patch) {
+          shells.push(patch);
           continue;
         }
 
@@ -85,7 +166,14 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
 
       return shells.sort((a, b) => a.parentName.localeCompare(b.parentName));
     },
-    [paidInvoices, students, sessions, parents, absentSet],
+    [
+      paidInvoices,
+      invoicePatches,
+      students,
+      sessions,
+      parents,
+      absentSet,
+    ],
   );
 
   const setInvoiceStatus = useCallback(
@@ -98,11 +186,23 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
       const parentId = parsed?.parentId ?? "";
 
       if (!parentId) {
-        return;
+        return { ok: false, reason: "invalid" } as const;
       }
 
-      await setInvoiceStatusAction(invoiceId, status, period, parentId);
-      router.refresh();
+      const result = await setInvoiceStatusAction(
+        invoiceId,
+        status,
+        period,
+        parentId,
+      );
+      if (result.ok) {
+        setInvoicePatches((prev) => ({
+          ...prev,
+          [result.invoice.id]: result.invoice,
+        }));
+        router.refresh();
+      }
+      return result;
     },
     [router],
   );

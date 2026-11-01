@@ -3,6 +3,7 @@
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import type { InvoiceStatus } from "@/lib/domain/types";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import React from "react";
 
@@ -61,6 +62,11 @@ const InvoiceStatusConfirmModal: React.FC<InvoiceStatusConfirmModalProps> = ({
             variant={isPaid ? "outlineSuccess" : "outlineWarning"}
             className="min-h-11 w-full sm:min-h-0 sm:w-auto"
             disabled={isSubmitting}
+            startIcon={
+              isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : undefined
+            }
             onClick={onConfirm}
           >
             {isSubmitting
