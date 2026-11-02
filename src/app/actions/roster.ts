@@ -1,7 +1,9 @@
 "use server";
 
+import { mapStudent } from "@/lib/db/mappers";
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { prisma } from "@/lib/db/prisma";
+import type { StudentRecord } from "@/lib/domain/types";
 import { normalizeHonorificStored } from "@/lib/whatsapp/format-honorific";
 import {
   pickNextStudentCalendarColorKey,
@@ -35,6 +37,14 @@ export type StudentInput = {
   parentId: string;
   calendarColorKey?: string;
 };
+
+export type UpsertStudentResult =
+  | { ok: true; student: StudentRecord }
+  | { ok: false; reason: "invalid" };
+
+export type DeleteStudentResult =
+  | { ok: true; deletedStudentId: string }
+  | { ok: false; reason: "invalid" };
 
 function newId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -86,13 +96,20 @@ export async function deleteParentAction(parentId: string) {
   return { ok: true as const };
 }
 
-export async function upsertStudentAction(input: StudentInput) {
+export async function upsertStudentAction(
+  input: StudentInput,
+): Promise<UpsertStudentResult> {
   const tutorId = await requireActiveTutorId();
   const id = input.id ?? newId("m");
 
-  await assertParentInTutor(input.parentId, tutorId);
-  if (input.id) {
-    await assertStudentInTutor(input.id, tutorId);
+  try {
+    await assertParentInTutor(input.parentId, tutorId);
+    if (input.id) {
+      await assertStudentInTutor(input.id, tutorId);
+    }
+  } catch (error) {
+    if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
+    throw error;
   }
 
   const existing = input.id
@@ -158,15 +175,17 @@ export async function upsertStudentAction(input: StudentInput) {
   }
 
   revalidateAdminRoutes();
-  return student;
+  return { ok: true, student: mapStudent(student) };
 }
 
-export async function deleteStudentAction(studentId: string) {
+export async function deleteStudentAction(
+  studentId: string,
+): Promise<DeleteStudentResult> {
   const tutorId = await requireActiveTutorId();
   try {
     await assertStudentInTutor(studentId, tutorId);
   } catch (error) {
-    if (error instanceof TutorScopeError) return;
+    if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
     throw error;
   }
 
@@ -174,4 +193,5 @@ export async function deleteStudentAction(studentId: string) {
   await prisma.scheduleRule.deleteMany({ where: { studentId } });
   await prisma.student.deleteMany({ where: { id: studentId, tutorId } });
   revalidateAdminRoutes();
+  return { ok: true, deletedStudentId: studentId };
 }

@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRoster } from "@/context/RosterContext";
-import type { Student } from "@/lib/mock-data";
+import type { StudentRecord } from "@/lib/domain/types";
 import { formatRupiah } from "@/utils";
 import { PencilIcon } from "@/icons";
 import { useTranslations } from "next-intl";
@@ -20,15 +20,19 @@ const HEADER_CELL =
   "px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400";
 
 type StudentsTableProps = {
-  onEdit: (student: Student) => void;
+  onEdit: (student: StudentRecord) => void;
+  isBusy?: boolean;
 };
 
-const StudentsTable: React.FC<StudentsTableProps> = ({ onEdit }) => {
+const StudentsTable: React.FC<StudentsTableProps> = ({ onEdit, isBusy = false }) => {
   const t = useTranslations("tutorHub.students");
   const { students, parentDisplayName } = useRoster();
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
+    <div
+      className={`overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3 ${isBusy ? "pointer-events-none opacity-60" : ""}`}
+      aria-busy={isBusy}
+    >
       <div className="max-w-full overflow-x-auto">
         <Table>
           <TableHeader className="border-b border-gray-100 dark:border-white/5">

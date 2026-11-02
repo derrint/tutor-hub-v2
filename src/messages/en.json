@@ -325,7 +325,9 @@
       "emptyTitle": "No students yet",
       "emptyDescription": "Add students and link each one to a parent for scheduling and billing.",
       "emptyNoParentsTitle": "Add a parent first",
-      "emptyNoParentsDescription": "Each student must belong to a parent before you can add them here."
+      "emptyNoParentsDescription": "Each student must belong to a parent before you can add them here.",
+      "saving": "Saving…",
+      "saveFailed": "Couldn’t save this student. Try again."
     },
     "parents": {
       "title": "Parents",

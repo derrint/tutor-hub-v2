@@ -7,7 +7,7 @@ import StudentsTable from "@/components/students/StudentsTable";
 import Button from "@/components/ui/button/Button";
 import { useRoster } from "@/context/RosterContext";
 import { useModal } from "@/hooks/useModal";
-import type { Student } from "@/lib/mock-data";
+import type { StudentRecord } from "@/lib/domain/types";
 import { PlusIcon } from "@/icons";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -17,7 +17,8 @@ const StudentsPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.students");
   const { students, parents } = useRoster();
   const { isOpen, openModal, closeModal } = useModal();
-  const [editing, setEditing] = useState<Student | null>(null);
+  const [editing, setEditing] = useState<StudentRecord | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const activeCount = students.filter((s) => s.status === "ACTIVE").length;
 
@@ -26,7 +27,7 @@ const StudentsPageContent: React.FC = () => {
     openModal();
   };
 
-  const handleEdit = (student: Student) => {
+  const handleEdit = (student: StudentRecord) => {
     setEditing(student);
     openModal();
   };
@@ -89,12 +90,13 @@ const StudentsPageContent: React.FC = () => {
           }
         />
       ) : (
-        <StudentsTable onEdit={handleEdit} />
+        <StudentsTable onEdit={handleEdit} isBusy={isSaving} />
       )}
       <StudentFormModal
         isOpen={isOpen}
         onClose={handleClose}
         student={editing}
+        onSubmittingChange={setIsSaving}
       />
     </div>
   );

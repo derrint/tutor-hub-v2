@@ -5,20 +5,26 @@ import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { useRoster } from "@/context/RosterContext";
-import type { EducationLevel, Student, StudentStatus } from "@/lib/mock-data";
+import type {
+  EducationLevel,
+  StudentRecord,
+  StudentStatus,
+} from "@/lib/domain/types";
 import {
   STUDENT_CALENDAR_COLOR_KEYS,
   pickNextStudentCalendarColorKey,
   type StudentCalendarColorKey,
 } from "@/lib/students/calendar-colors";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 type StudentFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  student?: Student | null;
+  student?: StudentRecord | null;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
 };
 
 type FormState = {
@@ -48,14 +54,19 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
   isOpen,
   onClose,
   student,
+  onSubmittingChange,
 }) => {
   const t = useTranslations("tutorHub.students");
   const tCommon = useTranslations("common");
   const { parents, students, upsertStudent } = useRoster();
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFailed, setSubmitFailed] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
+    setSubmitFailed(false);
+    setIsSubmitting(false);
     if (student) {
       setForm({
         name: student.name,
@@ -77,8 +88,18 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
     }
   }, [isOpen, student, parents, students]);
 
+  useEffect(() => {
+    onSubmittingChange?.(isSubmitting);
+  }, [isSubmitting, onSubmittingChange]);
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const age = Number.parseInt(form.age, 10);
     const feePerSession = Number.parseInt(form.feePerSession, 10);
     if (!form.parentId || !Number.isFinite(age) || !Number.isFinite(feePerSession)) {
@@ -91,7 +112,9 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
     ) {
       return;
     }
-    await upsertStudent({
+    setIsSubmitting(true);
+    setSubmitFailed(false);
+    const result = await upsertStudent({
       id: student?.id,
       name: form.name,
       age,
@@ -101,18 +124,32 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
       parentId: form.parentId,
       calendarColorKey: form.calendarColorKey,
     });
-    onClose();
+    setIsSubmitting(false);
+    if (result.ok) {
+      onClose();
+      return;
+    }
+    setSubmitFailed(true);
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       className="max-w-lg p-6 sm:p-8"
     >
       <h2 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">
         {student ? t("editTitle") : t("addTitle")}
       </h2>
+
+      {submitFailed && (
+        <p
+          className="mt-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
+          role="alert"
+        >
+          {t("saveFailed")}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div>
@@ -122,6 +159,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
+            disabled={isSubmitting}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -135,6 +173,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
               value={form.age}
               onChange={(e) => setForm((f) => ({ ...f, age: e.target.value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div>
@@ -149,6 +188,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   level: e.target.value as EducationLevel,
                 }))
               }
+              disabled={isSubmitting}
             >
               <option value="TK">TK</option>
               <option value="SD">SD</option>
@@ -167,6 +207,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
               setForm((f) => ({ ...f, feePerSession: e.target.value }))
             }
             required
+            disabled={isSubmitting}
           />
         </div>
         <div>
@@ -181,6 +222,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 calendarColorKey: e.target.value as StudentCalendarColorKey,
               }))
             }
+            disabled={isSubmitting}
           >
             {STUDENT_CALENDAR_COLOR_KEYS.map((key) => (
               <option key={key} value={key}>
@@ -201,6 +243,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 status: e.target.value as StudentStatus,
               }))
             }
+            disabled={isSubmitting}
           >
             <option value="ACTIVE">{t("statusActive")}</option>
             <option value="INACTIVE">{t("statusInactive")}</option>
@@ -227,6 +270,7 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 setForm((f) => ({ ...f, parentId: e.target.value }))
               }
               required
+              disabled={isSubmitting}
             >
               {parents.map((parent) => (
                 <option key={parent.id} value={parent.id}>
@@ -238,11 +282,26 @@ const StudentFormModal: React.FC<StudentFormModalProps> = ({
         </div>
 
         <div className="mt-2 flex flex-wrap justify-end gap-3">
-          <Button size="sm" variant="outline" onClick={onClose} htmlType="button">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleClose}
+            htmlType="button"
+            disabled={isSubmitting}
+          >
             {tCommon("close")}
           </Button>
-          <Button size="sm" disabled={parents.length === 0} htmlType="submit">
-            {tCommon("saveChanges")}
+          <Button
+            size="sm"
+            disabled={parents.length === 0 || isSubmitting}
+            htmlType="submit"
+            startIcon={
+              isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : undefined
+            }
+          >
+            {isSubmitting ? t("saving") : tCommon("saveChanges")}
           </Button>
         </div>
       </form>
