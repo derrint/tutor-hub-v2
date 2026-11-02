@@ -7,7 +7,7 @@ import ParentsTable from "@/components/parents/ParentsTable";
 import Button from "@/components/ui/button/Button";
 import { useRoster } from "@/context/RosterContext";
 import { useModal } from "@/hooks/useModal";
-import type { MockParent } from "@/lib/mock-data";
+import type { ParentRecord } from "@/lib/domain/types";
 import { PlusIcon } from "@/icons";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -16,14 +16,15 @@ const ParentsPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.parents");
   const { parents } = useRoster();
   const { isOpen, openModal, closeModal } = useModal();
-  const [editing, setEditing] = useState<MockParent | null>(null);
+  const [editing, setEditing] = useState<ParentRecord | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleAdd = () => {
     setEditing(null);
     openModal();
   };
 
-  const handleEdit = (parent: MockParent) => {
+  const handleEdit = (parent: ParentRecord) => {
     setEditing(parent);
     openModal();
   };
@@ -67,12 +68,13 @@ const ParentsPageContent: React.FC = () => {
           }
         />
       ) : (
-        <ParentsTable onEdit={handleEdit} />
+        <ParentsTable onEdit={handleEdit} isBusy={isSaving} />
       )}
       <ParentFormModal
         isOpen={isOpen}
         onClose={handleClose}
         parent={editing}
+        onSubmittingChange={setIsSaving}
       />
     </div>
   );

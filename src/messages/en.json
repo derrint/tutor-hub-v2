@@ -348,7 +348,9 @@
       "columnName": "Name",
       "columnSalutation": "Salutation",
       "columnWhatsApp": "WhatsApp",
-      "columnStudents": "Students"
+      "columnStudents": "Students",
+      "saving": "Saving…",
+      "saveFailed": "Couldn’t save this parent. Try again."
     },
     "billingMonth": {
       "previousMonth": "Previous month",

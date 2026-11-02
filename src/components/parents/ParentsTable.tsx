@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRoster } from "@/context/RosterContext";
-import type { MockParent } from "@/lib/mock-data";
+import type { ParentRecord } from "@/lib/domain/types";
 import { PencilIcon } from "@/icons";
 import { useTranslations } from "next-intl";
 
@@ -16,10 +16,11 @@ const HEADER_CELL =
   "px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400";
 
 type ParentsTableProps = {
-  onEdit: (parent: MockParent) => void;
+  onEdit: (parent: ParentRecord) => void;
+  isBusy?: boolean;
 };
 
-const ParentsTable: React.FC<ParentsTableProps> = ({ onEdit }) => {
+const ParentsTable: React.FC<ParentsTableProps> = ({ onEdit, isBusy = false }) => {
   const t = useTranslations("tutorHub.parents");
   const { parents, students } = useRoster();
 
@@ -27,7 +28,10 @@ const ParentsTable: React.FC<ParentsTableProps> = ({ onEdit }) => {
     students.filter((s) => s.parentId === parentId).length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
+    <div
+      className={`overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3 ${isBusy ? "pointer-events-none opacity-60" : ""}`}
+      aria-busy={isBusy}
+    >
       <div className="max-w-full overflow-x-auto">
         <Table>
           <TableHeader className="border-b border-gray-100 dark:border-white/5">

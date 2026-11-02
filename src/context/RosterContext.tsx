@@ -5,13 +5,23 @@ import {
   upsertParentAction,
   upsertStudentAction,
   deleteStudentAction,
+  type DeleteParentResult,
   type DeleteStudentResult,
   type ParentInput,
   type StudentInput,
+  type UpsertParentResult,
   type UpsertStudentResult,
 } from "@/app/actions/roster";
 import { useAdminInitial } from "@/context/AdminInitialContext";
 import type { ParentRecord, StudentRecord } from "@/lib/domain/types";
+import {
+  applyParentDeleteOverlay,
+  applyParentUpsertOverlay,
+  emptyParentOverlay,
+  mergeParentsWithOverlay,
+  reconcileParentOverlay,
+  type ParentOverlay,
+} from "@/lib/roster/merge-parent-overlay";
 import {
   applyStudentDeleteOverlay,
   applyStudentUpsertOverlay,
@@ -35,8 +45,8 @@ type RosterContextValue = {
   students: StudentRecord[];
   getParentById: (parentId: string) => ParentRecord | undefined;
   parentDisplayName: (parentId: string) => string;
-  upsertParent: (input: ParentInput) => Promise<ParentRecord>;
-  deleteParent: (parentId: string) => Promise<boolean>;
+  upsertParent: (input: ParentInput) => Promise<UpsertParentResult>;
+  deleteParent: (parentId: string) => Promise<DeleteParentResult>;
   upsertStudent: (input: StudentInput) => Promise<UpsertStudentResult>;
   deleteStudent: (studentId: string) => Promise<DeleteStudentResult>;
 };
@@ -45,25 +55,40 @@ const RosterContext = createContext<RosterContextValue | null>(null);
 
 export function RosterProvider({ children }: { children: React.ReactNode }) {
   const {
-    parents,
+    parents: serverParents,
     students: serverStudents,
     tutorContext,
   } = useAdminInitial();
   const activeTutorId = tutorContext.activeTutorId;
   const router = useRouter();
+  const [parentOverlay, setParentOverlay] = useState<ParentOverlay>(() =>
+    emptyParentOverlay(),
+  );
   const [studentOverlay, setStudentOverlay] = useState<StudentOverlay>(() =>
     emptyStudentOverlay(),
   );
 
   useEffect(() => {
+    setParentOverlay(emptyParentOverlay());
     setStudentOverlay(emptyStudentOverlay());
   }, [activeTutorId]);
+
+  useEffect(() => {
+    setParentOverlay((prev) =>
+      reconcileParentOverlay(serverParents, prev),
+    );
+  }, [serverParents]);
 
   useEffect(() => {
     setStudentOverlay((prev) =>
       reconcileStudentOverlay(serverStudents, prev),
     );
   }, [serverStudents]);
+
+  const parents = useMemo(
+    () => mergeParentsWithOverlay(serverParents, parentOverlay),
+    [serverParents, parentOverlay],
+  );
 
   const students = useMemo(
     () => mergeStudentsWithOverlay(serverStudents, studentOverlay),
@@ -85,15 +110,14 @@ export function RosterProvider({ children }: { children: React.ReactNode }) {
 
   const upsertParent = useCallback(
     async (input: ParentInput) => {
-      const row = await upsertParentAction(input);
-      router.refresh();
-      return {
-        id: row.id,
-        name: row.name,
-        salutation: row.salutation,
-        honorific: row.honorific,
-        whatsapp: row.whatsapp ?? "",
-      };
+      const result = await upsertParentAction(input);
+      if (result.ok) {
+        setParentOverlay((prev) =>
+          applyParentUpsertOverlay(prev, result.parent),
+        );
+        router.refresh();
+      }
+      return result;
     },
     [router],
   );
@@ -101,8 +125,13 @@ export function RosterProvider({ children }: { children: React.ReactNode }) {
   const deleteParent = useCallback(
     async (parentId: string) => {
       const result = await deleteParentAction(parentId);
-      if (result.ok) router.refresh();
-      return result.ok;
+      if (result.ok) {
+        setParentOverlay((prev) =>
+          applyParentDeleteOverlay(prev, result.deletedParentId),
+        );
+        router.refresh();
+      }
+      return result;
     },
     [router],
   );

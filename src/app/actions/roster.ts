@@ -1,9 +1,9 @@
 "use server";
 
-import { mapStudent } from "@/lib/db/mappers";
+import { mapParent, mapStudent } from "@/lib/db/mappers";
 import { revalidateAdminRoutes } from "@/lib/db/revalidate-admin";
 import { prisma } from "@/lib/db/prisma";
-import type { StudentRecord } from "@/lib/domain/types";
+import type { ParentRecord, StudentRecord } from "@/lib/domain/types";
 import { normalizeHonorificStored } from "@/lib/whatsapp/format-honorific";
 import {
   pickNextStudentCalendarColorKey,
@@ -38,6 +38,14 @@ export type StudentInput = {
   calendarColorKey?: string;
 };
 
+export type UpsertParentResult =
+  | { ok: true; parent: ParentRecord }
+  | { ok: false; reason: "invalid" };
+
+export type DeleteParentResult =
+  | { ok: true; deletedParentId: string }
+  | { ok: false; reason: "invalid" | "linkedStudents" };
+
 export type UpsertStudentResult =
   | { ok: true; student: StudentRecord }
   | { ok: false; reason: "invalid" };
@@ -50,11 +58,18 @@ function newId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export async function upsertParentAction(input: ParentInput) {
+export async function upsertParentAction(
+  input: ParentInput,
+): Promise<UpsertParentResult> {
   const tutorId = await requireActiveTutorId();
   const id = input.id ?? newId("p");
   if (input.id) {
-    await assertParentInTutor(input.id, tutorId);
+    try {
+      await assertParentInTutor(input.id, tutorId);
+    } catch (error) {
+      if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
+      throw error;
+    }
   }
   const parent = await prisma.parent.upsert({
     where: { id },
@@ -74,26 +89,28 @@ export async function upsertParentAction(input: ParentInput) {
     },
   });
   revalidateAdminRoutes();
-  return parent;
+  return { ok: true, parent: mapParent(parent) };
 }
 
-export async function deleteParentAction(parentId: string) {
+export async function deleteParentAction(
+  parentId: string,
+): Promise<DeleteParentResult> {
   const tutorId = await requireActiveTutorId();
   try {
     await assertParentInTutor(parentId, tutorId);
   } catch (error) {
-    if (error instanceof TutorScopeError) return { ok: false as const };
+    if (error instanceof TutorScopeError) return { ok: false, reason: "invalid" };
     throw error;
   }
 
   const linked = await prisma.student.count({
     where: { parentId, tutorId },
   });
-  if (linked > 0) return { ok: false as const };
+  if (linked > 0) return { ok: false, reason: "linkedStudents" };
 
   await prisma.parent.deleteMany({ where: { id: parentId, tutorId } });
   revalidateAdminRoutes();
-  return { ok: true as const };
+  return { ok: true, deletedParentId: parentId };
 }
 
 export async function upsertStudentAction(
