@@ -3,6 +3,7 @@
 import { useAttendance } from "@/context/AttendanceContext";
 import { useBillingInitialOptional } from "@/context/BillingInitialContext";
 import { useInvoices } from "@/context/InvoiceContext";
+import { useEnsureInvoicePeriodLoaded } from "@/hooks/useEnsureInvoicePeriodLoaded";
 import { computeEarnedSoFarInPeriod } from "@/lib/attendance/compute-earned-so-far";
 import {
   computeFinanceSummary,
@@ -21,13 +22,19 @@ import { useEffect, useMemo, useState } from "react";
  * Finance page passes URL billing month via `useBillingPeriod`.
  */
 export type FinanceSummaryResult = FinanceSummary & {
+  /** Billing shell + server invoice list for `period` are ready to display. */
   isBillingReady: boolean;
 };
 
 export function useFinanceSummary(
   period: InvoicePeriod = getCurrentInvoicePeriod(),
 ): FinanceSummaryResult {
-  const { getInvoicesForPeriod, isBillingReady } = useInvoices();
+  const {
+    getInvoicesForPeriod,
+    isBillingReady: isBillingShellReady,
+    isPeriodListReady,
+  } = useInvoices();
+  useEnsureInvoicePeriodLoaded(period);
   const billing = useBillingInitialOptional();
   const { absentOccurrenceIds } = useAttendance();
   const absentSet = useMemo(
@@ -39,7 +46,7 @@ export function useFinanceSummary(
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!isCurrentMonth || !isBillingReady) return;
+    if (!isCurrentMonth || !isBillingShellReady) return;
 
     const refresh = () => setNowMs(Date.now());
     const intervalId = window.setInterval(refresh, 60_000);
@@ -51,16 +58,19 @@ export function useFinanceSummary(
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [isCurrentMonth, isBillingReady]);
+  }, [isCurrentMonth, isBillingShellReady]);
 
   const sessions = useMemo(
     () => (billing ? hydrateSessions(billing.sessions) : []),
     [billing],
   );
 
+  const invoiceListReady = isPeriodListReady(period);
+  const isBillingReady = isBillingShellReady && invoiceListReady;
+
   return useMemo(() => {
     const invoices = isBillingReady ? getInvoicesForPeriod(period) : [];
-    const earnedSoFar = isBillingReady
+    const earnedSoFar = isBillingShellReady
       ? computeEarnedSoFarInPeriod(sessions, period, absentSet, nowMs)
       : 0;
 
@@ -71,6 +81,7 @@ export function useFinanceSummary(
   }, [
     getInvoicesForPeriod,
     isBillingReady,
+    isBillingShellReady,
     period,
     sessions,
     absentSet,

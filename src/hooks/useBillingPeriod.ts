@@ -56,8 +56,12 @@ export function useBillingPeriod() {
   const setPeriod = useCallback(
     (next: InvoicePeriod) => {
       writeStoredBillingMonth(next);
+      const nextParam = formatBillingMonthParam(next);
+      if (searchParams.get("month") === nextParam) {
+        return;
+      }
       const params = new URLSearchParams(searchParams.toString());
-      params.set("month", formatBillingMonthParam(next));
+      params.set("month", nextParam);
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname);
     },

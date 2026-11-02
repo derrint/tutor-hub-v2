@@ -10,6 +10,7 @@ const pendingValue: InvoiceContextValue = {
   isBillingReady: false,
   invoicesCacheEpoch: 0,
   getInvoicesForPeriod: () => [],
+  isPeriodListReady: () => false,
   isPeriodLoading: () => false,
   loadInvoicesForPeriod: async () => {},
   setInvoiceStatus: async () => ({ ok: false, reason: "invalid" }),

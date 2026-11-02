@@ -5,42 +5,29 @@ import InvoiceCard from "@/components/invoices/InvoiceCard";
 import PageHeader from "@/components/common/PageHeader";
 import BillingPageSkeleton from "@/components/loading/skeletons/BillingPageSkeleton";
 import { useBillingPeriod } from "@/hooks/useBillingPeriod";
-import { useAdminInitial } from "@/context/AdminInitialContext";
 import { useInvoices } from "@/context/InvoiceContext";
+import { useEnsureInvoicePeriodLoaded } from "@/hooks/useEnsureInvoicePeriodLoaded";
 import { isFutureBillingPeriod } from "@/lib/billing-period";
 import { useTranslations } from "next-intl";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 
 const InvoicesPageContent: React.FC = () => {
   const t = useTranslations("tutorHub.invoices");
   const { period } = useBillingPeriod();
-  const { tutorContext } = useAdminInitial();
-  const activeTutorId = tutorContext.activeTutorId;
   const {
     getInvoicesForPeriod,
     isBillingReady,
-    invoicesCacheEpoch,
+    isPeriodListReady,
     isPeriodLoading,
-    loadInvoicesForPeriod,
   } = useInvoices();
+  useEnsureInvoicePeriodLoaded(period);
   const isFuture = isFutureBillingPeriod(period);
   const monthLoading = isPeriodLoading(period);
-
-  useEffect(() => {
-    if (!isBillingReady) return;
-    void loadInvoicesForPeriod(period);
-  }, [
-    activeTutorId,
-    invoicesCacheEpoch,
-    isBillingReady,
-    loadInvoicesForPeriod,
-    period.month,
-    period.year,
-  ]);
+  const listReady = isPeriodListReady(period);
 
   const periodInvoices = useMemo(
-    () => (isBillingReady && !monthLoading ? getInvoicesForPeriod(period) : []),
-    [getInvoicesForPeriod, isBillingReady, monthLoading, period],
+    () => (isBillingReady && listReady ? getInvoicesForPeriod(period) : []),
+    [getInvoicesForPeriod, isBillingReady, listReady, period],
   );
 
   const unpaidCount = useMemo(
@@ -49,7 +36,7 @@ const InvoicesPageContent: React.FC = () => {
   );
 
   const showInitialSkeleton = !isBillingReady;
-  const showMonthSkeleton = isBillingReady && monthLoading;
+  const showMonthSkeleton = isBillingReady && !listReady;
 
   if (showInitialSkeleton) {
     return (
