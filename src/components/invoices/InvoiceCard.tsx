@@ -100,9 +100,7 @@ function InvoiceCardActions({
           variant="outline"
           className={buttonClass}
           disabled={actionsDisabled}
-          startIcon={
-            statusPending === "UNPAID" ? <ActionSpinner /> : undefined
-          }
+          startIcon={statusPending === "UNPAID" ? <ActionSpinner /> : undefined}
           aria-label={t("markUnpaidAria", {
             parentName: invoice.parentName,
           })}
@@ -114,7 +112,7 @@ function InvoiceCardActions({
       {showMarkPaid && (
         <Button
           size="sm"
-          variant="outline"
+          variant="outlineSuccess"
           className={buttonClass}
           disabled={actionsDisabled}
           startIcon={
@@ -133,6 +131,11 @@ function InvoiceCardActions({
     </div>
   );
 }
+
+const paidReceiptMuted = "text-gray-400 dark:text-gray-500";
+const paidReceiptAmount =
+  "text-gray-400 line-through decoration-gray-400/90 dark:text-gray-500 dark:decoration-gray-500/90";
+const paidReceiptBody = "bg-gray-100 dark:bg-gray-900";
 
 const InvoiceCard: React.FC<InvoiceCardProps> = ({
   invoice,
@@ -155,7 +158,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     closeModal: closeStatusConfirm,
   } = useModal();
   const [confirmIntent, setConfirmIntent] = useState<InvoiceStatus>("PAID");
-  const [statusPending, setStatusPending] = useState<InvoiceStatus | null>(null);
+  const [statusPending, setStatusPending] = useState<InvoiceStatus | null>(
+    null,
+  );
 
   const periodLabel = formatInvoicePeriodLabel(invoice.period);
 
@@ -216,8 +221,8 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     status: invoice.status,
   });
 
-  const showMarkUnpaid = !actionsLocked && invoice.status === "PAID";
-
+  const isPaid = invoice.status === "PAID";
+  const showMarkUnpaid = !actionsLocked && isPaid;
   const showMarkPaid = !actionsLocked && invoice.status === "UNPAID";
 
   const hasActions = Boolean(whatsAppPayload) || showMarkUnpaid || showMarkPaid;
@@ -234,8 +239,8 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
-      <div className="px-5 py-4 sm:px-6">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
+      <div className={cn("px-5 py-4 sm:px-6", isPaid && paidReceiptBody)}>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-medium text-gray-800 dark:text-white/90">
@@ -262,7 +267,14 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
         </div>
       </div>
 
-      <div className="border-t border-gray-100 px-5 py-4 sm:px-6 dark:border-gray-800">
+      <div
+        className={cn(
+          "px-5 py-4 sm:px-6",
+          isPaid
+            ? paidReceiptBody
+            : "border-t border-gray-100 dark:border-gray-800",
+        )}
+      >
         {invoice.children.length === 0 ? (
           <p className="text-theme-sm text-gray-500 dark:text-gray-400">
             {t("noBillableSessions")}
@@ -275,16 +287,28 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
                 className="flex items-start justify-between gap-4"
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                  <span
+                    className={cn(
+                      "text-theme-sm font-medium text-gray-800 dark:text-white/90",
+                      isPaid && paidReceiptMuted,
+                    )}
+                  >
                     {child.name}
                   </span>
                   <p className="text-theme-xs text-gray-500 dark:text-gray-400">
                     {t("sessionCount", { count: child.sessionCount })}
                     {" — "}
-                    {formatInvoiceSessionDays(child.sessionDays)}
+                    <span className={cn(isPaid && paidReceiptMuted)}>
+                      {formatInvoiceSessionDays(child.sessionDays)}
+                    </span>
                   </p>
                 </span>
-                <span className="text-gray-800 tabular-nums dark:text-white/90">
+                <span
+                  className={cn(
+                    "text-gray-800 tabular-nums dark:text-white/90",
+                    isPaid && paidReceiptAmount,
+                  )}
+                >
                   {formatRupiah(child.subtotal)}
                 </span>
               </li>
@@ -292,18 +316,43 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
           </ul>
         )}
 
-        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-800">
-          <span className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+        <div
+          className={cn(
+            "mt-4 flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-800",
+            isPaid && "border-gray-200/80 dark:border-gray-700/80",
+          )}
+        >
+          <span
+            className={cn(
+              "text-theme-sm font-medium text-gray-800 dark:text-white/90",
+              isPaid && paidReceiptMuted,
+            )}
+          >
             {t("total")}
           </span>
-          <span className="text-base font-bold text-gray-800 tabular-nums dark:text-white/90">
+          <span
+            className={cn(
+              "text-base font-bold text-gray-800 tabular-nums dark:text-white/90",
+              isPaid && paidReceiptAmount,
+            )}
+          >
             {formatRupiah(invoice.total)}
           </span>
         </div>
       </div>
 
       {hasActions && (
-        <div className="border-t border-gray-100 px-5 pt-4 pb-4 sm:px-6 md:hidden dark:border-gray-800">
+        <div
+          className={cn(
+            "border-t px-5 pt-4 pb-4 sm:px-6 md:hidden",
+            isPaid
+              ? cn(
+                  paidReceiptBody,
+                  "border-gray-200/80 dark:border-gray-700/80",
+                )
+              : "border-gray-100 dark:border-gray-800",
+          )}
+        >
           <InvoiceCardActions {...actionProps} layout="mobile" />
         </div>
       )}
