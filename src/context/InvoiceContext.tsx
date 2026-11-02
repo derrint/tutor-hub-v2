@@ -15,6 +15,7 @@ import {
   deriveInvoiceForParent,
   listParentIdsWithSessionsInPeriod,
 } from "@/lib/invoices/derive-from-sessions";
+import { invoiceListSourceFingerprint } from "@/lib/invoices/billing-data-fingerprint";
 import { hydrateSessions } from "@/lib/invoices/session-serialization";
 import type { InvoicePreview, InvoiceStatus } from "@/lib/domain/types";
 import type { InvoicePeriod } from "@/utils/format";
@@ -30,6 +31,8 @@ import React, {
 
 export type InvoiceContextValue = {
   isBillingReady: boolean;
+  /** Bumps when cached month lists are cleared (billing/roster/attendance changed). */
+  invoicesCacheEpoch: number;
   getInvoicesForPeriod: (period: InvoicePeriod) => InvoicePreview[];
   isPeriodLoading: (period: InvoicePeriod) => boolean;
   loadInvoicesForPeriod: (period: InvoicePeriod) => Promise<void>;
@@ -130,16 +133,36 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     Record<string, InvoicePreview[]>
   >({});
   const [periodLoadingKey, setPeriodLoadingKey] = useState<string | null>(null);
+  const [invoicesCacheEpoch, setInvoicesCacheEpoch] = useState(0);
   const loadGenerationRef = useRef(0);
   const periodCacheRef = useRef(periodCache);
   periodCacheRef.current = periodCache;
 
-  useEffect(() => {
+  const listSourceFingerprint = useMemo(
+    () =>
+      invoiceListSourceFingerprint({
+        sessions: serializedSessions,
+        paidInvoices,
+        students,
+        absentOccurrenceIds: absentSet,
+      }),
+    [serializedSessions, paidInvoices, students, absentSet],
+  );
+
+  const clearPeriodCache = useCallback(() => {
     loadGenerationRef.current += 1;
     setPeriodCache({});
-    setInvoicePatches({});
     setPeriodLoadingKey(null);
+    setInvoicesCacheEpoch((epoch) => epoch + 1);
+  }, []);
+
+  useEffect(() => {
+    setInvoicePatches({});
   }, [activeTutorId]);
+
+  useEffect(() => {
+    clearPeriodCache();
+  }, [activeTutorId, listSourceFingerprint, clearPeriodCache]);
 
   useEffect(() => {
     setInvoicePatches((prev) => {
@@ -240,11 +263,12 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const getInvoicesForPeriod = useCallback(
     (period: InvoicePeriod) => {
       const key = periodCacheKey(activeTutorId, period);
-      if (key) {
-        const cached = periodCache[key];
-        if (cached) {
-          return applyPatchesToPeriodInvoices(period, cached, invoicePatches);
-        }
+      if (key && key in periodCache) {
+        return applyPatchesToPeriodInvoices(
+          period,
+          periodCache[key] ?? [],
+          invoicePatches,
+        );
       }
       return deriveInvoicesClientSide(period);
     },
@@ -263,7 +287,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     async (period: InvoicePeriod) => {
       const key = periodCacheKey(activeTutorId, period);
       if (!key) return;
-      if (periodCacheRef.current[key]) {
+      if (key in periodCacheRef.current) {
         return;
       }
 
@@ -275,9 +299,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
         if (loadGenerationRef.current !== generation) return;
         setPeriodCache((prev) => ({ ...prev, [key]: list }));
       } finally {
-        if (loadGenerationRef.current === generation) {
-          setPeriodLoadingKey(null);
-        }
+        setPeriodLoadingKey((current) => (current === key ? null : current));
       }
     },
     [activeTutorId],
@@ -326,12 +348,14 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       isBillingReady: true,
+      invoicesCacheEpoch,
       getInvoicesForPeriod,
       isPeriodLoading,
       loadInvoicesForPeriod,
       setInvoiceStatus,
     }),
     [
+      invoicesCacheEpoch,
       getInvoicesForPeriod,
       isPeriodLoading,
       loadInvoicesForPeriod,

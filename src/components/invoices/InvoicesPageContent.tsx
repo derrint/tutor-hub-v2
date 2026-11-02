@@ -19,6 +19,7 @@ const InvoicesPageContent: React.FC = () => {
   const {
     getInvoicesForPeriod,
     isBillingReady,
+    invoicesCacheEpoch,
     isPeriodLoading,
     loadInvoicesForPeriod,
   } = useInvoices();
@@ -30,6 +31,7 @@ const InvoicesPageContent: React.FC = () => {
     void loadInvoicesForPeriod(period);
   }, [
     activeTutorId,
+    invoicesCacheEpoch,
     isBillingReady,
     loadInvoicesForPeriod,
     period.month,

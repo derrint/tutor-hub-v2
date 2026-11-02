@@ -8,6 +8,7 @@ import { useMemo } from "react";
 
 const pendingValue: InvoiceContextValue = {
   isBillingReady: false,
+  invoicesCacheEpoch: 0,
   getInvoicesForPeriod: () => [],
   isPeriodLoading: () => false,
   loadInvoicesForPeriod: async () => {},
